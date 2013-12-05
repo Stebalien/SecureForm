@@ -1,0 +1,15 @@
+.secureFormOverlayBackground {
+  background: #000000;
+  opacity: 0.7;
+}
+
+.secureFormOverlayForeground {
+  margin: 50px;
+  background: transparent;
+}
+
+.secureFormControls, .secureFormForm {
+  background: white;
+  margin: 10px;
+  border-radius: 10px;
+}

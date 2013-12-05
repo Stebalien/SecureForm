@@ -1,0 +1,13 @@
+<ul class="nav nav-tabs">
+  <% _.each(tabs, function(tab) { %>
+  <li class="tab-<%= tab.name %>">
+  <a data-toggle="tab" href="#<%= cid %>-<%= tab.name %>"><%= tab.title %></a>
+  </li>
+  <% }); %>
+</ul>
+<div class="tab-content">
+  <% _.each(tabs, function(tab) { %>
+  <div class="tab-pane tab-pane-<%= tab.name %>" id="<%= cid %>-<%= tab.name %>">
+  </div>
+  <% }); %>
+</div>

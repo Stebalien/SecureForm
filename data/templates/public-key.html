@@ -1,0 +1,6 @@
+<h4><%- key.prettyId() %></h4>
+<ul>
+  <% key.get('uids').each(function(uid) { %>
+    <li><%- uid.get('uid') %></li>
+  <% }); %>
+</ul>
