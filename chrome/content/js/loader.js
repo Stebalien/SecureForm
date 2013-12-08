@@ -1,7 +1,7 @@
 /**
  * Hey there...
  * Go away.
- * NO SERIOUSLY. GO THE FUCK AWAY.
+ * NO SERIOUSLY. GO AWAY.
  * 
  * (please, for your own sanity)
  **/
