@@ -1,474 +1,13533 @@
-function DSA(){this.select_hash_algorithm=function(b){var a=openpgp.config.config.prefer_hash_algorithm;switch(Math.round(b.bitLength()/8)){case 20:return 2!=a&&11<a&&10!=a&&8>a?2:a;case 28:return 11<a&&8>a?11:a;case 32:return 10<a&&8>a?8:a;default:return util.print_debug("DSA select hash algorithm: returning null for an unknown length of q"),null}};this.sign=function(b,a,c,d,e,f){b=util.getLeftNBits(openpgp_crypto_hashData(b,a),e.bitLength());b=new BigInteger(util.hexstrdump(b),16);a=openpgp_crypto_getRandomBigIntegerInRange(BigInteger.ONE.add(BigInteger.ONE),
-e.subtract(BigInteger.ONE));c=c.modPow(a,d).mod(e);e=a.modInverse(e).multiply(b.add(f.multiply(c))).mod(e);f=[];f[0]=c.toMPI();f[1]=e.toMPI();return f};this.verify=function(b,a,c,d,e,f,g,h){b=util.getLeftNBits(openpgp_crypto_hashData(b,d),f.bitLength());b=new BigInteger(util.hexstrdump(b),16);if(0<BigInteger.ZERO.compareTo(a)||0<a.compareTo(f)||0<BigInteger.ZERO.compareTo(c)||0<c.compareTo(f))return util.print_error("invalid DSA Signature"),null;c=c.modInverse(f);b=b.multiply(c).mod(f);a=a.multiply(c).mod(f);
-return g.modPow(b,e).multiply(h.modPow(a,e)).mod(e).mod(f)}}
-function Elgamal(){this.encrypt=function(b,a,c,d){var e=BigInteger.ONE.add(BigInteger.ONE),f=c.subtract(e),e=openpgp_crypto_getRandomBigIntegerInRange(e,f),e=e.mod(f).add(BigInteger.ONE),f=[];f[0]=a.modPow(e,c);f[1]=d.modPow(e,c).multiply(b).mod(c).toMPI();f[0]=f[0].toMPI();return f};this.decrypt=function(b,a,c,d){util.print_debug("Elgamal Decrypt:\nc1:"+util.hexstrdump(b.toMPI())+"\nc2:"+util.hexstrdump(a.toMPI())+"\np:"+util.hexstrdump(c.toMPI())+"\nx:"+util.hexstrdump(d.toMPI()));return b.modPow(d,
-c).modInverse(c).multiply(a).mod(c)}}var dbits,canary=244837814094590,j_lm=15715070==(canary&16777215);function BigInteger(b,a,c){null!=b&&("number"==typeof b?this.fromNumber(b,a,c):null==a&&"string"!=typeof b?this.fromString(b,256):this.fromString(b,a))}function nbi(){return new BigInteger(null)}function am1(b,a,c,d,e,f){for(;0<=--f;){var g=a*this[b++]+c[d]+e,e=Math.floor(g/67108864);c[d++]=g&67108863}return e}
-function am2(b,a,c,d,e,f){for(var g=a&32767,a=a>>15;0<=--f;){var h=this[b]&32767,j=this[b++]>>15,k=a*h+j*g,h=g*h+((k&32767)<<15)+c[d]+(e&1073741823),e=(h>>>30)+(k>>>15)+a*j+(e>>>30);c[d++]=h&1073741823}return e}function am3(b,a,c,d,e,f){for(var g=a&16383,a=a>>14;0<=--f;){var h=this[b]&16383,j=this[b++]>>14,k=a*h+j*g,h=g*h+((k&16383)<<14)+c[d]+e,e=(h>>28)+(k>>14)+a*j;c[d++]=h&268435455}return e}
-j_lm&&"Microsoft Internet Explorer"==navigator.appName?(BigInteger.prototype.am=am2,dbits=30):j_lm&&"Netscape"!=navigator.appName?(BigInteger.prototype.am=am1,dbits=26):(BigInteger.prototype.am=am3,dbits=28);BigInteger.prototype.DB=dbits;BigInteger.prototype.DM=(1<<dbits)-1;BigInteger.prototype.DV=1<<dbits;var BI_FP=52;BigInteger.prototype.FV=Math.pow(2,BI_FP);BigInteger.prototype.F1=BI_FP-dbits;BigInteger.prototype.F2=2*dbits-BI_FP;var BI_RM="0123456789abcdefghijklmnopqrstuvwxyz",BI_RC=[],rr,vv;
-rr=48;for(vv=0;9>=vv;++vv)BI_RC[rr++]=vv;rr=97;for(vv=10;36>vv;++vv)BI_RC[rr++]=vv;rr=65;for(vv=10;36>vv;++vv)BI_RC[rr++]=vv;function int2char(b){return BI_RM.charAt(b)}function intAt(b,a){var c=BI_RC[b.charCodeAt(a)];return null==c?-1:c}function bnpCopyTo(b){for(var a=this.t-1;0<=a;--a)b[a]=this[a];b.t=this.t;b.s=this.s}function bnpFromInt(b){this.t=1;this.s=0>b?-1:0;0<b?this[0]=b:-1>b?this[0]=b+DV:this.t=0}function nbv(b){var a=nbi();a.fromInt(b);return a}
-function bnpFromString(b,a){var c;if(16==a)c=4;else if(8==a)c=3;else if(256==a)c=8;else if(2==a)c=1;else if(32==a)c=5;else if(4==a)c=2;else{this.fromRadix(b,a);return}this.s=this.t=0;for(var d=b.length,e=!1,f=0;0<=--d;){var g=8==c?b[d]&255:intAt(b,d);0>g?"-"==b.charAt(d)&&(e=!0):(e=!1,0==f?this[this.t++]=g:f+c>this.DB?(this[this.t-1]|=(g&(1<<this.DB-f)-1)<<f,this[this.t++]=g>>this.DB-f):this[this.t-1]|=g<<f,f+=c,f>=this.DB&&(f-=this.DB))}if(8==c&&0!=(b[0]&128))this.s=-1,0<f&&(this[this.t-1]|=(1<<
-this.DB-f)-1<<f);this.clamp();e&&BigInteger.ZERO.subTo(this,this)}function bnpClamp(){for(var b=this.s&this.DM;0<this.t&&this[this.t-1]==b;)--this.t}
-function bnToString(b){if(0>this.s)return"-"+this.negate().toString(b);if(16==b)b=4;else if(8==b)b=3;else if(2==b)b=1;else if(32==b)b=5;else if(4==b)b=2;else return this.toRadix(b);var a=(1<<b)-1,c,d=!1,e="",f=this.t,g=this.DB-f*this.DB%b;if(0<f--){if(g<this.DB&&0<(c=this[f]>>g))d=!0,e=int2char(c);for(;0<=f;)g<b?(c=(this[f]&(1<<g)-1)<<b-g,c|=this[--f]>>(g+=this.DB-b)):(c=this[f]>>(g-=b)&a,0>=g&&(g+=this.DB,--f)),0<c&&(d=!0),d&&(e+=int2char(c))}return d?e:"0"}
-function bnNegate(){var b=nbi();BigInteger.ZERO.subTo(this,b);return b}function bnAbs(){return 0>this.s?this.negate():this}function bnCompareTo(b){var a=this.s-b.s;if(0!=a)return a;var c=this.t,a=c-b.t;if(0!=a)return a;for(;0<=--c;)if(0!=(a=this[c]-b[c]))return a;return 0}function nbits(b){var a=1,c;if(0!=(c=b>>>16))b=c,a+=16;if(0!=(c=b>>8))b=c,a+=8;if(0!=(c=b>>4))b=c,a+=4;if(0!=(c=b>>2))b=c,a+=2;0!=b>>1&&(a+=1);return a}
-function bnBitLength(){return 0>=this.t?0:this.DB*(this.t-1)+nbits(this[this.t-1]^this.s&this.DM)}function bnpDLShiftTo(b,a){var c;for(c=this.t-1;0<=c;--c)a[c+b]=this[c];for(c=b-1;0<=c;--c)a[c]=0;a.t=this.t+b;a.s=this.s}function bnpDRShiftTo(b,a){for(var c=b;c<this.t;++c)a[c-b]=this[c];a.t=Math.max(this.t-b,0);a.s=this.s}
-function bnpLShiftTo(b,a){var c=b%this.DB,d=this.DB-c,e=(1<<d)-1,f=Math.floor(b/this.DB),g=this.s<<c&this.DM,h;for(h=this.t-1;0<=h;--h)a[h+f+1]=this[h]>>d|g,g=(this[h]&e)<<c;for(h=f-1;0<=h;--h)a[h]=0;a[f]=g;a.t=this.t+f+1;a.s=this.s;a.clamp()}
-function bnpRShiftTo(b,a){a.s=this.s;var c=Math.floor(b/this.DB);if(c>=this.t)a.t=0;else{var d=b%this.DB,e=this.DB-d,f=(1<<d)-1;a[0]=this[c]>>d;for(var g=c+1;g<this.t;++g)a[g-c-1]|=(this[g]&f)<<e,a[g-c]=this[g]>>d;0<d&&(a[this.t-c-1]|=(this.s&f)<<e);a.t=this.t-c;a.clamp()}}
-function bnpSubTo(b,a){for(var c=0,d=0,e=Math.min(b.t,this.t);c<e;)d+=this[c]-b[c],a[c++]=d&this.DM,d>>=this.DB;if(b.t<this.t){for(d-=b.s;c<this.t;)d+=this[c],a[c++]=d&this.DM,d>>=this.DB;d+=this.s}else{for(d+=this.s;c<b.t;)d-=b[c],a[c++]=d&this.DM,d>>=this.DB;d-=b.s}a.s=0>d?-1:0;-1>d?a[c++]=this.DV+d:0<d&&(a[c++]=d);a.t=c;a.clamp()}
-function bnpMultiplyTo(b,a){var c=this.abs(),d=b.abs(),e=c.t;for(a.t=e+d.t;0<=--e;)a[e]=0;for(e=0;e<d.t;++e)a[e+c.t]=c.am(0,d[e],a,e,0,c.t);a.s=0;a.clamp();this.s!=b.s&&BigInteger.ZERO.subTo(a,a)}function bnpSquareTo(b){for(var a=this.abs(),c=b.t=2*a.t;0<=--c;)b[c]=0;for(c=0;c<a.t-1;++c){var d=a.am(c,a[c],b,2*c,0,1);if((b[c+a.t]+=a.am(c+1,2*a[c],b,2*c+1,d,a.t-c-1))>=a.DV)b[c+a.t]-=a.DV,b[c+a.t+1]=1}0<b.t&&(b[b.t-1]+=a.am(c,a[c],b,2*c,0,1));b.s=0;b.clamp()}
-function bnpDivRemTo(b,a,c){var d=b.abs();if(!(0>=d.t)){var e=this.abs();if(e.t<d.t)null!=a&&a.fromInt(0),null!=c&&this.copyTo(c);else{null==c&&(c=nbi());var f=nbi(),g=this.s,b=b.s,h=this.DB-nbits(d[d.t-1]);0<h?(d.lShiftTo(h,f),e.lShiftTo(h,c)):(d.copyTo(f),e.copyTo(c));d=f.t;e=f[d-1];if(0!=e){var j=e*(1<<this.F1)+(1<d?f[d-2]>>this.F2:0),k=this.FV/j,j=(1<<this.F1)/j,l=1<<this.F2,m=c.t,r=m-d,p=null==a?nbi():a;f.dlShiftTo(r,p);0<=c.compareTo(p)&&(c[c.t++]=1,c.subTo(p,c));BigInteger.ONE.dlShiftTo(d,
-p);for(p.subTo(f,f);f.t<d;)f[f.t++]=0;for(;0<=--r;){var o=c[--m]==e?this.DM:Math.floor(c[m]*k+(c[m-1]+l)*j);if((c[m]+=f.am(0,o,c,r,0,d))<o){f.dlShiftTo(r,p);for(c.subTo(p,c);c[m]<--o;)c.subTo(p,c)}}null!=a&&(c.drShiftTo(d,a),g!=b&&BigInteger.ZERO.subTo(a,a));c.t=d;c.clamp();0<h&&c.rShiftTo(h,c);0>g&&BigInteger.ZERO.subTo(c,c)}}}}function bnMod(b){var a=nbi();this.abs().divRemTo(b,null,a);0>this.s&&0<a.compareTo(BigInteger.ZERO)&&b.subTo(a,a);return a}function Classic(b){this.m=b}
-function cConvert(b){return 0>b.s||0<=b.compareTo(this.m)?b.mod(this.m):b}function cRevert(b){return b}function cReduce(b){b.divRemTo(this.m,null,b)}function cMulTo(b,a,c){b.multiplyTo(a,c);this.reduce(c)}function cSqrTo(b,a){b.squareTo(a);this.reduce(a)}Classic.prototype.convert=cConvert;Classic.prototype.revert=cRevert;Classic.prototype.reduce=cReduce;Classic.prototype.mulTo=cMulTo;Classic.prototype.sqrTo=cSqrTo;
-function bnpInvDigit(){if(1>this.t)return 0;var b=this[0];if(0==(b&1))return 0;var a=b&3,a=a*(2-(b&15)*a)&15,a=a*(2-(b&255)*a)&255,a=a*(2-((b&65535)*a&65535))&65535,a=a*(2-b*a%this.DV)%this.DV;return 0<a?this.DV-a:-a}function Montgomery(b){this.m=b;this.mp=b.invDigit();this.mpl=this.mp&32767;this.mph=this.mp>>15;this.um=(1<<b.DB-15)-1;this.mt2=2*b.t}
-function montConvert(b){var a=nbi();b.abs().dlShiftTo(this.m.t,a);a.divRemTo(this.m,null,a);0>b.s&&0<a.compareTo(BigInteger.ZERO)&&this.m.subTo(a,a);return a}function montRevert(b){var a=nbi();b.copyTo(a);this.reduce(a);return a}
-function montReduce(b){for(;b.t<=this.mt2;)b[b.t++]=0;for(var a=0;a<this.m.t;++a){var c=b[a]&32767,d=c*this.mpl+((c*this.mph+(b[a]>>15)*this.mpl&this.um)<<15)&b.DM,c=a+this.m.t;for(b[c]+=this.m.am(0,d,b,a,0,this.m.t);b[c]>=b.DV;)b[c]-=b.DV,b[++c]++}b.clamp();b.drShiftTo(this.m.t,b);0<=b.compareTo(this.m)&&b.subTo(this.m,b)}function montSqrTo(b,a){b.squareTo(a);this.reduce(a)}function montMulTo(b,a,c){b.multiplyTo(a,c);this.reduce(c)}Montgomery.prototype.convert=montConvert;
-Montgomery.prototype.revert=montRevert;Montgomery.prototype.reduce=montReduce;Montgomery.prototype.mulTo=montMulTo;Montgomery.prototype.sqrTo=montSqrTo;function bnpIsEven(){return 0==(0<this.t?this[0]&1:this.s)}function bnpExp(b,a){if(4294967295<b||1>b)return BigInteger.ONE;var c=nbi(),d=nbi(),e=a.convert(this),f=nbits(b)-1;for(e.copyTo(c);0<=--f;)if(a.sqrTo(c,d),0<(b&1<<f))a.mulTo(d,e,c);else var g=c,c=d,d=g;return a.revert(c)}
-function bnModPowInt(b,a){var c;c=256>b||a.isEven()?new Classic(a):new Montgomery(a);return this.exp(b,c)}BigInteger.prototype.copyTo=bnpCopyTo;BigInteger.prototype.fromInt=bnpFromInt;BigInteger.prototype.fromString=bnpFromString;BigInteger.prototype.clamp=bnpClamp;BigInteger.prototype.dlShiftTo=bnpDLShiftTo;BigInteger.prototype.drShiftTo=bnpDRShiftTo;BigInteger.prototype.lShiftTo=bnpLShiftTo;BigInteger.prototype.rShiftTo=bnpRShiftTo;BigInteger.prototype.subTo=bnpSubTo;
-BigInteger.prototype.multiplyTo=bnpMultiplyTo;BigInteger.prototype.squareTo=bnpSquareTo;BigInteger.prototype.divRemTo=bnpDivRemTo;BigInteger.prototype.invDigit=bnpInvDigit;BigInteger.prototype.isEven=bnpIsEven;BigInteger.prototype.exp=bnpExp;BigInteger.prototype.toString=bnToString;BigInteger.prototype.negate=bnNegate;BigInteger.prototype.abs=bnAbs;BigInteger.prototype.compareTo=bnCompareTo;BigInteger.prototype.bitLength=bnBitLength;BigInteger.prototype.mod=bnMod;BigInteger.prototype.modPowInt=bnModPowInt;
-BigInteger.ZERO=nbv(0);BigInteger.ONE=nbv(1);function bnClone(){var b=nbi();this.copyTo(b);return b}function bnIntValue(){if(0>this.s){if(1==this.t)return this[0]-this.DV;if(0==this.t)return-1}else{if(1==this.t)return this[0];if(0==this.t)return 0}return(this[1]&(1<<32-this.DB)-1)<<this.DB|this[0]}function bnByteValue(){return 0==this.t?this.s:this[0]<<24>>24}function bnShortValue(){return 0==this.t?this.s:this[0]<<16>>16}function bnpChunkSize(b){return Math.floor(Math.LN2*this.DB/Math.log(b))}
-function bnSigNum(){return 0>this.s?-1:0>=this.t||1==this.t&&0>=this[0]?0:1}function bnpToRadix(b){null==b&&(b=10);if(0==this.signum()||2>b||36<b)return"0";var a=this.chunkSize(b),a=Math.pow(b,a),c=nbv(a),d=nbi(),e=nbi(),f="";for(this.divRemTo(c,d,e);0<d.signum();)f=(a+e.intValue()).toString(b).substr(1)+f,d.divRemTo(c,d,e);return e.intValue().toString(b)+f}
-function bnpFromRadix(b,a){this.fromInt(0);null==a&&(a=10);for(var c=this.chunkSize(a),d=Math.pow(a,c),e=!1,f=0,g=0,h=0;h<b.length;++h){var j=intAt(b,h);0>j?"-"==b.charAt(h)&&0==this.signum()&&(e=!0):(g=a*g+j,++f>=c&&(this.dMultiply(d),this.dAddOffset(g,0),g=f=0))}0<f&&(this.dMultiply(Math.pow(a,f)),this.dAddOffset(g,0));e&&BigInteger.ZERO.subTo(this,this)}
-function bnpFromNumber(b,a,c){if("number"==typeof a)if(2>b)this.fromInt(1);else{this.fromNumber(b,c);this.testBit(b-1)||this.bitwiseTo(BigInteger.ONE.shiftLeft(b-1),op_or,this);for(this.isEven()&&this.dAddOffset(1,0);!this.isProbablePrime(a);)this.dAddOffset(2,0),this.bitLength()>b&&this.subTo(BigInteger.ONE.shiftLeft(b-1),this)}else{var c=[],d=b&7;c.length=(b>>3)+1;a.nextBytes(c);c[0]=0<d?c[0]&(1<<d)-1:0;this.fromString(c,256)}}
-function bnToByteArray(){var b=this.t,a=[];a[0]=this.s;var c=this.DB-b*this.DB%8,d,e=0;if(0<b--){if(c<this.DB&&(d=this[b]>>c)!=(this.s&this.DM)>>c)a[e++]=d|this.s<<this.DB-c;for(;0<=b;)if(8>c?(d=(this[b]&(1<<c)-1)<<8-c,d|=this[--b]>>(c+=this.DB-8)):(d=this[b]>>(c-=8)&255,0>=c&&(c+=this.DB,--b)),0<e||d!=this.s)a[e++]=d}return a}function bnEquals(b){return 0==this.compareTo(b)}function bnMin(b){return 0>this.compareTo(b)?this:b}function bnMax(b){return 0<this.compareTo(b)?this:b}
-function bnpBitwiseTo(b,a,c){var d,e,f=Math.min(b.t,this.t);for(d=0;d<f;++d)c[d]=a(this[d],b[d]);if(b.t<this.t){e=b.s&this.DM;for(d=f;d<this.t;++d)c[d]=a(this[d],e);c.t=this.t}else{e=this.s&this.DM;for(d=f;d<b.t;++d)c[d]=a(e,b[d]);c.t=b.t}c.s=a(this.s,b.s);c.clamp()}function op_and(b,a){return b&a}function bnAnd(b){var a=nbi();this.bitwiseTo(b,op_and,a);return a}function op_or(b,a){return b|a}function bnOr(b){var a=nbi();this.bitwiseTo(b,op_or,a);return a}function op_xor(b,a){return b^a}
-function bnXor(b){var a=nbi();this.bitwiseTo(b,op_xor,a);return a}function op_andnot(b,a){return b&~a}function bnAndNot(b){var a=nbi();this.bitwiseTo(b,op_andnot,a);return a}function bnNot(){for(var b=nbi(),a=0;a<this.t;++a)b[a]=this.DM&~this[a];b.t=this.t;b.s=~this.s;return b}function bnShiftLeft(b){var a=nbi();0>b?this.rShiftTo(-b,a):this.lShiftTo(b,a);return a}function bnShiftRight(b){var a=nbi();0>b?this.lShiftTo(-b,a):this.rShiftTo(b,a);return a}
-function lbit(b){if(0==b)return-1;var a=0;0==(b&65535)&&(b>>=16,a+=16);0==(b&255)&&(b>>=8,a+=8);0==(b&15)&&(b>>=4,a+=4);0==(b&3)&&(b>>=2,a+=2);0==(b&1)&&++a;return a}function bnGetLowestSetBit(){for(var b=0;b<this.t;++b)if(0!=this[b])return b*this.DB+lbit(this[b]);return 0>this.s?this.t*this.DB:-1}function cbit(b){for(var a=0;0!=b;)b&=b-1,++a;return a}function bnBitCount(){for(var b=0,a=this.s&this.DM,c=0;c<this.t;++c)b+=cbit(this[c]^a);return b}
-function bnTestBit(b){var a=Math.floor(b/this.DB);return a>=this.t?0!=this.s:0!=(this[a]&1<<b%this.DB)}function bnpChangeBit(b,a){var c=BigInteger.ONE.shiftLeft(b);this.bitwiseTo(c,a,c);return c}function bnSetBit(b){return this.changeBit(b,op_or)}function bnClearBit(b){return this.changeBit(b,op_andnot)}function bnFlipBit(b){return this.changeBit(b,op_xor)}
-function bnpAddTo(b,a){for(var c=0,d=0,e=Math.min(b.t,this.t);c<e;)d+=this[c]+b[c],a[c++]=d&this.DM,d>>=this.DB;if(b.t<this.t){for(d+=b.s;c<this.t;)d+=this[c],a[c++]=d&this.DM,d>>=this.DB;d+=this.s}else{for(d+=this.s;c<b.t;)d+=b[c],a[c++]=d&this.DM,d>>=this.DB;d+=b.s}a.s=0>d?-1:0;0<d?a[c++]=d:-1>d&&(a[c++]=this.DV+d);a.t=c;a.clamp()}function bnAdd(b){var a=nbi();this.addTo(b,a);return a}function bnSubtract(b){var a=nbi();this.subTo(b,a);return a}
-function bnMultiply(b){var a=nbi();this.multiplyTo(b,a);return a}function bnSquare(){var b=nbi();this.squareTo(b);return b}function bnDivide(b){var a=nbi();this.divRemTo(b,a,null);return a}function bnRemainder(b){var a=nbi();this.divRemTo(b,null,a);return a}function bnDivideAndRemainder(b){var a=nbi(),c=nbi();this.divRemTo(b,a,c);return[a,c]}function bnpDMultiply(b){this[this.t]=this.am(0,b-1,this,0,0,this.t);++this.t;this.clamp()}
-function bnpDAddOffset(b,a){if(0!=b){for(;this.t<=a;)this[this.t++]=0;for(this[a]+=b;this[a]>=this.DV;)this[a]-=this.DV,++a>=this.t&&(this[this.t++]=0),++this[a]}}function NullExp(){}function nNop(b){return b}function nMulTo(b,a,c){b.multiplyTo(a,c)}function nSqrTo(b,a){b.squareTo(a)}NullExp.prototype.convert=nNop;NullExp.prototype.revert=nNop;NullExp.prototype.mulTo=nMulTo;NullExp.prototype.sqrTo=nSqrTo;function bnPow(b){return this.exp(b,new NullExp)}
-function bnpMultiplyLowerTo(b,a,c){var d=Math.min(this.t+b.t,a);c.s=0;for(c.t=d;0<d;)c[--d]=0;var e;for(e=c.t-this.t;d<e;++d)c[d+this.t]=this.am(0,b[d],c,d,0,this.t);for(e=Math.min(b.t,a);d<e;++d)this.am(0,b[d],c,d,0,a-d);c.clamp()}function bnpMultiplyUpperTo(b,a,c){--a;var d=c.t=this.t+b.t-a;for(c.s=0;0<=--d;)c[d]=0;for(d=Math.max(a-this.t,0);d<b.t;++d)c[this.t+d-a]=this.am(a-d,b[d],c,0,0,this.t+d-a);c.clamp();c.drShiftTo(1,c)}
-function Barrett(b){this.r2=nbi();this.q3=nbi();BigInteger.ONE.dlShiftTo(2*b.t,this.r2);this.mu=this.r2.divide(b);this.m=b}function barrettConvert(b){if(0>b.s||b.t>2*this.m.t)return b.mod(this.m);if(0>b.compareTo(this.m))return b;var a=nbi();b.copyTo(a);this.reduce(a);return a}function barrettRevert(b){return b}
-function barrettReduce(b){b.drShiftTo(this.m.t-1,this.r2);if(b.t>this.m.t+1)b.t=this.m.t+1,b.clamp();this.mu.multiplyUpperTo(this.r2,this.m.t+1,this.q3);for(this.m.multiplyLowerTo(this.q3,this.m.t+1,this.r2);0>b.compareTo(this.r2);)b.dAddOffset(1,this.m.t+1);for(b.subTo(this.r2,b);0<=b.compareTo(this.m);)b.subTo(this.m,b)}function barrettSqrTo(b,a){b.squareTo(a);this.reduce(a)}function barrettMulTo(b,a,c){b.multiplyTo(a,c);this.reduce(c)}Barrett.prototype.convert=barrettConvert;
-Barrett.prototype.revert=barrettRevert;Barrett.prototype.reduce=barrettReduce;Barrett.prototype.mulTo=barrettMulTo;Barrett.prototype.sqrTo=barrettSqrTo;
-function bnModPow(b,a){var c=b.bitLength(),d,e=nbv(1),f;if(0>=c)return e;d=18>c?1:48>c?3:144>c?4:768>c?5:6;f=8>c?new Classic(a):a.isEven()?new Barrett(a):new Montgomery(a);var g=[],h=3,j=d-1,k=(1<<d)-1;g[1]=f.convert(this);if(1<d){c=nbi();for(f.sqrTo(g[1],c);h<=k;)g[h]=nbi(),f.mulTo(c,g[h-2],g[h]),h+=2}for(var l=b.t-1,m,r=!0,p=nbi(),c=nbits(b[l])-1;0<=l;){c>=j?m=b[l]>>c-j&k:(m=(b[l]&(1<<c+1)-1)<<j-c,0<l&&(m|=b[l-1]>>this.DB+c-j));for(h=d;0==(m&1);)m>>=1,--h;if(0>(c-=h))c+=this.DB,--l;if(r)g[m].copyTo(e),
-r=!1;else{for(;1<h;)f.sqrTo(e,p),f.sqrTo(p,e),h-=2;0<h?f.sqrTo(e,p):(h=e,e=p,p=h);f.mulTo(p,g[m],e)}for(;0<=l&&0==(b[l]&1<<c);)f.sqrTo(e,p),h=e,e=p,p=h,0>--c&&(c=this.DB-1,--l)}return f.revert(e)}
-function bnGCD(b){var a=0>this.s?this.negate():this.clone(),b=0>b.s?b.negate():b.clone();if(0>a.compareTo(b))var c=a,a=b,b=c;var c=a.getLowestSetBit(),d=b.getLowestSetBit();if(0>d)return a;c<d&&(d=c);0<d&&(a.rShiftTo(d,a),b.rShiftTo(d,b));for(;0<a.signum();)0<(c=a.getLowestSetBit())&&a.rShiftTo(c,a),0<(c=b.getLowestSetBit())&&b.rShiftTo(c,b),0<=a.compareTo(b)?(a.subTo(b,a),a.rShiftTo(1,a)):(b.subTo(a,b),b.rShiftTo(1,b));0<d&&b.lShiftTo(d,b);return b}
-function bnpModInt(b){if(0>=b)return 0;var a=this.DV%b,c=0>this.s?b-1:0;if(0<this.t)if(0==a)c=this[0]%b;else for(var d=this.t-1;0<=d;--d)c=(a*c+this[d])%b;return c}
-function bnModInverse(b){var a=b.isEven();if(this.isEven()&&a||0==b.signum())return BigInteger.ZERO;for(var c=b.clone(),d=this.clone(),e=nbv(1),f=nbv(0),g=nbv(0),h=nbv(1);0!=c.signum();){for(;c.isEven();){c.rShiftTo(1,c);if(a){if(!e.isEven()||!f.isEven())e.addTo(this,e),f.subTo(b,f);e.rShiftTo(1,e)}else f.isEven()||f.subTo(b,f);f.rShiftTo(1,f)}for(;d.isEven();){d.rShiftTo(1,d);if(a){if(!g.isEven()||!h.isEven())g.addTo(this,g),h.subTo(b,h);g.rShiftTo(1,g)}else h.isEven()||h.subTo(b,h);h.rShiftTo(1,
-h)}0<=c.compareTo(d)?(c.subTo(d,c),a&&e.subTo(g,e),f.subTo(h,f)):(d.subTo(c,d),a&&g.subTo(e,g),h.subTo(f,h))}if(0!=d.compareTo(BigInteger.ONE))return BigInteger.ZERO;if(0<=h.compareTo(b))return h.subtract(b);if(0>h.signum())h.addTo(b,h);else return h;return 0>h.signum()?h.add(b):h}
-var lowprimes=[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,
-733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839,853,857,859,863,877,881,883,887,907,911,919,929,937,941,947,953,967,971,977,983,991,997],lplim=67108864/lowprimes[lowprimes.length-1];
-function bnIsProbablePrime(b){var a,c=this.abs();if(1==c.t&&c[0]<=lowprimes[lowprimes.length-1]){for(a=0;a<lowprimes.length;++a)if(c[0]==lowprimes[a])return!0;return!1}if(c.isEven())return!1;for(a=1;a<lowprimes.length;){for(var d=lowprimes[a],e=a+1;e<lowprimes.length&&d<lplim;)d*=lowprimes[e++];for(d=c.modInt(d);a<e;)if(0==d%lowprimes[a++])return!1}return c.millerRabin(b)}
-function nbits(b){var a=1,c;if(0!=(c=b>>>16))b=c,a+=16;if(0!=(c=b>>8))b=c,a+=8;if(0!=(c=b>>4))b=c,a+=4;if(0!=(c=b>>2))b=c,a+=2;0!=b>>1&&(a+=1);return a}function bnToMPI(){var b=this.toByteArray(),a=8*(b.length-1)+nbits(b[0]),c;c=""+String.fromCharCode((a&65280)>>8);c+=String.fromCharCode(a&255);return c+=util.bin2str(b)}
-function bnpMillerRabin(b){var a=this.subtract(BigInteger.ONE),c=a.getLowestSetBit();if(0>=c)return!1;var d=a.shiftRight(c),b=b+1>>1;if(b>lowprimes.length)b=lowprimes.length;for(var e=nbi(),f,g=[],h=0;h<b;++h){for(;!(f=lowprimes[Math.floor(Math.random()*lowprimes.length)],-1==g.indexOf(f)););g.push(f);e.fromInt(f);var j=e.modPow(d,this);if(0!=j.compareTo(BigInteger.ONE)&&0!=j.compareTo(a)){for(f=1;f++<c&&0!=j.compareTo(a);)if(j=j.modPowInt(2,this),0==j.compareTo(BigInteger.ONE))return!1;if(0!=j.compareTo(a))return!1}}return!0}
-BigInteger.prototype.chunkSize=bnpChunkSize;BigInteger.prototype.toRadix=bnpToRadix;BigInteger.prototype.fromRadix=bnpFromRadix;BigInteger.prototype.fromNumber=bnpFromNumber;BigInteger.prototype.bitwiseTo=bnpBitwiseTo;BigInteger.prototype.changeBit=bnpChangeBit;BigInteger.prototype.addTo=bnpAddTo;BigInteger.prototype.dMultiply=bnpDMultiply;BigInteger.prototype.dAddOffset=bnpDAddOffset;BigInteger.prototype.multiplyLowerTo=bnpMultiplyLowerTo;BigInteger.prototype.multiplyUpperTo=bnpMultiplyUpperTo;
-BigInteger.prototype.modInt=bnpModInt;BigInteger.prototype.millerRabin=bnpMillerRabin;BigInteger.prototype.clone=bnClone;BigInteger.prototype.intValue=bnIntValue;BigInteger.prototype.byteValue=bnByteValue;BigInteger.prototype.shortValue=bnShortValue;BigInteger.prototype.signum=bnSigNum;BigInteger.prototype.toByteArray=bnToByteArray;BigInteger.prototype.equals=bnEquals;BigInteger.prototype.min=bnMin;BigInteger.prototype.max=bnMax;BigInteger.prototype.and=bnAnd;BigInteger.prototype.or=bnOr;
-BigInteger.prototype.xor=bnXor;BigInteger.prototype.andNot=bnAndNot;BigInteger.prototype.not=bnNot;BigInteger.prototype.shiftLeft=bnShiftLeft;BigInteger.prototype.shiftRight=bnShiftRight;BigInteger.prototype.getLowestSetBit=bnGetLowestSetBit;BigInteger.prototype.bitCount=bnBitCount;BigInteger.prototype.testBit=bnTestBit;BigInteger.prototype.setBit=bnSetBit;BigInteger.prototype.clearBit=bnClearBit;BigInteger.prototype.flipBit=bnFlipBit;BigInteger.prototype.add=bnAdd;BigInteger.prototype.subtract=bnSubtract;
-BigInteger.prototype.multiply=bnMultiply;BigInteger.prototype.divide=bnDivide;BigInteger.prototype.remainder=bnRemainder;BigInteger.prototype.divideAndRemainder=bnDivideAndRemainder;BigInteger.prototype.modPow=bnModPow;BigInteger.prototype.modInverse=bnModInverse;BigInteger.prototype.pow=bnPow;BigInteger.prototype.gcd=bnGCD;BigInteger.prototype.isProbablePrime=bnIsProbablePrime;BigInteger.prototype.toMPI=bnToMPI;BigInteger.prototype.square=bnSquare;
-function SecureRandom(){this.nextBytes=function(b){for(var a=0;a<b.length;a++)b[a]=openpgp_crypto_getSecureRandomOctet()}}
-function RSA(){function b(){this.n=null;this.e=0;this.u=this.dmq1=this.dmp1=this.q=this.p=this.d=this.ee=null}this.encrypt=function(a,b,d){return a.modPowInt(b,d)};this.decrypt=function(a,b,d,e,f){var g=a.mod(d).modPow(b.mod(d.subtract(BigInteger.ONE)),d),a=a.mod(e).modPow(b.mod(e.subtract(BigInteger.ONE)),e);util.print_debug("rsa.js decrypt\nxpn:"+util.hexstrdump(g.toMPI())+"\nxqn:"+util.hexstrdump(a.toMPI()));b=a.subtract(g);0==b[0]?(b=g.subtract(a),b=b.multiply(f).mod(e),b=e.subtract(b)):b=b.multiply(f).mod(e);
-return b.multiply(d).add(g)};this.verify=function(a,b,d){return a.modPowInt(b,d)};this.sign=function(a,b,d){return a.modPow(b,d)};this.generate=function(a,c){var d=new b,e=new SecureRandom,f=a>>1;d.e=parseInt(c,16);for(d.ee=new BigInteger(c,16);;){for(;!(d.p=new BigInteger(a-f,1,e),0==d.p.subtract(BigInteger.ONE).gcd(d.ee).compareTo(BigInteger.ONE)&&d.p.isProbablePrime(10)););for(;!(d.q=new BigInteger(f,1,e),0==d.q.subtract(BigInteger.ONE).gcd(d.ee).compareTo(BigInteger.ONE)&&d.q.isProbablePrime(10)););
-if(0>=d.p.compareTo(d.q)){var g=d.p;d.p=d.q;d.q=g}var g=d.p.subtract(BigInteger.ONE),h=d.q.subtract(BigInteger.ONE),j=g.multiply(h);if(0==j.gcd(d.ee).compareTo(BigInteger.ONE)){d.n=d.p.multiply(d.q);d.d=d.ee.modInverse(j);d.dmp1=d.d.mod(g);d.dmq1=d.d.mod(h);d.u=d.p.modInverse(d.q);break}}return d};this.keyObject=b}function MD5(b){b=md5(b);return util.hex2bin(b)}
-function md5cycle(b,a){var c=b[0],d=b[1],e=b[2],f=b[3],c=ff(c,d,e,f,a[0],7,-680876936),f=ff(f,c,d,e,a[1],12,-389564586),e=ff(e,f,c,d,a[2],17,606105819),d=ff(d,e,f,c,a[3],22,-1044525330),c=ff(c,d,e,f,a[4],7,-176418897),f=ff(f,c,d,e,a[5],12,1200080426),e=ff(e,f,c,d,a[6],17,-1473231341),d=ff(d,e,f,c,a[7],22,-45705983),c=ff(c,d,e,f,a[8],7,1770035416),f=ff(f,c,d,e,a[9],12,-1958414417),e=ff(e,f,c,d,a[10],17,-42063),d=ff(d,e,f,c,a[11],22,-1990404162),c=ff(c,d,e,f,a[12],7,1804603682),f=ff(f,c,d,e,a[13],12,
--40341101),e=ff(e,f,c,d,a[14],17,-1502002290),d=ff(d,e,f,c,a[15],22,1236535329),c=gg(c,d,e,f,a[1],5,-165796510),f=gg(f,c,d,e,a[6],9,-1069501632),e=gg(e,f,c,d,a[11],14,643717713),d=gg(d,e,f,c,a[0],20,-373897302),c=gg(c,d,e,f,a[5],5,-701558691),f=gg(f,c,d,e,a[10],9,38016083),e=gg(e,f,c,d,a[15],14,-660478335),d=gg(d,e,f,c,a[4],20,-405537848),c=gg(c,d,e,f,a[9],5,568446438),f=gg(f,c,d,e,a[14],9,-1019803690),e=gg(e,f,c,d,a[3],14,-187363961),d=gg(d,e,f,c,a[8],20,1163531501),c=gg(c,d,e,f,a[13],5,-1444681467),
-f=gg(f,c,d,e,a[2],9,-51403784),e=gg(e,f,c,d,a[7],14,1735328473),d=gg(d,e,f,c,a[12],20,-1926607734),c=hh(c,d,e,f,a[5],4,-378558),f=hh(f,c,d,e,a[8],11,-2022574463),e=hh(e,f,c,d,a[11],16,1839030562),d=hh(d,e,f,c,a[14],23,-35309556),c=hh(c,d,e,f,a[1],4,-1530992060),f=hh(f,c,d,e,a[4],11,1272893353),e=hh(e,f,c,d,a[7],16,-155497632),d=hh(d,e,f,c,a[10],23,-1094730640),c=hh(c,d,e,f,a[13],4,681279174),f=hh(f,c,d,e,a[0],11,-358537222),e=hh(e,f,c,d,a[3],16,-722521979),d=hh(d,e,f,c,a[6],23,76029189),c=hh(c,d,
-e,f,a[9],4,-640364487),f=hh(f,c,d,e,a[12],11,-421815835),e=hh(e,f,c,d,a[15],16,530742520),d=hh(d,e,f,c,a[2],23,-995338651),c=ii(c,d,e,f,a[0],6,-198630844),f=ii(f,c,d,e,a[7],10,1126891415),e=ii(e,f,c,d,a[14],15,-1416354905),d=ii(d,e,f,c,a[5],21,-57434055),c=ii(c,d,e,f,a[12],6,1700485571),f=ii(f,c,d,e,a[3],10,-1894986606),e=ii(e,f,c,d,a[10],15,-1051523),d=ii(d,e,f,c,a[1],21,-2054922799),c=ii(c,d,e,f,a[8],6,1873313359),f=ii(f,c,d,e,a[15],10,-30611744),e=ii(e,f,c,d,a[6],15,-1560198380),d=ii(d,e,f,c,a[13],
-21,1309151649),c=ii(c,d,e,f,a[4],6,-145523070),f=ii(f,c,d,e,a[11],10,-1120210379),e=ii(e,f,c,d,a[2],15,718787259),d=ii(d,e,f,c,a[9],21,-343485551);b[0]=add32(c,b[0]);b[1]=add32(d,b[1]);b[2]=add32(e,b[2]);b[3]=add32(f,b[3])}function cmn(b,a,c,d,e,f){a=add32(add32(a,b),add32(d,f));return add32(a<<e|a>>>32-e,c)}function ff(b,a,c,d,e,f,g){return cmn(a&c|~a&d,b,a,e,f,g)}function gg(b,a,c,d,e,f,g){return cmn(a&d|c&~d,b,a,e,f,g)}function hh(b,a,c,d,e,f,g){return cmn(a^c^d,b,a,e,f,g)}
-function ii(b,a,c,d,e,f,g){return cmn(c^(a|~d),b,a,e,f,g)}function md51(b){txt="";var a=b.length,c=[1732584193,-271733879,-1732584194,271733878],d;for(d=64;d<=b.length;d+=64)md5cycle(c,md5blk(b.substring(d-64,d)));var b=b.substring(d-64),e=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];for(d=0;d<b.length;d++)e[d>>2]|=b.charCodeAt(d)<<(d%4<<3);e[d>>2]|=128<<(d%4<<3);if(55<d){md5cycle(c,e);for(d=0;16>d;d++)e[d]=0}e[14]=8*a;md5cycle(c,e);return c}
-function md5blk(b){var a=[],c;for(c=0;64>c;c+=4)a[c>>2]=b.charCodeAt(c)+(b.charCodeAt(c+1)<<8)+(b.charCodeAt(c+2)<<16)+(b.charCodeAt(c+3)<<24);return a}var hex_chr="0123456789abcdef".split("");function rhex(b){for(var a="",c=0;4>c;c++)a+=hex_chr[b>>8*c+4&15]+hex_chr[b>>8*c&15];return a}function hex(b){for(var a=0;a<b.length;a++)b[a]=rhex(b[a]);return b.join("")}function md5(b){return hex(md51(b))}function add32(b,a){return b+a&4294967295}
-"5d41402abc4b2a76b9719d911017c592"!=md5("hello")&&(add32=function(b,a){var c=(b&65535)+(a&65535);return(b>>16)+(a>>16)+(c>>16)<<16|c&65535});var RMDsize=160,X=[];function ROL(b,a){return new Number(b<<a|b>>>32-a)}function F(b,a,c){return new Number(b^a^c)}function G(b,a,c){return new Number(b&a|~b&c)}function H(b,a,c){return new Number((b|~a)^c)}function I(b,a,c){return new Number(b&c|a&~c)}function J(b,a,c){return new Number(b^(a|~c))}
-function mixOneRound(b,a,c,d,e,f,g,h){switch(h){case 0:b+=F(a,c,d)+f+0;break;case 1:b+=G(a,c,d)+f+1518500249;break;case 2:b+=H(a,c,d)+f+1859775393;break;case 3:b+=I(a,c,d)+f+2400959708;break;case 4:b+=J(a,c,d)+f+2840853838;break;case 5:b+=J(a,c,d)+f+1352829926;break;case 6:b+=I(a,c,d)+f+1548603684;break;case 7:b+=H(a,c,d)+f+1836072691;break;case 8:b+=G(a,c,d)+f+2053994217;break;case 9:b+=F(a,c,d)+f+0;break;default:document.write("Bogus round number")}b=ROL(b,g)+e;c=ROL(c,10);h=[];h[0]=b&4294967295;
-h[1]=a&4294967295;h[2]=c&4294967295;h[3]=d&4294967295;h[4]=e&4294967295;h[5]=f;h[6]=g;return h}function MDinit(b){b[0]=1732584193;b[1]=4023233417;b[2]=2562383102;b[3]=271733878;b[4]=3285377520}
-var ROLs=[[11,14,15,12,5,8,7,9,11,13,14,15,6,7,9,8],[7,6,8,13,11,9,7,15,7,12,15,9,11,7,13,12],[11,13,6,7,14,9,13,15,14,8,13,6,5,12,7,5],[11,12,14,15,14,15,9,8,9,14,5,6,8,6,5,12],[9,15,5,11,6,8,13,12,5,12,13,14,11,8,5,6],[8,9,9,11,13,15,15,5,7,7,8,11,14,14,12,6],[9,13,15,7,12,8,9,11,7,7,12,7,6,15,13,11],[9,7,15,11,8,6,6,14,12,13,5,14,13,13,7,5],[15,5,8,11,14,14,6,14,6,9,12,9,12,5,15,8],[8,5,12,9,12,5,14,6,8,13,6,5,15,13,11,11]],indexes=[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],[7,4,13,1,10,6,15,3,12,
-0,9,5,2,14,11,8],[3,10,14,4,9,15,8,1,2,7,0,6,13,11,5,12],[1,9,11,10,0,8,12,4,13,3,7,15,14,5,6,2],[4,0,5,9,7,12,2,10,14,1,3,8,11,6,15,13],[5,14,7,0,9,2,11,4,13,6,15,8,1,10,3,12],[6,11,3,7,0,13,5,10,14,15,8,12,4,9,1,2],[15,5,1,3,7,14,6,9,11,8,12,2,10,0,4,13],[8,6,4,1,3,11,15,0,5,12,2,13,9,7,10,14],[12,15,10,4,1,5,8,7,6,2,13,14,0,3,9,11]];
-function compress(b,a){blockA=[];blockB=[];for(var c,d=0;5>d;d++)blockA[d]=new Number(b[d]),blockB[d]=new Number(b[d]);for(var e=0,f=0;5>f;f++)for(d=0;16>d;d++)c=mixOneRound(blockA[(e+0)%5],blockA[(e+1)%5],blockA[(e+2)%5],blockA[(e+3)%5],blockA[(e+4)%5],a[indexes[f][d]],ROLs[f][d],f),blockA[(e+0)%5]=c[0],blockA[(e+1)%5]=c[1],blockA[(e+2)%5]=c[2],blockA[(e+3)%5]=c[3],blockA[(e+4)%5]=c[4],e+=4;e=0;for(f=5;10>f;f++)for(d=0;16>d;d++)c=mixOneRound(blockB[(e+0)%5],blockB[(e+1)%5],blockB[(e+2)%5],blockB[(e+
-3)%5],blockB[(e+4)%5],a[indexes[f][d]],ROLs[f][d],f),blockB[(e+0)%5]=c[0],blockB[(e+1)%5]=c[1],blockB[(e+2)%5]=c[2],blockB[(e+3)%5]=c[3],blockB[(e+4)%5]=c[4],e+=4;blockB[3]+=blockA[2]+b[1];b[1]=b[2]+blockA[3]+blockB[4];b[2]=b[3]+blockA[4]+blockB[0];b[3]=b[4]+blockA[0]+blockB[1];b[4]=b[0]+blockA[1]+blockB[2];b[0]=blockB[3]}function zeroX(b){for(var a=0;16>a;a++)b[a]=0}
-function MDfinish(b,a,c,d){var e=Array(16);zeroX(e);for(var f=0,g=0;g<(c&63);g++)e[g>>>2]^=(a.charCodeAt(f++)&255)<<8*(g&3);e[c>>>2&15]^=1<<8*(c&3)+7;55<(c&63)&&(compress(b,e),e=Array(16),zeroX(e));e[14]=c<<3;e[15]=c>>>29|d<<3;compress(b,e)}function BYTES_TO_DWORD(b){var a=(b.charCodeAt(3)&255)<<24,a=a|(b.charCodeAt(2)&255)<<16,a=a|(b.charCodeAt(1)&255)<<8;return a|=b.charCodeAt(0)&255}
-function RMD(b){var a=Array(RMDsize/32),c=Array(RMDsize/8),d,e;MDinit(a);d=b.length;var f=Array(16);zeroX(f);var g=0;for(e=d;63<e;e-=64){for(var h=0;16>h;h++)f[h]=BYTES_TO_DWORD(b.substr(g,4)),g+=4;compress(a,f)}MDfinish(a,b.substr(g),d,0);for(h=0;h<RMDsize/8;h+=4)c[h]=a[h>>>2]&255,c[h+1]=a[h>>>2]>>>8&255,c[h+2]=a[h>>>2]>>>16&255,c[h+3]=a[h>>>2]>>>24&255;return c}function RMDstring(b){for(var b=RMD(b),a="",c=0;c<RMDsize/8;c++)a+=String.fromCharCode(b[c]);return a}
-var jsSHA=function(){var b=function(a,b){this.highOrder=a;this.lowOrder=b},a=function(a){var b=[],c=8*a.length,d;for(d=0;d<c;d+=8)b[d>>5]|=(a.charCodeAt(d/8)&255)<<24-d%32;return b},c=function(a){var b=[],c=a.length,d,e;for(d=0;d<c;d+=2){e=parseInt(a.substr(d,2),16);if(isNaN(e))return"INVALID HEX STRING";b[d>>3]|=e<<24-4*(d%8)}return b},d=function(a){var b="",c=4*a.length,d,e;for(d=0;d<c;d+=1)e=a[d>>2]>>8*(3-d%4),b+="0123456789abcdef".charAt(e>>4&15)+"0123456789abcdef".charAt(e&15);return b},e=function(a){var b=
-"",c=4*a.length,d,e,f;for(d=0;d<c;d+=3){f=(a[d>>2]>>8*(3-d%4)&255)<<16|(a[d+1>>2]>>8*(3-(d+1)%4)&255)<<8|a[d+2>>2]>>8*(3-(d+2)%4)&255;for(e=0;4>e;e+=1)b=8*d+6*e<=32*a.length?b+"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".charAt(f>>6*(3-e)&63):b+""}return b},f=function(a){for(var b="",c=0;c<32*a.length;c+=8)b+=String.fromCharCode(a[c>>5]>>>24-c%32&255);return b},g=function(a,b){return a<<b|a>>>32-b},h=function(a,b){return a>>>b|a<<32-b},j=function(a,c){return 32>=c?new b(a.highOrder>>>
-c|a.lowOrder<<32-c,a.lowOrder>>>c|a.highOrder<<32-c):new b(a.lowOrder>>>c|a.highOrder<<32-c,a.highOrder>>>c|a.lowOrder<<32-c)},k=function(a,c){return 32>=c?new b(a.highOrder>>>c,a.lowOrder>>>c|a.highOrder<<32-c):new b(0,a.highOrder<<32-c)},l=function(a,b,c){return a&b^~a&c},m=function(a,c,d){return new b(a.highOrder&c.highOrder^~a.highOrder&d.highOrder,a.lowOrder&c.lowOrder^~a.lowOrder&d.lowOrder)},r=function(a,b,c){return a&b^a&c^b&c},p=function(a,c,d){return new b(a.highOrder&c.highOrder^a.highOrder&
-d.highOrder^c.highOrder&d.highOrder,a.lowOrder&c.lowOrder^a.lowOrder&d.lowOrder^c.lowOrder&d.lowOrder)},o=function(a){return h(a,2)^h(a,13)^h(a,22)},y=function(a){var c=j(a,28),d=j(a,34),a=j(a,39);return new b(c.highOrder^d.highOrder^a.highOrder,c.lowOrder^d.lowOrder^a.lowOrder)},v=function(a){return h(a,6)^h(a,11)^h(a,25)},w=function(a){var c=j(a,14),d=j(a,18),a=j(a,41);return new b(c.highOrder^d.highOrder^a.highOrder,c.lowOrder^d.lowOrder^a.lowOrder)},A=function(a){return h(a,7)^h(a,18)^a>>>3},
-t=function(a){var c=j(a,1),d=j(a,8),a=k(a,7);return new b(c.highOrder^d.highOrder^a.highOrder,c.lowOrder^d.lowOrder^a.lowOrder)},u=function(a){return h(a,17)^h(a,19)^a>>>10},P=function(a){var c=j(a,19),d=j(a,61),a=k(a,6);return new b(c.highOrder^d.highOrder^a.highOrder,c.lowOrder^d.lowOrder^a.lowOrder)},C=function(a,b){var c=(a&65535)+(b&65535);return((a>>>16)+(b>>>16)+(c>>>16)&65535)<<16|c&65535},Q=function(a,b,c,d){var e=(a&65535)+(b&65535)+(c&65535)+(d&65535);return((a>>>16)+(b>>>16)+(c>>>16)+
-(d>>>16)+(e>>>16)&65535)<<16|e&65535},E=function(a,b,c,d,e){var f=(a&65535)+(b&65535)+(c&65535)+(d&65535)+(e&65535);return((a>>>16)+(b>>>16)+(c>>>16)+(d>>>16)+(e>>>16)+(f>>>16)&65535)<<16|f&65535},x=function(a,c){var d,e,f;d=(a.lowOrder&65535)+(c.lowOrder&65535);e=(a.lowOrder>>>16)+(c.lowOrder>>>16)+(d>>>16);f=(e&65535)<<16|d&65535;d=(a.highOrder&65535)+(c.highOrder&65535)+(e>>>16);e=(a.highOrder>>>16)+(c.highOrder>>>16)+(d>>>16);return new b((e&65535)<<16|d&65535,f)},z=function(a,c,d,e){var f,g,
-h;f=(a.lowOrder&65535)+(c.lowOrder&65535)+(d.lowOrder&65535)+(e.lowOrder&65535);g=(a.lowOrder>>>16)+(c.lowOrder>>>16)+(d.lowOrder>>>16)+(e.lowOrder>>>16)+(f>>>16);h=(g&65535)<<16|f&65535;f=(a.highOrder&65535)+(c.highOrder&65535)+(d.highOrder&65535)+(e.highOrder&65535)+(g>>>16);g=(a.highOrder>>>16)+(c.highOrder>>>16)+(d.highOrder>>>16)+(e.highOrder>>>16)+(f>>>16);return new b((g&65535)<<16|f&65535,h)},V=function(a,c,d,e,f){var g,h,j;g=(a.lowOrder&65535)+(c.lowOrder&65535)+(d.lowOrder&65535)+(e.lowOrder&
-65535)+(f.lowOrder&65535);h=(a.lowOrder>>>16)+(c.lowOrder>>>16)+(d.lowOrder>>>16)+(e.lowOrder>>>16)+(f.lowOrder>>>16)+(g>>>16);j=(h&65535)<<16|g&65535;g=(a.highOrder&65535)+(c.highOrder&65535)+(d.highOrder&65535)+(e.highOrder&65535)+(f.highOrder&65535)+(h>>>16);h=(a.highOrder>>>16)+(c.highOrder>>>16)+(d.highOrder>>>16)+(e.highOrder>>>16)+(f.highOrder>>>16)+(g>>>16);return new b((h&65535)<<16|g&65535,j)},K=function(a,b){var c=[],d,e,f,h,j,k,l,m,o,s=[1732584193,4023233417,2562383102,271733878,3285377520],
-p=[1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1518500249,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,1859775393,2400959708,2400959708,2400959708,2400959708,2400959708,2400959708,
-2400959708,2400959708,2400959708,2400959708,2400959708,2400959708,2400959708,2400959708,2400959708,2400959708,2400959708,2400959708,2400959708,2400959708,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782,3395469782];a[b>>5]|=128<<24-b%32;a[(b+65>>9<<4)+15]=b;o=a.length;for(l=0;l<o;l+=16){d=s[0];e=s[1];f=s[2];h=s[3];j=s[4];for(m=0;80>m;m+=1)c[m]=
-16>m?a[m+l]:g(c[m-3]^c[m-8]^c[m-14]^c[m-16],1),k=20>m?E(g(d,5),e&f^~e&h,j,p[m],c[m]):40>m?E(g(d,5),e^f^h,j,p[m],c[m]):60>m?E(g(d,5),r(e,f,h),j,p[m],c[m]):E(g(d,5),e^f^h,j,p[m],c[m]),j=h,h=f,f=g(e,30),e=d,d=k;s[0]=C(d,s[0]);s[1]=C(e,s[1]);s[2]=C(f,s[2]);s[3]=C(h,s[3]);s[4]=C(j,s[4])}return s},D=function(a,c,d){var e,f,g,h,j,k,K,B,D,s,da,Y,L,ea,ca,N,fa,ga,ha,ia,ja,ka,la,ma,q,na,Z=[],sa;if("SHA-224"===d||"SHA-256"===d)da=64,e=(c+65>>9<<4)+15,ea=16,ca=1,q=Number,N=C,fa=Q,ga=E,ha=A,ia=u,ja=o,ka=v,ma=r,
-la=l,na=[1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,
-4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298],s="SHA-224"===d?[3238371032,914150663,812702999,4144912697,4290775857,1750603025,1694076839,3204075428]:[1779033703,3144134277,1013904242,2773480762,1359893119,2600822924,528734635,1541459225];else if("SHA-384"===d||"SHA-512"===d)da=80,e=(c+128>>10<<5)+31,ea=32,ca=2,q=b,N=x,fa=z,ga=V,ha=t,ia=P,ja=y,ka=w,ma=
-p,la=m,na=[new q(1116352408,3609767458),new q(1899447441,602891725),new q(3049323471,3964484399),new q(3921009573,2173295548),new q(961987163,4081628472),new q(1508970993,3053834265),new q(2453635748,2937671579),new q(2870763221,3664609560),new q(3624381080,2734883394),new q(310598401,1164996542),new q(607225278,1323610764),new q(1426881987,3590304994),new q(1925078388,4068182383),new q(2162078206,991336113),new q(2614888103,633803317),new q(3248222580,3479774868),new q(3835390401,2666613458),new q(4022224774,
-944711139),new q(264347078,2341262773),new q(604807628,2007800933),new q(770255983,1495990901),new q(1249150122,1856431235),new q(1555081692,3175218132),new q(1996064986,2198950837),new q(2554220882,3999719339),new q(2821834349,766784016),new q(2952996808,2566594879),new q(3210313671,3203337956),new q(3336571891,1034457026),new q(3584528711,2466948901),new q(113926993,3758326383),new q(338241895,168717936),new q(666307205,1188179964),new q(773529912,1546045734),new q(1294757372,1522805485),new q(1396182291,
-2643833823),new q(1695183700,2343527390),new q(1986661051,1014477480),new q(2177026350,1206759142),new q(2456956037,344077627),new q(2730485921,1290863460),new q(2820302411,3158454273),new q(3259730800,3505952657),new q(3345764771,106217008),new q(3516065817,3606008344),new q(3600352804,1432725776),new q(4094571909,1467031594),new q(275423344,851169720),new q(430227734,3100823752),new q(506948616,1363258195),new q(659060556,3750685593),new q(883997877,3785050280),new q(958139571,3318307427),new q(1322822218,
-3812723403),new q(1537002063,2003034995),new q(1747873779,3602036899),new q(1955562222,1575990012),new q(2024104815,1125592928),new q(2227730452,2716904306),new q(2361852424,442776044),new q(2428436474,593698344),new q(2756734187,3733110249),new q(3204031479,2999351573),new q(3329325298,3815920427),new q(3391569614,3928383900),new q(3515267271,566280711),new q(3940187606,3454069534),new q(4118630271,4000239992),new q(116418474,1914138554),new q(174292421,2731055270),new q(289380356,3203993006),new q(460393269,
-320620315),new q(685471733,587496836),new q(852142971,1086792851),new q(1017036298,365543100),new q(1126000580,2618297676),new q(1288033470,3409855158),new q(1501505948,4234509866),new q(1607167915,987167468),new q(1816402316,1246189591)],s="SHA-384"===d?[new q(3418070365,3238371032),new q(1654270250,914150663),new q(2438529370,812702999),new q(355462360,4144912697),new q(1731405415,4290775857),new q(41048885895,1750603025),new q(3675008525,1694076839),new q(1203062813,3204075428)]:[new q(1779033703,
-4089235720),new q(3144134277,2227873595),new q(1013904242,4271175723),new q(2773480762,1595750129),new q(1359893119,2917565137),new q(2600822924,725511199),new q(528734635,4215389547),new q(1541459225,327033209)];a[c>>5]|=128<<24-c%32;a[e]=c;sa=a.length;for(Y=0;Y<sa;Y+=ea){c=s[0];e=s[1];f=s[2];g=s[3];h=s[4];j=s[5];k=s[6];K=s[7];for(L=0;L<da;L+=1)Z[L]=16>L?new q(a[L*ca+Y],a[L*ca+Y+1]):fa(ia(Z[L-2]),Z[L-7],ha(Z[L-15]),Z[L-16]),B=ga(K,ka(h),la(h,j,k),na[L],Z[L]),D=N(ja(c),ma(c,e,f)),K=k,k=j,j=h,h=N(g,
-B),g=f,f=e,e=c,c=N(B,D);s[0]=N(c,s[0]);s[1]=N(e,s[1]);s[2]=N(f,s[2]);s[3]=N(g,s[3]);s[4]=N(h,s[4]);s[5]=N(j,s[5]);s[6]=N(k,s[6]);s[7]=N(K,s[7])}switch(d){case "SHA-224":return[s[0],s[1],s[2],s[3],s[4],s[5],s[6]];case "SHA-256":return s;case "SHA-384":return[s[0].highOrder,s[0].lowOrder,s[1].highOrder,s[1].lowOrder,s[2].highOrder,s[2].lowOrder,s[3].highOrder,s[3].lowOrder,s[4].highOrder,s[4].lowOrder,s[5].highOrder,s[5].lowOrder];case "SHA-512":return[s[0].highOrder,s[0].lowOrder,s[1].highOrder,s[1].lowOrder,
-s[2].highOrder,s[2].lowOrder,s[3].highOrder,s[3].lowOrder,s[4].highOrder,s[4].lowOrder,s[5].highOrder,s[5].lowOrder,s[6].highOrder,s[6].lowOrder,s[7].highOrder,s[7].lowOrder];default:return[]}},B=function(b,d){this.strToHash=this.strBinLen=this.sha512=this.sha384=this.sha256=this.sha224=this.sha1=null;if("HEX"===d){if(0!==b.length%2)return"TEXT MUST BE IN BYTE INCREMENTS";this.strBinLen=4*b.length;this.strToHash=c(b)}else if("ASCII"===d||"undefined"===typeof d)this.strBinLen=8*b.length,this.strToHash=
-a(b);else return"UNKNOWN TEXT INPUT TYPE"};B.prototype={getHash:function(a,b){var c=null,g=this.strToHash.slice();switch(b){case "HEX":c=d;break;case "B64":c=e;break;case "ASCII":c=f;break;default:return"FORMAT NOT RECOGNIZED"}switch(a){case "SHA-1":if(null===this.sha1)this.sha1=K(g,this.strBinLen);return c(this.sha1);case "SHA-224":if(null===this.sha224)this.sha224=D(g,this.strBinLen,a);return c(this.sha224);case "SHA-256":if(null===this.sha256)this.sha256=D(g,this.strBinLen,a);return c(this.sha256);
-case "SHA-384":if(null===this.sha384)this.sha384=D(g,this.strBinLen,a);return c(this.sha384);case "SHA-512":if(null===this.sha512)this.sha512=D(g,this.strBinLen,a);return c(this.sha512);default:return"HASH NOT RECOGNIZED"}},getHMAC:function(b,g,h,j){var k,l,m,o,p;l=[];var r=[];switch(j){case "HEX":j=d;break;case "B64":j=e;break;case "ASCII":j=f;break;default:return"FORMAT NOT RECOGNIZED"}switch(h){case "SHA-1":k=64;p=160;break;case "SHA-224":k=64;p=224;break;case "SHA-256":k=64;p=256;break;case "SHA-384":k=
-128;p=384;break;case "SHA-512":k=128;p=512;break;default:return"HASH NOT RECOGNIZED"}if("HEX"===g){if(0!==b.length%2)return"KEY MUST BE IN BYTE INCREMENTS";g=c(b);o=4*b.length}else if("ASCII"===g)g=a(b),o=8*b.length;else return"UNKNOWN KEY INPUT TYPE";b=8*k;m=k/4-1;k<o/8?(g="SHA-1"===h?K(g,o):D(g,o,h),g[m]&=4294967040):k>o/8&&(g[m]&=4294967040);for(k=0;k<=m;k+=1)l[k]=g[k]^909522486,r[k]=g[k]^1549556828;"SHA-1"===h?(l=K(l.concat(this.strToHash),b+this.strBinLen),l=K(r.concat(l),b+p)):(l=D(l.concat(this.strToHash),
-b+this.strBinLen,h),l=D(r.concat(l),b+p,h));return j(l)}};return B}();function str_sha1(b){return(new jsSHA(b,"ASCII")).getHash("SHA-1","ASCII")}function str_sha224(b){return(new jsSHA(b,"ASCII")).getHash("SHA-224","ASCII")}function str_sha256(b){return(new jsSHA(b,"ASCII")).getHash("SHA-256","ASCII")}function str_sha384(b){return(new jsSHA(b,"ASCII")).getHash("SHA-384","ASCII")}function str_sha512(b){return(new jsSHA(b,"ASCII")).getHash("SHA-512","ASCII")}
-function openpgp_cfb_encrypt(b,a,c,d,e,f){var g=Array(d),h=Array(d),b=b+b.charAt(d-2)+b.charAt(d-1);util.print_debug("prefixrandom:"+util.hexstrdump(b));for(var j="",k=0;k<d;k++)g[k]=0;h=a(g,e);for(k=0;k<d;k++)j+=String.fromCharCode(h[k]^b.charCodeAt(k));for(k=0;k<d;k++)g[k]=j.charCodeAt(k);h=a(g,e);j+=String.fromCharCode(h[0]^b.charCodeAt(d));j+=String.fromCharCode(h[1]^b.charCodeAt(d+1));if(f)for(k=0;k<d;k++)g[k]=j.charCodeAt(k+2);else for(k=0;k<d;k++)g[k]=j.charCodeAt(k);h=a(g,e);if(f){for(k=0;k<
-d;k++)j+=String.fromCharCode(h[k]^c.charCodeAt(k));for(n=d+2;n<c.length;n+=d){for(k=0;k<d;k++)g[k]=j.charCodeAt(n+k);h=a(g,e);for(k=0;k<d;k++)j+=String.fromCharCode(h[k]^c.charCodeAt(n-2+k))}}else{c="  "+c;for(k=2;k<d;k++)j+=String.fromCharCode(h[k]^c.charCodeAt(k));b=j.substring(0,2*d).split("");j=j.substring(d);for(n=d;n<c.length;n+=d){for(k=0;k<d;k++)g[k]=j.charCodeAt(k);j="";h=a(g,e);for(k=0;k<d;k++)b.push(String.fromCharCode(h[k]^c.charCodeAt(n+k))),j+=String.fromCharCode(h[k]^c.charCodeAt(n+
-k))}j=b.join("")}return j}function openpgp_cfb_mdc(b,a,c,d){var e=Array(a),f=Array(a),g;for(g=0;g<a;g++)e[g]=0;e=b(e,c);for(g=0;g<a;g++)f[g]=d.charCodeAt(g),e[g]^=f[g];f=b(f,c);return util.bin2str(e)+String.fromCharCode(f[0]^d.charCodeAt(a))+String.fromCharCode(f[1]^d.charCodeAt(a+1))}
-function openpgp_cfb_decrypt(b,a,c,d,e){util.print_debug("resync:"+e);var f=Array(a),g=Array(a),h,j="",k=[];for(h=0;h<a;h++)f[h]=0;f=b(f,c);for(h=0;h<a;h++)g[h]=d.charCodeAt(h),f[h]^=g[h];g=b(g,c);util.print_debug("openpgp_cfb_decrypt:\niblock:"+util.hexidump(f)+"\nablock:"+util.hexidump(g)+"\n");util.print_debug((g[0]^d.charCodeAt(a)).toString(16)+(g[1]^d.charCodeAt(a+1)).toString(16));if(f[a-2]!=(g[0]^d.charCodeAt(a))||f[a-1]!=(g[1]^d.charCodeAt(a+1)))return util.print_eror("error duding decryption. Symmectric encrypted data not valid."),
-k.join("");if(e){for(h=0;h<a;h++)f[h]=d.charCodeAt(h+2);j=a+2}else{for(h=0;h<a;h++)f[h]=d.charCodeAt(h);j=a}for(;j<d.length;j+=a){g=b(f,c);for(h=0;h<a&&h+j<d.length;h++)f[h]=d.charCodeAt(j+h),k.push(String.fromCharCode(g[h]^f[h]))}return k.join("")}
-function normal_cfb_encrypt(b,a,c,d,e){for(var f="",f="",g=0,h=[],j=[],f=e.substring(0,a);d.length>a*g;){for(var e=b(f,c),f=d.substring(g*a,g*a+a),k=0;k<f.length;k++)j.push(String.fromCharCode(f.charCodeAt(k)^e[k]));f=j.join("");j=[];h.push(f);g++}return h.join("")}
-function normal_cfb_decrypt(b,a,c,d,e){var f="",g=0,h=[];if(null==e)for(e=0;e<a;e++)f+=String.fromCharCode(0);else f=e.substring(0,a);for(;d.length>a*g;){for(var j=b(f,c),f=d.substring(g*a+0,g*a+a+0),e=0;e<f.length;e++)h.push(String.fromCharCode(f.charCodeAt(e)^j[e]));g++}return h.join("")}
-function openpgp_crypto_asymetricEncrypt(b,a,c){switch(b){case 1:case 2:case 3:var b=new RSA,d=a[0].toBigInteger(),a=a[1].toBigInteger(),c=c.toBigInteger();return b.encrypt(c,a,d).toMPI();case 16:var b=new Elgamal,d=a[0].toBigInteger(),e=a[1].toBigInteger(),a=a[2].toBigInteger(),c=c.toBigInteger();return b.encrypt(c,e,d,a);default:return null}}
-function openpgp_crypto_asymetricDecrypt(b,a,c,d){switch(b){case 1:case 2:case 3:var b=new RSA,e=c[0].toBigInteger(),a=c[1].toBigInteger(),f=c[2].toBigInteger(),c=c[3].toBigInteger(),d=d[0].toBigInteger();return b.decrypt(d,e,a,f,c);case 16:return b=new Elgamal,c=c[0].toBigInteger(),e=d[0].toBigInteger(),d=d[1].toBigInteger(),a=a[0].toBigInteger(),b.decrypt(e,d,a,c);default:return null}}
-function openpgp_crypto_getPrefixRandom(b){switch(b){case 2:case 3:case 4:return openpgp_crypto_getRandomBytes(8);case 7:case 8:case 9:case 10:return openpgp_crypto_getRandomBytes(16);default:return null}}
-function openpgp_crypto_MDCSystemBytes(b,a,c){util.print_debug_hexstr_dump("openpgp_crypto_symmetricDecrypt:\nencrypteddata:",c);switch(b){case 0:return c;case 2:return openpgp_cfb_mdc(desede,8,a,c,openpgp_cfb);case 3:return openpgp_cfb_mdc(cast5_encrypt,8,a,c);case 4:return openpgp_cfb_mdc(BFencrypt,8,a,c);case 7:case 8:case 9:return openpgp_cfb_mdc(AESencrypt,16,keyExpansion(a),c);case 10:return openpgp_cfb_mdc(TFencrypt,16,a,c);case 1:util.print_error(""+(1==b?"IDEA Algorithm not implemented":
-"Twofish Algorithm not implemented"))}return null}function openpgp_crypto_generateSessionKey(b){switch(b){case 2:case 8:return openpgp_crypto_getRandomBytes(24);case 3:case 4:case 7:return util.print_debug("length = 16:\n"+util.hexstrdump(openpgp_crypto_getRandomBytes(16))),openpgp_crypto_getRandomBytes(16);case 9:case 10:return openpgp_crypto_getRandomBytes(32)}return null}
-function openpgp_crypto_verifySignature(b,a,c,d,e){var f=openpgp_crypto_hashData(a,e);switch(b){case 1:case 2:case 3:e=new RSA;b=d[0].toBigInteger();d=d[1].toBigInteger();c=c[0].toBigInteger();d=e.verify(c,d,b);a=openpgp_encoding_emsa_pkcs1_decode(a,d.toMPI().substring(2));return-1==a?(util.print_error("PKCS1 padding in message or key incorrect. Aborting..."),!1):a==f;case 16:return util.print_error("signing with Elgamal is not defined in the OpenPGP standard."),null;case 17:var b=new DSA,f=c[0].toBigInteger(),
-c=c[1].toBigInteger(),g=d[0].toBigInteger(),h=d[1].toBigInteger(),j=d[2].toBigInteger(),d=d[3].toBigInteger(),d=b.verify(a,f,c,e,g,h,j,d);return 0==d.compareTo(f);default:return null}}
-function openpgp_crypto_signData(b,a,c,d,e){switch(a){case 1:case 2:case 3:var a=new RSA,d=d[0].toBigInteger(),f=c[0].toBigInteger(),b=openpgp_encoding_emsa_pkcs1_encode(b,e,c[0].mpiByteLength);util.print_debug("signing using RSA");return a.sign(b,d,f).toMPI();case 17:a=new DSA;util.print_debug("DSA Sign: q size in Bytes:"+c[1].getByteLength());var f=c[0].toBigInteger(),g=c[1].toBigInteger(),h=c[2].toBigInteger();c[3].toBigInteger();c=d[0].toBigInteger();b=a.sign(b,e,h,f,g,c);util.print_debug("signing using DSA\n result:"+
-util.hexstrdump(b[0])+"|"+util.hexstrdump(b[1]));return b[0]+b[1];case 16:return util.print_debug("signing with Elgamal is not defined in the OpenPGP standard."),null;default:return null}}function openpgp_crypto_hashData(b,a){var c=null;switch(b){case 1:c=MD5(a);break;case 2:c=str_sha1(a);break;case 3:c=RMDstring(a);break;case 8:c=str_sha256(a);break;case 9:c=str_sha384(a);break;case 10:c=str_sha512(a);break;case 11:c=str_sha224(a)}return c}
-function openpgp_crypto_getHashByteLength(b){switch(b){case 1:return 16;case 2:case 3:return 20;case 8:return 32;case 9:return 48;case 10:return 64;case 11:return 28}return null}function openpgp_crypto_getRandomBytes(b){for(var a="",c=0;c<b;c++)a+=String.fromCharCode(openpgp_crypto_getSecureRandomOctet());return a}function openpgp_crypto_getPseudoRandom(b,a){return Math.round(Math.random()*(a-b))+b}
-function openpgp_crypto_getSecureRandom(b,a){var c=new Uint32Array(1);window.crypto.getRandomValues(c);for(var d=(a-b).toString(2).length;(c[0]&Math.pow(2,d)-1)>a-b;)window.crypto.getRandomValues(c);return b+Math.abs(c[0]&Math.pow(2,d)-1)}function openpgp_crypto_getSecureRandomOctet(){var b=new Uint32Array(1);window.crypto.getRandomValues(b);return b[0]&255}
-function openpgp_crypto_getRandomBigInteger(b){if(0>b)return null;var a=openpgp_crypto_getRandomBytes(Math.floor((b+7)/8));0<b%8&&(a=String.fromCharCode(Math.pow(2,b%8)-1&a.charCodeAt(0))+a.substring(1));return(new openpgp_type_mpi).create(a).toBigInteger()}function openpgp_crypto_getRandomBigIntegerInRange(b,a){if(!(0>=a.compareTo(b))){for(var c=a.subtract(b),d=openpgp_crypto_getRandomBigInteger(c.bitLength());d>c;)d=openpgp_crypto_getRandomBigInteger(c.bitLength());return b.add(d)}}
-function openpgp_crypto_testRSA(b){debugger;var a=new RSA,c=new openpgp_type_mpi;c.create(openpgp_encoding_eme_pkcs1_encode("ABABABAB",128));c=a.encrypt(c.toBigInteger(),b.ee,b.n);a.decrypt(c,b.d,b.p,b.q,b.u)}
-function openpgp_crypto_generateKeyPair(b,a,c,d,e){var f,g,h=new Date,h=h.getTime()/1E3,h=String.fromCharCode(Math.floor(h/16777216%256))+String.fromCharCode(Math.floor(h/65536%256))+String.fromCharCode(Math.floor(h/256%256))+String.fromCharCode(Math.floor(h%256));switch(b){case 1:a=(new RSA).generate(a,"10001");f=(new openpgp_packet_keymaterial).write_private_key(b,a,c,d,e,h);g=(new openpgp_packet_keymaterial).write_public_key(b,a,h);break;default:util.print_error("Unknown keytype "+b)}return{privateKey:f,
-publicKey:g}}
-function openpgp_crypto_symmetricEncrypt(b,a,c,d,e){switch(a){case 0:return d;case 2:return openpgp_cfb_encrypt(b,desede,d,8,c,e).substring(0,d.length+10);case 3:return openpgp_cfb_encrypt(b,cast5_encrypt,d,8,c,e).substring(0,d.length+10);case 4:return openpgp_cfb_encrypt(b,BFencrypt,d,8,c,e).substring(0,d.length+10);case 7:case 8:case 9:return openpgp_cfb_encrypt(b,AESencrypt,d,16,keyExpansion(c),e).substring(0,d.length+18);case 10:return openpgp_cfb_encrypt(b,TFencrypt,d,16,c,e).substring(0,d.length+
-18);case 1:return util.print_error("IDEA Algorithm not implemented"),null;default:return null}}
-function openpgp_crypto_symmetricDecrypt(b,a,c,d){util.print_debug_hexstr_dump("openpgp_crypto_symmetricDecrypt:\nalgo:"+b+"\nencrypteddata:",c);var e=0;d||(e=2);switch(b){case 0:return c;case 2:return openpgp_cfb_decrypt(desede,8,a,c,d).substring(e,c.length+e-10);case 3:return openpgp_cfb_decrypt(cast5_encrypt,8,a,c,d).substring(e,c.length+e-10);case 4:return openpgp_cfb_decrypt(BFencrypt,8,a,c,d).substring(e,c.length+e-10);case 7:case 8:case 9:return openpgp_cfb_decrypt(AESencrypt,16,keyExpansion(a),
-c,d).substring(e,c.length+e-18);case 10:return openpgp_cfb_decrypt(TFencrypt,16,a,c,d).substring(e,c.length+e-18);case 1:util.print_error(""+(1==b?"IDEA Algorithm not implemented":"Twofish Algorithm not implemented"))}return null}
-var Rcon=[1,2,4,8,16,32,64,128,27,54,108,216,171,77,154,47,94,188,99,198,151,53,106,212,179,125,250,239,197,145],S=[99,124,119,123,242,107,111,197,48,1,103,43,254,215,171,118,202,130,201,125,250,89,71,240,173,212,162,175,156,164,114,192,183,253,147,38,54,63,247,204,52,165,229,241,113,216,49,21,4,199,35,195,24,150,5,154,7,18,128,226,235,39,178,117,9,131,44,26,27,110,90,160,82,59,214,179,41,227,47,132,83,209,0,237,32,252,177,91,106,203,190,57,74,76,88,207,208,239,170,251,67,77,51,133,69,249,2,127,80,
-60,159,168,81,163,64,143,146,157,56,245,188,182,218,33,16,255,243,210,205,12,19,236,95,151,68,23,196,167,126,61,100,93,25,115,96,129,79,220,34,42,144,136,70,238,184,20,222,94,11,219,224,50,58,10,73,6,36,92,194,211,172,98,145,149,228,121,231,200,55,109,141,213,78,169,108,86,244,234,101,122,174,8,186,120,37,46,28,166,180,198,232,221,116,31,75,189,139,138,112,62,181,102,72,3,246,14,97,53,87,185,134,193,29,158,225,248,152,17,105,217,142,148,155,30,135,233,206,85,40,223,140,161,137,13,191,230,66,104,65,
-153,45,15,176,84,187,22],T1=[2774754246,2222750968,2574743534,2373680118,234025727,3177933782,2976870366,1422247313,1345335392,50397442,2842126286,2099981142,436141799,1658312629,3870010189,2591454956,1170918031,2642575903,1086966153,2273148410,368769775,3948501426,3376891790,200339707,3970805057,1742001331,4255294047,3937382213,3214711843,4154762323,2524082916,1539358875,3266819957,486407649,2928907069,1780885068,1513502316,1094664062,49805301,1338821763,1546925160,4104496465,887481809,150073849,
-2473685474,1943591083,1395732834,1058346282,201589768,1388824469,1696801606,1589887901,672667696,2711000631,251987210,3046808111,151455502,907153956,2608889883,1038279391,652995533,1764173646,3451040383,2675275242,453576978,2659418909,1949051992,773462580,756751158,2993581788,3998898868,4221608027,4132590244,1295727478,1641469623,3467883389,2066295122,1055122397,1898917726,2542044179,4115878822,1758581177,0,753790401,1612718144,536673507,3367088505,3982187446,3194645204,1187761037,3653156455,1262041458,
-3729410708,3561770136,3898103984,1255133061,1808847035,720367557,3853167183,385612781,3309519750,3612167578,1429418854,2491778321,3477423498,284817897,100794884,2172616702,4031795360,1144798328,3131023141,3819481163,4082192802,4272137053,3225436288,2324664069,2912064063,3164445985,1211644016,83228145,3753688163,3249976951,1977277103,1663115586,806359072,452984805,250868733,1842533055,1288555905,336333848,890442534,804056259,3781124030,2727843637,3427026056,957814574,1472513171,4071073621,2189328124,
-1195195770,2892260552,3881655738,723065138,2507371494,2690670784,2558624025,3511635870,2145180835,1713513028,2116692564,2878378043,2206763019,3393603212,703524551,3552098411,1007948840,2044649127,3797835452,487262998,1994120109,1004593371,1446130276,1312438900,503974420,3679013266,168166924,1814307912,3831258296,1573044895,1859376061,4021070915,2791465668,2828112185,2761266481,937747667,2339994098,854058965,1137232011,1496790894,3077402074,2358086913,1691735473,3528347292,3769215305,3027004632,4199962284,
-133494003,636152527,2942657994,2390391540,3920539207,403179536,3585784431,2289596656,1864705354,1915629148,605822008,4054230615,3350508659,1371981463,602466507,2094914977,2624877800,555687742,3712699286,3703422305,2257292045,2240449039,2423288032,1111375484,3300242801,2858837708,3628615824,84083462,32962295,302911004,2741068226,1597322602,4183250862,3501832553,2441512471,1489093017,656219450,3114180135,954327513,335083755,3013122091,856756514,3144247762,1893325225,2307821063,2811532339,3063651117,
-572399164,2458355477,552200649,1238290055,4283782570,2015897680,2061492133,2408352771,4171342169,2156497161,386731290,3669999461,837215959,3326231172,3093850320,3275833730,2962856233,1999449434,286199582,3417354363,4233385128,3602627437,974525996],T2=[1667483301,2088564868,2004348569,2071721613,4076011277,1802229437,1869602481,3318059348,808476752,16843267,1734856361,724260477,4278118169,3621238114,2880130534,1987505306,3402272581,2189565853,3385428288,2105408135,4210749205,1499050731,1195871945,
-4042324747,2913812972,3570709351,2728550397,2947499498,2627478463,2762232823,1920132246,3233848155,3082253762,4261273884,2475900334,640044138,909536346,1061125697,4160222466,3435955023,875849820,2779075060,3857043764,4059166984,1903288979,3638078323,825320019,353708607,67373068,3351745874,589514341,3284376926,404238376,2526427041,84216335,2593796021,117902857,303178806,2155879323,3806519101,3958099238,656887401,2998042573,1970662047,151589403,2206408094,741103732,437924910,454768173,1852759218,1515893998,
-2694863867,1381147894,993752653,3604395873,3014884814,690573947,3823361342,791633521,2223248279,1397991157,3520182632,0,3991781676,538984544,4244431647,2981198280,1532737261,1785386174,3419114822,3200149465,960066123,1246401758,1280088276,1482207464,3486483786,3503340395,4025468202,2863288293,4227591446,1128498885,1296931543,859006549,2240090516,1162185423,4193904912,33686534,2139094657,1347461360,1010595908,2678007226,2829601763,1364304627,2745392638,1077969088,2408514954,2459058093,2644320700,943222856,
-4126535940,3166462943,3065411521,3671764853,555827811,269492272,4294960410,4092853518,3537026925,3452797260,202119188,320022069,3974939439,1600110305,2543269282,1145342156,387395129,3301217111,2812761586,2122251394,1027439175,1684326572,1566423783,421081643,1936975509,1616953504,2172721560,1330618065,3705447295,572671078,707417214,2425371563,2290617219,1179028682,4008625961,3099093971,336865340,3739133817,1583267042,185275933,3688607094,3772832571,842163286,976909390,168432670,1229558491,101059594,
-606357612,1549580516,3267534685,3553869166,2896970735,1650640038,2442213800,2509582756,3840201527,2038035083,3890730290,3368586051,926379609,1835915959,2374828428,3587551588,1313774802,2846444E3,1819072692,1448520954,4109693703,3941256997,1701169839,2054878350,2930657257,134746136,3132780501,2021191816,623200879,774790258,471611428,2795919345,3031724999,3334903633,3907570467,3722289532,1953818780,522141217,1263245021,3183305180,2341145990,2324303749,1886445712,1044282434,3048567236,1718013098,1212715224,
-50529797,4143380225,235805714,1633796771,892693087,1465364217,3115936208,2256934801,3250690392,488454695,2661164985,3789674808,4177062675,2560109491,286335539,1768542907,3654920560,2391672713,2492740519,2610638262,505297954,2273777042,3924412704,3469641545,1431677695,673730680,3755976058,2357986191,2711706104,2307459456,218962455,3216991706,3873888049,1111655622,1751699640,1094812355,2576951728,757946999,252648977,2964356043,1414834428,3149622742,370551866],T3=[1673962851,2096661628,2012125559,2079755643,
-4076801522,1809235307,1876865391,3314635973,811618352,16909057,1741597031,727088427,4276558334,3618988759,2874009259,1995217526,3398387146,2183110018,3381215433,2113570685,4209972730,1504897881,1200539975,4042984432,2906778797,3568527316,2724199842,2940594863,2619588508,2756966308,1927583346,3231407040,3077948087,4259388669,2470293139,642542118,913070646,1065238847,4160029431,3431157708,879254580,2773611685,3855693029,4059629809,1910674289,3635114968,828527409,355090197,67636228,3348452039,591815971,
-3281870531,405809176,2520228246,84545285,2586817946,118360327,304363026,2149292928,3806281186,3956090603,659450151,2994720178,1978310517,152181513,2199756419,743994412,439627290,456535323,1859957358,1521806938,2690382752,1386542674,997608763,3602342358,3011366579,693271337,3822927587,794718511,2215876484,1403450707,3518589137,0,3988860141,541089824,4242743292,2977548465,1538714971,1792327274,3415033547,3194476990,963791673,1251270218,1285084236,1487988824,3481619151,3501943760,4022676207,2857362858,
-4226619131,1132905795,1301993293,862344499,2232521861,1166724933,4192801017,33818114,2147385727,1352724560,1014514748,2670049951,2823545768,1369633617,2740846243,1082179648,2399505039,2453646738,2636233885,946882616,4126213365,3160661948,3061301686,3668932058,557998881,270544912,4293204735,4093447923,3535760850,3447803085,202904588,321271059,3972214764,1606345055,2536874647,1149815876,388905239,3297990596,2807427751,2130477694,1031423805,1690872932,1572530013,422718233,1944491379,1623236704,2165938305,
-1335808335,3701702620,574907938,710180394,2419829648,2282455944,1183631942,4006029806,3094074296,338181140,3735517662,1589437022,185998603,3685578459,3772464096,845436466,980700730,169090570,1234361161,101452294,608726052,1555620956,3265224130,3552407251,2890133420,1657054818,2436475025,2503058581,3839047652,2045938553,3889509095,3364570056,929978679,1843050349,2365688973,3585172693,1318900302,2840191145,1826141292,1454176854,4109567988,3939444202,1707781989,2062847610,2923948462,135272456,3127891386,
-2029029496,625635109,777810478,473441308,2790781350,3027486644,3331805638,3905627112,3718347997,1961401460,524165407,1268178251,3177307325,2332919435,2316273034,1893765232,1048330814,3044132021,1724688998,1217452104,50726147,4143383030,236720654,1640145761,896163637,1471084887,3110719673,2249691526,3248052417,490350365,2653403550,3789109473,4176155640,2553000856,287453969,1775418217,3651760345,2382858638,2486413204,2603464347,507257374,2266337927,3922272489,3464972750,1437269845,676362280,3752164063,
-2349043596,2707028129,2299101321,219813645,3211123391,3872862694,1115997762,1758509160,1099088705,2569646233,760903469,253628687,2960903088,1420360788,3144537787,371997206],T4=[3332727651,4169432188,4003034999,4136467323,4279104242,3602738027,3736170351,2438251973,1615867952,33751297,3467208551,1451043627,3877240574,3043153879,1306962859,3969545846,2403715786,530416258,2302724553,4203183485,4011195130,3001768281,2395555655,4211863792,1106029997,3009926356,1610457762,1173008303,599760028,1408738468,
-3835064946,2606481600,1975695287,3776773629,1034851219,1282024998,1817851446,2118205247,4110612471,2203045068,1750873140,1374987685,3509904869,4178113009,3801313649,2876496088,1649619249,708777237,135005188,2505230279,1181033251,2640233411,807933976,933336726,168756485,800430746,235472647,607523346,463175808,3745374946,3441880043,1315514151,2144187058,3936318837,303761673,496927619,1484008492,875436570,908925723,3702681198,3035519578,1543217312,2767606354,1984772923,3076642518,2110698419,1383803177,
-3711886307,1584475951,328696964,2801095507,3110654417,0,3240947181,1080041504,3810524412,2043195825,3069008731,3569248874,2370227147,1742323390,1917532473,2497595978,2564049996,2968016984,2236272591,3144405200,3307925487,1340451498,3977706491,2261074755,2597801293,1716859699,294946181,2328839493,3910203897,67502594,4269899647,2700103760,2017737788,632987551,1273211048,2733855057,1576969123,2160083008,92966799,1068339858,566009245,1883781176,4043634165,1675607228,2009183926,2943736538,1113792801,540020752,
-3843751935,4245615603,3211645650,2169294285,403966988,641012499,3274697964,3202441055,899848087,2295088196,775493399,2472002756,1441965991,4236410494,2051489085,3366741092,3135724893,841685273,3868554099,3231735904,429425025,2664517455,2743065820,1147544098,1417554474,1001099408,193169544,2362066502,3341414126,1809037496,675025940,2809781982,3168951902,371002123,2910247899,3678134496,1683370546,1951283770,337512970,2463844681,201983494,1215046692,3101973596,2673722050,3178157011,1139780780,3299238498,
-967348625,832869781,3543655652,4069226873,3576883175,2336475336,1851340599,3669454189,25988493,2976175573,2631028302,1239460265,3635702892,2902087254,4077384948,3475368682,3400492389,4102978170,1206496942,270010376,1876277946,4035475576,1248797989,1550986798,941890588,1475454630,1942467764,2538718918,3408128232,2709315037,3902567540,1042358047,2531085131,1641856445,226921355,260409994,3767562352,2084716094,1908716981,3433719398,2430093384,100991747,4144101110,470945294,3265487201,1784624437,2935576407,
-1775286713,395413126,2572730817,975641885,666476190,3644383713,3943954680,733190296,573772049,3535497577,2842745305,126455438,866620564,766942107,1008868894,361924487,3374377449,2269761230,2868860245,1350051880,2776293343,59739276,1509466529,159418761,437718285,1708834751,3610371814,2227585602,3501746280,2193834305,699439513,1517759789,504434447,2076946608,2835108948,1842789307,742004246];function B0(b){return b&255}function B1(b){return b>>8&255}function B2(b){return b>>16&255}
-function B3(b){return b>>24&255}function F1(b,a,c,d){return B1(T1[b&255])|B1(T1[a>>8&255])<<8|B1(T1[c>>16&255])<<16|B1(T1[d>>>24])<<24}function packBytes(b){var a,c,d=b.length,e=Array(d/4);if(b&&!(d%4)){for(a=0,c=0;c<d;c+=4)e[a++]=b[c]|b[c+1]<<8|b[c+2]<<16|b[c+3]<<24;return e}}function unpackBytes(b){var a,c=0,d=b.length,e=Array(4*d);for(a=0;a<d;a++)e[c++]=B0(b[a]),e[c++]=B1(b[a]),e[c++]=B2(b[a]),e[c++]=B3(b[a]);return e}var maxkc=8,maxrk=14;
-function keyExpansion(b){var a,c,d,e,f=Array(maxrk+1),g=b.length,h=Array(maxkc),j=Array(maxkc),k=0;if(16==g)e=10,a=4;else if(24==g)e=12,a=6;else if(32==g)e=14,a=8;else{util.print_error("aes.js: Invalid key-length for AES key:"+g);return}for(c=0;c<maxrk+1;c++)f[c]=Array(4);for(c=0,d=0;d<g;d++,c+=4)h[d]=b.charCodeAt(c)|b.charCodeAt(c+1)<<8|b.charCodeAt(c+2)<<16|b.charCodeAt(c+3)<<24;for(d=a-1;0<=d;d--)j[d]=h[d];for(d=c=b=0;d<a&&b<e+1;){for(;d<a&&4>c;d++,c++)f[b][c]=j[d];4==c&&(b++,c=0)}for(;b<e+1;){d=
-j[a-1];j[0]^=S[B1(d)]|S[B2(d)]<<8|S[B3(d)]<<16|S[B0(d)]<<24;j[0]^=Rcon[k++];if(8!=a)d=1;else{for(d=1;d<a/2;d++)j[d]^=j[d-1];d=j[a/2-1];j[a/2]^=S[B0(d)]|S[B1(d)]<<8|S[B2(d)]<<16|S[B3(d)]<<24;d=a/2+1}for(;d<a;d++)j[d]^=j[d-1];for(d=0;d<a&&b<e+1;){for(;d<a&&4>c;d++,c++)f[b][c]=j[d];4==c&&(b++,c=0)}}this.rounds=e;this.rk=f;return this}
-function AESencrypt(b,a){var c,d,e,f,g,h=packBytes(b),j=a.rounds,k=h[0],l=h[1],m=h[2];g=h[3];for(c=0;c<j-1;c++)d=k^a.rk[c][0],e=l^a.rk[c][1],f=m^a.rk[c][2],g^=a.rk[c][3],k=T1[d&255]^T2[e>>8&255]^T3[f>>16&255]^T4[g>>>24],l=T1[e&255]^T2[f>>8&255]^T3[g>>16&255]^T4[d>>>24],m=T1[f&255]^T2[g>>8&255]^T3[d>>16&255]^T4[e>>>24],g=T1[g&255]^T2[d>>8&255]^T3[e>>16&255]^T4[f>>>24];c=j-1;d=k^a.rk[c][0];e=l^a.rk[c][1];f=m^a.rk[c][2];g^=a.rk[c][3];h[0]=F1(d,e,f,g)^a.rk[j][0];h[1]=F1(e,f,g,d)^a.rk[j][1];h[2]=F1(f,
-g,d,e)^a.rk[j][2];h[3]=F1(g,d,e,f)^a.rk[j][3];return unpackBytes(h)}function Blowfish(){}Blowfish.prototype.BLOCKSIZE=8;
-Blowfish.prototype.SBOXES=[[3509652390,2564797868,805139163,3491422135,3101798381,1780907670,3128725573,4046225305,614570311,3012652279,134345442,2240740374,1667834072,1901547113,2757295779,4103290238,227898511,1921955416,1904987480,2182433518,2069144605,3260701109,2620446009,720527379,3318853667,677414384,3393288472,3101374703,2390351024,1614419982,1822297739,2954791486,3608508353,3174124327,2024746970,1432378464,3864339955,2857741204,1464375394,1676153920,1439316330,715854006,3033291828,289532110,
-2706671279,2087905683,3018724369,1668267050,732546397,1947742710,3462151702,2609353502,2950085171,1814351708,2050118529,680887927,999245976,1800124847,3300911131,1713906067,1641548236,4213287313,1216130144,1575780402,4018429277,3917837745,3693486850,3949271944,596196993,3549867205,258830323,2213823033,772490370,2760122372,1774776394,2652871518,566650946,4142492826,1728879713,2882767088,1783734482,3629395816,2517608232,2874225571,1861159788,326777828,3124490320,2130389656,2716951837,967770486,1724537150,
-2185432712,2364442137,1164943284,2105845187,998989502,3765401048,2244026483,1075463327,1455516326,1322494562,910128902,469688178,1117454909,936433444,3490320968,3675253459,1240580251,122909385,2157517691,634681816,4142456567,3825094682,3061402683,2540495037,79693498,3249098678,1084186820,1583128258,426386531,1761308591,1047286709,322548459,995290223,1845252383,2603652396,3431023940,2942221577,3202600964,3727903485,1712269319,422464435,3234572375,1170764815,3523960633,3117677531,1434042557,442511882,
-3600875718,1076654713,1738483198,4213154764,2393238008,3677496056,1014306527,4251020053,793779912,2902807211,842905082,4246964064,1395751752,1040244610,2656851899,3396308128,445077038,3742853595,3577915638,679411651,2892444358,2354009459,1767581616,3150600392,3791627101,3102740896,284835224,4246832056,1258075500,768725851,2589189241,3069724005,3532540348,1274779536,3789419226,2764799539,1660621633,3471099624,4011903706,913787905,3497959166,737222580,2514213453,2928710040,3937242737,1804850592,3499020752,
-2949064160,2386320175,2390070455,2415321851,4061277028,2290661394,2416832540,1336762016,1754252060,3520065937,3014181293,791618072,3188594551,3933548030,2332172193,3852520463,3043980520,413987798,3465142937,3030929376,4245938359,2093235073,3534596313,375366246,2157278981,2479649556,555357303,3870105701,2008414854,3344188149,4221384143,3956125452,2067696032,3594591187,2921233993,2428461,544322398,577241275,1471733935,610547355,4027169054,1432588573,1507829418,2025931657,3646575487,545086370,48609733,
-2200306550,1653985193,298326376,1316178497,3007786442,2064951626,458293330,2589141269,3591329599,3164325604,727753846,2179363840,146436021,1461446943,4069977195,705550613,3059967265,3887724982,4281599278,3313849956,1404054877,2845806497,146425753,1854211946],[1266315497,3048417604,3681880366,3289982499,290971E4,1235738493,2632868024,2414719590,3970600049,1771706367,1449415276,3266420449,422970021,1963543593,2690192192,3826793022,1062508698,1531092325,1804592342,2583117782,2714934279,4024971509,1294809318,
-4028980673,1289560198,2221992742,1669523910,35572830,157838143,1052438473,1016535060,1802137761,1753167236,1386275462,3080475397,2857371447,1040679964,2145300060,2390574316,1461121720,2956646967,4031777805,4028374788,33600511,2920084762,1018524850,629373528,3691585981,3515945977,2091462646,2486323059,586499841,988145025,935516892,3367335476,2599673255,2839830854,265290510,3972581182,2759138881,3795373465,1005194799,847297441,406762289,1314163512,1332590856,1866599683,4127851711,750260880,613907577,
-1450815602,3165620655,3734664991,3650291728,3012275730,3704569646,1427272223,778793252,1343938022,2676280711,2052605720,1946737175,3164576444,3914038668,3967478842,3682934266,1661551462,3294938066,4011595847,840292616,3712170807,616741398,312560963,711312465,1351876610,322626781,1910503582,271666773,2175563734,1594956187,70604529,3617834859,1007753275,1495573769,4069517037,2549218298,2663038764,504708206,2263041392,3941167025,2249088522,1514023603,1998579484,1312622330,694541497,2582060303,2151582166,
-1382467621,776784248,2618340202,3323268794,2497899128,2784771155,503983604,4076293799,907881277,423175695,432175456,1378068232,4145222326,3954048622,3938656102,3820766613,2793130115,2977904593,26017576,3274890735,3194772133,1700274565,1756076034,4006520079,3677328699,720338349,1533947780,354530856,688349552,3973924725,1637815568,332179504,3949051286,53804574,2852348879,3044236432,1282449977,3583942155,3416972820,4006381244,1617046695,2628476075,3002303598,1686838959,431878346,2686675385,1700445008,
-1080580658,1009431731,832498133,3223435511,2605976345,2271191193,2516031870,1648197032,4164389018,2548247927,300782431,375919233,238389289,3353747414,2531188641,2019080857,1475708069,455242339,2609103871,448939670,3451063019,1395535956,2413381860,1841049896,1491858159,885456874,4264095073,4001119347,1565136089,3898914787,1108368660,540939232,1173283510,2745871338,3681308437,4207628240,3343053890,4016749493,1699691293,1103962373,3625875870,2256883143,3830138730,1031889488,3479347698,1535977030,4236805024,
-3251091107,2132092099,1774941330,1199868427,1452454533,157007616,2904115357,342012276,595725824,1480756522,206960106,497939518,591360097,863170706,2375253569,3596610801,1814182875,2094937945,3421402208,1082520231,3463918190,2785509508,435703966,3908032597,1641649973,2842273706,3305899714,1510255612,2148256476,2655287854,3276092548,4258621189,236887753,3681803219,274041037,1734335097,3815195456,3317970021,1899903192,1026095262,4050517792,356393447,2410691914,3873677099,3682840055],[3913112168,2491498743,
-4132185628,2489919796,1091903735,1979897079,3170134830,3567386728,3557303409,857797738,1136121015,1342202287,507115054,2535736646,337727348,3213592640,1301675037,2528481711,1895095763,1721773893,3216771564,62756741,2142006736,835421444,2531993523,1442658625,3659876326,2882144922,676362277,1392781812,170690266,3921047035,1759253602,3611846912,1745797284,664899054,1329594018,3901205900,3045908486,2062866102,2865634940,3543621612,3464012697,1080764994,553557557,3656615353,3996768171,991055499,499776247,
-1265440854,648242737,3940784050,980351604,3713745714,1749149687,3396870395,4211799374,3640570775,1161844396,3125318951,1431517754,545492359,4268468663,3499529547,1437099964,2702547544,3433638243,2581715763,2787789398,1060185593,1593081372,2418618748,4260947970,69676912,2159744348,86519011,2512459080,3838209314,1220612927,3339683548,133810670,1090789135,1078426020,1569222167,845107691,3583754449,4072456591,1091646820,628848692,1613405280,3757631651,526609435,236106946,48312990,2942717905,3402727701,
-1797494240,859738849,992217954,4005476642,2243076622,3870952857,3732016268,765654824,3490871365,2511836413,1685915746,3888969200,1414112111,2273134842,3281911079,4080962846,172450625,2569994100,980381355,4109958455,2819808352,2716589560,2568741196,3681446669,3329971472,1835478071,660984891,3704678404,4045999559,3422617507,3040415634,1762651403,1719377915,3470491036,2693910283,3642056355,3138596744,1364962596,2073328063,1983633131,926494387,3423689081,2150032023,4096667949,1749200295,3328846651,309677260,
-2016342300,1779581495,3079819751,111262694,1274766160,443224088,298511866,1025883608,3806446537,1145181785,168956806,3641502830,3584813610,1689216846,3666258015,3200248200,1692713982,2646376535,4042768518,1618508792,1610833997,3523052358,4130873264,2001055236,3610705100,2202168115,4028541809,2961195399,1006657119,2006996926,3186142756,1430667929,3210227297,1314452623,4074634658,4101304120,2273951170,1399257539,3367210612,3027628629,1190975929,2062231137,2333990788,2221543033,2438960610,1181637006,
-548689776,2362791313,3372408396,3104550113,3145860560,296247880,1970579870,3078560182,3769228297,1714227617,3291629107,3898220290,166772364,1251581989,493813264,448347421,195405023,2709975567,677966185,3703036547,1463355134,2715995803,1338867538,1343315457,2802222074,2684532164,233230375,2599980071,2000651841,3277868038,1638401717,4028070440,3237316320,6314154,819756386,300326615,590932579,1405279636,3267499572,3150704214,2428286686,3959192993,3461946742,1862657033,1266418056,963775037,2089974820,
-2263052895,1917689273,448879540,3550394620,3981727096,150775221,3627908307,1303187396,508620638,2975983352,2726630617,1817252668,1876281319,1457606340,908771278,3720792119,3617206836,2455994898,1729034894,1080033504],[976866871,3556439503,2881648439,1522871579,1555064734,1336096578,3548522304,2579274686,3574697629,3205460757,3593280638,3338716283,3079412587,564236357,2993598910,1781952180,1464380207,3163844217,3332601554,1699332808,1393555694,1183702653,3581086237,1288719814,691649499,2847557200,
-2895455976,3193889540,2717570544,1781354906,1676643554,2592534050,3230253752,1126444790,2770207658,2633158820,2210423226,2615765581,2414155088,3127139286,673620729,2805611233,1269405062,4015350505,3341807571,4149409754,1057255273,2012875353,2162469141,2276492801,2601117357,993977747,3918593370,2654263191,753973209,36408145,2530585658,25011837,3520020182,2088578344,530523599,2918365339,1524020338,1518925132,3760827505,3759777254,1202760957,3985898139,3906192525,674977740,4174734889,2031300136,2019492241,
-3983892565,4153806404,3822280332,352677332,2297720250,60907813,90501309,3286998549,1016092578,2535922412,2839152426,457141659,509813237,4120667899,652014361,1966332200,2975202805,55981186,2327461051,676427537,3255491064,2882294119,3433927263,1307055953,942726286,933058658,2468411793,3933900994,4215176142,1361170020,2001714738,2830558078,3274259782,1222529897,1679025792,2729314320,3714953764,1770335741,151462246,3013232138,1682292957,1483529935,471910574,1539241949,458788160,3436315007,1807016891,
-3718408830,978976581,1043663428,3165965781,1927990952,4200891579,2372276910,3208408903,3533431907,1412390302,2931980059,4132332400,1947078029,3881505623,4168226417,2941484381,1077988104,1320477388,886195818,18198404,3786409E3,2509781533,112762804,3463356488,1866414978,891333506,18488651,661792760,1628790961,3885187036,3141171499,876946877,2693282273,1372485963,791857591,2686433993,3759982718,3167212022,3472953795,2716379847,445679433,3561995674,3504004811,3574258232,54117162,3331405415,2381918588,
-3769707343,4154350007,1140177722,4074052095,668550556,3214352940,367459370,261225585,2610173221,4209349473,3468074219,3265815641,314222801,3066103646,3808782860,282218597,3406013506,3773591054,379116347,1285071038,846784868,2669647154,3771962079,3550491691,2305946142,453669953,1268987020,3317592352,3279303384,3744833421,2610507566,3859509063,266596637,3847019092,517658769,3462560207,3443424879,370717030,4247526661,2224018117,4143653529,4112773975,2788324899,2477274417,1456262402,2901442914,1517677493,
-1846949527,2295493580,3734397586,2176403920,1280348187,1908823572,3871786941,846861322,1172426758,3287448474,3383383037,1655181056,3139813346,901632758,1897031941,2986607138,3066810236,3447102507,1393639104,373351379,950779232,625454576,3124240540,4148612726,2007998917,544563296,2244738638,2330496472,2058025392,1291430526,424198748,50039436,29584100,3605783033,2429876329,2791104160,1057563949,3255363231,3075367218,3463963227,1469046755,985887462]];
-Blowfish.prototype.PARRAY=[608135816,2242054355,320440878,57701188,2752067618,698298832,137296536,3964562569,1160258022,953160567,3193202383,887688300,3232508343,3380367581,1065670069,3041331479,2450970073,2306472731];Blowfish.prototype.NN=16;Blowfish.prototype._clean=function(b){0>b&&(b=(b&2147483647)+2147483648);return b};Blowfish.prototype._F=function(b){var a,c,d;d=b&255;b>>>=8;c=b&255;b>>>=8;a=b&255;b=this.sboxes[0][b>>>8&255]+this.sboxes[1][a];b^=this.sboxes[2][c];return b+=this.sboxes[3][d]};
-Blowfish.prototype._encrypt_block=function(b){var a=b[0],c=b[1],d;for(d=0;d<this.NN;++d)var a=a^this.parray[d],c=this._F(a)^c,e=a,a=c,c=e;a^=this.parray[this.NN+0];c^=this.parray[this.NN+1];b[0]=this._clean(c);b[1]=this._clean(a)};Blowfish.prototype.encrypt_block=function(b){var a,c=[0,0],d=this.BLOCKSIZE/2;for(a=0;a<this.BLOCKSIZE/2;++a)c[0]=c[0]<<8|b[a+0]&255,c[1]=c[1]<<8|b[a+d]&255;this._encrypt_block(c);b=[];for(a=0;a<this.BLOCKSIZE/2;++a)b[a+0]=c[0]>>>24-8*a&255,b[a+d]=c[1]>>>24-8*a&255;return b};
-Blowfish.prototype._decrypt_block=function(b){var a=b[0],c=b[1],d;for(d=this.NN+1;1<d;--d)var a=a^this.parray[d],c=this._F(a)^c,e=a,a=c,c=e;a^=this.parray[1];c^=this.parray[0];b[0]=this._clean(c);b[1]=this._clean(a)};
-Blowfish.prototype.init=function(b){var a,c=0;this.parray=[];for(a=0;a<this.NN+2;++a){var d=0,e;for(e=0;4>e;++e)d=d<<8|b[c]&255,++c>=b.length&&(c=0);this.parray[a]=this.PARRAY[a]^d}this.sboxes=[];for(a=0;4>a;++a){this.sboxes[a]=[];for(c=0;256>c;++c)this.sboxes[a][c]=this.SBOXES[a][c]}b=[0,0];for(a=0;a<this.NN+2;a+=2)this._encrypt_block(b),this.parray[a+0]=b[0],this.parray[a+1]=b[1];for(a=0;4>a;++a)for(c=0;256>c;c+=2)this._encrypt_block(b),this.sboxes[a][c+0]=b[0],this.sboxes[a][c+1]=b[1]};
-function BFencrypt(b,a){var c=new Blowfish;c.init(util.str2bin(a));return c.encrypt_block(b)}function cast5_encrypt(b,a){var c=new openpgp_symenc_cast5;c.setKey(util.str2bin(a));return c.encrypt(b)}
-function openpgp_symenc_cast5(){function b(a,b,c){a=b+a;c=a<<c|a>>>32-c;return(f[0][c>>>24]^f[1][c>>>16&255])-f[2][c>>>8&255]+f[3][c&255]}function a(a,b,c){a^=b;c=a<<c|a>>>32-c;return f[0][c>>>24]-f[1][c>>>16&255]+f[2][c>>>8&255]^f[3][c&255]}function c(a,b,c){a=b-a;c=a<<c|a>>>32-c;return(f[0][c>>>24]+f[1][c>>>16&255]^f[2][c>>>8&255])-f[3][c&255]}this.BlockSize=8;this.KeySize=16;this.setKey=function(a){this.masking=Array(16);this.rotate=Array(16);this.reset();if(a.length==this.KeySize)this.keySchedule(a);
-else return util.print_error("cast5.js: CAST-128: keys must be 16 bytes"),!1;return!0};this.reset=function(){for(var a=0;16>a;a++)this.masking[a]=0,this.rotate[a]=0};this.getBlockSize=function(){return BlockSize};this.encrypt=function(d){for(var e=Array(d.length),f=0;f<d.length;f+=8){var k=d[f]<<24|d[f+1]<<16|d[f+2]<<8|d[f+3],l=d[f+4]<<24|d[f+5]<<16|d[f+6]<<8|d[f+7],m;m=l;l=k^b(l,this.masking[0],this.rotate[0]);k=m;m=l;l=k^a(l,this.masking[1],this.rotate[1]);k=m;m=l;l=k^c(l,this.masking[2],this.rotate[2]);
-k=m;m=l;l=k^b(l,this.masking[3],this.rotate[3]);k=m;m=l;l=k^a(l,this.masking[4],this.rotate[4]);k=m;m=l;l=k^c(l,this.masking[5],this.rotate[5]);k=m;m=l;l=k^b(l,this.masking[6],this.rotate[6]);k=m;m=l;l=k^a(l,this.masking[7],this.rotate[7]);k=m;m=l;l=k^c(l,this.masking[8],this.rotate[8]);k=m;m=l;l=k^b(l,this.masking[9],this.rotate[9]);k=m;m=l;l=k^a(l,this.masking[10],this.rotate[10]);k=m;m=l;l=k^c(l,this.masking[11],this.rotate[11]);k=m;m=l;l=k^b(l,this.masking[12],this.rotate[12]);k=m;m=l;l=k^a(l,
-this.masking[13],this.rotate[13]);k=m;m=l;l=k^c(l,this.masking[14],this.rotate[14]);k=m;m=l;l=k^b(l,this.masking[15],this.rotate[15]);k=m;e[f]=l>>>24&255;e[f+1]=l>>>16&255;e[f+2]=l>>>8&255;e[f+3]=l&255;e[f+4]=k>>>24&255;e[f+5]=k>>>16&255;e[f+6]=k>>>8&255;e[f+7]=k&255}return e};this.decrypt=function(d){for(var e=Array(d.length),f=0;f<d.length;f+=8){var k=d[f]<<24|d[f+1]<<16|d[f+2]<<8|d[f+3],l=d[f+4]<<24|d[f+5]<<16|d[f+6]<<8|d[f+7],m;m=l;l=k^b(l,this.masking[15],this.rotate[15]);k=m;m=l;l=k^c(l,this.masking[14],
-this.rotate[14]);k=m;m=l;l=k^a(l,this.masking[13],this.rotate[13]);k=m;m=l;l=k^b(l,this.masking[12],this.rotate[12]);k=m;m=l;l=k^c(l,this.masking[11],this.rotate[11]);k=m;m=l;l=k^a(l,this.masking[10],this.rotate[10]);k=m;m=l;l=k^b(l,this.masking[9],this.rotate[9]);k=m;m=l;l=k^c(l,this.masking[8],this.rotate[8]);k=m;m=l;l=k^a(l,this.masking[7],this.rotate[7]);k=m;m=l;l=k^b(l,this.masking[6],this.rotate[6]);k=m;m=l;l=k^c(l,this.masking[5],this.rotate[5]);k=m;m=l;l=k^a(l,this.masking[4],this.rotate[4]);
-k=m;m=l;l=k^b(l,this.masking[3],this.rotate[3]);k=m;m=l;l=k^c(l,this.masking[2],this.rotate[2]);k=m;m=l;l=k^a(l,this.masking[1],this.rotate[1]);k=m;m=l;l=k^b(l,this.masking[0],this.rotate[0]);k=m;e[f]=l>>>24&255;e[f+1]=l>>>16&255;e[f+2]=l>>>8&255;e[f+3]=l&255;e[f+4]=k>>>24&255;e[f+5]=k>>16&255;e[f+6]=k>>8&255;e[f+7]=k&255}return e};var d=Array(4);d[0]=Array(4);d[0][0]=[4,0,13,15,12,14,8];d[0][1]=[5,2,16,18,17,19,10];d[0][2]=[6,3,23,22,21,20,9];d[0][3]=[7,1,26,25,27,24,11];d[1]=Array(4);d[1][0]=[0,
-6,21,23,20,22,16];d[1][1]=[1,4,0,2,1,3,18];d[1][2]=[2,5,7,6,5,4,17];d[1][3]=[3,7,10,9,11,8,19];d[2]=Array(4);d[2][0]=[4,0,13,15,12,14,8];d[2][1]=[5,2,16,18,17,19,10];d[2][2]=[6,3,23,22,21,20,9];d[2][3]=[7,1,26,25,27,24,11];d[3]=Array(4);d[3][0]=[0,6,21,23,20,22,16];d[3][1]=[1,4,0,2,1,3,18];d[3][2]=[2,5,7,6,5,4,17];d[3][3]=[3,7,10,9,11,8,19];var e=Array(4);e[0]=Array(4);e[0][0]=[24,25,23,22,18];e[0][1]=[26,27,21,20,22];e[0][2]=[28,29,19,18,25];e[0][3]=[30,31,17,16,28];e[1]=Array(4);e[1][0]=[3,2,12,
-13,8];e[1][1]=[1,0,14,15,13];e[1][2]=[7,6,8,9,3];e[1][3]=[5,4,10,11,7];e[2]=Array(4);e[2][0]=[19,18,28,29,25];e[2][1]=[17,16,30,31,28];e[2][2]=[23,22,24,25,18];e[2][3]=[21,20,26,27,22];e[3]=Array(4);e[3][0]=[8,9,7,6,3];e[3][1]=[10,11,5,4,7];e[3][2]=[12,13,3,2,8];e[3][3]=[14,15,1,0,13];this.keySchedule=function(a){for(var b=Array(8),c=Array(32),k=0;4>k;k++){var l=4*k;b[k]=a[l]<<24|a[l+1]<<16|a[l+2]<<8|a[l+3]}for(var a=[6,7,4,5],m=k=0;2>m;m++)for(var r=0;4>r;r++){for(l=0;4>l;l++){var p=d[r][l],o=b[p[1]],
-o=o^f[4][b[p[2]>>>2]>>>24-8*(p[2]&3)&255],o=o^f[5][b[p[3]>>>2]>>>24-8*(p[3]&3)&255],o=o^f[6][b[p[4]>>>2]>>>24-8*(p[4]&3)&255],o=o^f[7][b[p[5]>>>2]>>>24-8*(p[5]&3)&255],o=o^f[a[l]][b[p[6]>>>2]>>>24-8*(p[6]&3)&255];b[p[0]]=o}for(l=0;4>l;l++)p=e[r][l],o=f[4][b[p[0]>>>2]>>>24-8*(p[0]&3)&255],o^=f[5][b[p[1]>>>2]>>>24-8*(p[1]&3)&255],o^=f[6][b[p[2]>>>2]>>>24-8*(p[2]&3)&255],o^=f[7][b[p[3]>>>2]>>>24-8*(p[3]&3)&255],o^=f[4+l][b[p[4]>>>2]>>>24-8*(p[4]&3)&255],c[k]=o,k++}for(k=0;16>k;k++)this.masking[k]=c[k],
-this.rotate[k]=c[16+k]&31};var f=Array(8);f[0]=[821772500,2678128395,1810681135,1059425402,505495343,2617265619,1610868032,3483355465,3218386727,2294005173,3791863952,2563806837,1852023008,365126098,3269944861,584384398,677919599,3229601881,4280515016,2002735330,1136869587,3744433750,2289869850,2731719981,2714362070,879511577,1639411079,575934255,717107937,2857637483,576097850,2731753936,1725645E3,2810460463,5111599,767152862,2543075244,1251459544,1383482551,3052681127,3089939183,3612463449,1878520045,
-1510570527,2189125840,2431448366,582008916,3163445557,1265446783,1354458274,3529918736,3202711853,3073581712,3912963487,3029263377,1275016285,4249207360,2905708351,3304509486,1442611557,3585198765,2712415662,2731849581,3248163920,2283946226,208555832,2766454743,1331405426,1447828783,3315356441,3108627284,2957404670,2981538698,3339933917,1669711173,286233437,1465092821,1782121619,3862771680,710211251,980974943,1651941557,430374111,2051154026,704238805,4128970897,3144820574,2857402727,948965521,3333752299,
-2227686284,718756367,2269778983,2731643755,718440111,2857816721,3616097120,1113355533,2478022182,410092745,1811985197,1944238868,2696854588,1415722873,1682284203,1060277122,1998114690,1503841958,82706478,2315155686,1068173648,845149890,2167947013,1768146376,1993038550,3566826697,3390574031,940016341,3355073782,2328040721,904371731,1205506512,4094660742,2816623006,825647681,85914773,2857843460,1249926541,1417871568,3287612,3211054559,3126306446,1975924523,1353700161,2814456437,2438597621,1800716203,
-722146342,2873936343,1151126914,4160483941,2877670899,458611604,2866078500,3483680063,770352098,2652916994,3367839148,3940505011,3585973912,3809620402,718646636,2504206814,2914927912,3631288169,2857486607,2860018678,575749918,2857478043,718488780,2069512688,3548183469,453416197,1106044049,3032691430,52586708,3378514636,3459808877,3211506028,1785789304,218356169,3571399134,3759170522,1194783844,1523787992,3007827094,1975193539,2555452411,1341901877,3045838698,3776907964,3217423946,2802510864,2889438986,
-1057244207,1636348243,3761863214,1462225785,2632663439,481089165,718503062,24497053,3332243209,3344655856,3655024856,3960371065,1195698900,2971415156,3710176158,2115785917,4027663609,3525578417,2524296189,2745972565,3564906415,1372086093,1452307862,2780501478,1476592880,3389271281,18495466,2378148571,901398090,891748256,3279637769,3157290713,2560960102,1447622437,4284372637,216884176,2086908623,1879786977,3588903153,2242455666,2938092967,3559082096,2810645491,758861177,1121993112,215018983,642190776,
-4169236812,1196255959,2081185372,3508738393,941322904,4124243163,2877523539,1848581667,2205260958,3180453958,2589345134,3694731276,550028657,2519456284,3789985535,2973870856,2093648313,443148163,46942275,2734146937,1117713533,1115362972,1523183689,3717140224,1551984063];f[1]=[522195092,4010518363,1776537470,960447360,4267822970,4005896314,1435016340,1929119313,2913464185,1310552629,3579470798,3724818106,2579771631,1594623892,417127293,2715217907,2696228731,1508390405,3994398868,3925858569,3695444102,
-4019471449,3129199795,3770928635,3520741761,990456497,4187484609,2783367035,21106139,3840405339,631373633,3783325702,532942976,396095098,3548038825,4267192484,2564721535,2011709262,2039648873,620404603,3776170075,2898526339,3612357925,4159332703,1645490516,223693667,1567101217,3362177881,1029951347,3470931136,3570957959,1550265121,119497089,972513919,907948164,3840628539,1613718692,3594177948,465323573,2659255085,654439692,2575596212,2699288441,3127702412,277098644,624404830,4100943870,2717858591,
-546110314,2403699828,3655377447,1321679412,4236791657,1045293279,4010672264,895050893,2319792268,494945126,1914543101,2777056443,3894764339,2219737618,311263384,4275257268,3458730721,669096869,3584475730,3835122877,3319158237,3949359204,2005142349,2713102337,2228954793,3769984788,569394103,3855636576,1425027204,108000370,2736431443,3671869269,3043122623,1750473702,2211081108,762237499,3972989403,2798899386,3061857628,2943854345,867476300,964413654,1591880597,1594774276,2179821409,552026980,3026064248,
-3726140315,2283577634,3110545105,2152310760,582474363,1582640421,1383256631,2043843868,3322775884,1217180674,463797851,2763038571,480777679,2718707717,2289164131,3118346187,214354409,200212307,3810608407,3025414197,2674075964,3997296425,1847405948,1342460550,510035443,4080271814,815934613,833030224,1620250387,1945732119,2703661145,3966000196,1388869545,3456054182,2687178561,2092620194,562037615,1356438536,3409922145,3261847397,1688467115,2150901366,631725691,3840332284,549916902,3455104640,394546491,
-837744717,2114462948,751520235,2221554606,2415360136,3999097078,2063029875,803036379,2702586305,821456707,3019566164,360699898,4018502092,3511869016,3677355358,2402471449,812317050,49299192,2570164949,3259169295,2816732080,3331213574,3101303564,2156015656,3705598920,3546263921,143268808,3200304480,1638124008,3165189453,3341807610,578956953,2193977524,3638120073,2333881532,807278310,658237817,2969561766,1641658566,11683945,3086995007,148645947,1138423386,4158756760,1981396783,2401016740,3699783584,
-380097457,2680394679,2803068651,3334260286,441530178,4016580796,1375954390,761952171,891809099,2183123478,157052462,3683840763,1592404427,341349109,2438483839,1417898363,644327628,2233032776,2353769706,2201510100,220455161,1815641738,182899273,2995019788,3627381533,3702638151,2890684138,1052606899,588164016,1681439879,4038439418,2405343923,4229449282,167996282,1336969661,1688053129,2739224926,1543734051,1046297529,1138201970,2121126012,115334942,1819067631,1902159161,1941945968,2206692869,1159982321];
-f[2]=[2381300288,637164959,3952098751,3893414151,1197506559,916448331,2350892612,2932787856,3199334847,4009478890,3905886544,1373570990,2450425862,4037870920,3778841987,2456817877,286293407,124026297,3001279700,1028597854,3115296800,4208886496,2691114635,2188540206,1430237888,1218109995,3572471700,308166588,570424558,2187009021,2455094765,307733056,1310360322,3135275007,1384269543,2388071438,863238079,2359263624,2801553128,3380786597,2831162807,1470087780,1728663345,4072488799,1090516929,532123132,
-2389430977,1132193179,2578464191,3051079243,1670234342,1434557849,2711078940,1241591150,3314043432,3435360113,3091448339,1812415473,2198440252,267246943,796911696,3619716990,38830015,1526438404,2806502096,374413614,2943401790,1489179520,1603809326,1920779204,168801282,260042626,2358705581,1563175598,2397674057,1356499128,2217211040,514611088,2037363785,2186468373,4022173083,2792511869,2913485016,1173701892,4200428547,3896427269,1334932762,2455136706,602925377,2835607854,1613172210,41346230,2499634548,
-2457437618,2188827595,41386358,4172255629,1313404830,2405527007,3801973774,2217704835,873260488,2528884354,2478092616,4012915883,2555359016,2006953883,2463913485,575479328,2218240648,2099895446,660001756,2341502190,3038761536,3888151779,3848713377,3286851934,1022894237,1620365795,3449594689,1551255054,15374395,3570825345,4249311020,4151111129,3181912732,310226346,1133119310,530038928,136043402,2476768958,3107506709,2544909567,1036173560,2367337196,1681395281,1758231547,3641649032,306774401,1575354324,
-3716085866,1990386196,3114533736,2455606671,1262092282,3124342505,2768229131,4210529083,1833535011,423410938,660763973,2187129978,1639812E3,3508421329,3467445492,310289298,272797111,2188552562,2456863912,310240523,677093832,1013118031,901835429,3892695601,1116285435,3036471170,1337354835,243122523,520626091,277223598,4244441197,4194248841,1766575121,594173102,316590669,742362309,3536858622,4176435350,3838792410,2501204839,1229605004,3115755532,1552908988,2312334149,979407927,3959474601,1148277331,
-176638793,3614686272,2083809052,40992502,1340822838,2731552767,3535757508,3560899520,1354035053,122129617,7215240,2732932949,3118912700,2718203926,2539075635,3609230695,3725561661,1928887091,2882293555,1988674909,2063640240,2491088897,1459647954,4189817080,2302804382,1113892351,2237858528,1927010603,4002880361,1856122846,1594404395,2944033133,3855189863,3474975698,1643104450,4054590833,3431086530,1730235576,2984608721,3084664418,2131803598,4178205752,267404349,1617849798,1616132681,1462223176,736725533,
-2327058232,551665188,2945899023,1749386277,2575514597,1611482493,674206544,2201269090,3642560800,728599968,1680547377,2620414464,1388111496,453204106,4156223445,1094905244,2754698257,2201108165,3757000246,2704524545,3922940700,3996465027];f[3]=[2645754912,532081118,2814278639,3530793624,1246723035,1689095255,2236679235,4194438865,2116582143,3859789411,157234593,2045505824,4245003587,1687664561,4083425123,605965023,672431967,1336064205,3376611392,214114848,4258466608,3232053071,489488601,605322005,
-3998028058,264917351,1912574028,756637694,436560991,202637054,135989450,85393697,2152923392,3896401662,2895836408,2145855233,3535335007,115294817,3147733898,1922296357,3464822751,4117858305,1037454084,2725193275,2127856640,1417604070,1148013728,1827919605,642362335,2929772533,909348033,1346338451,3547799649,297154785,1917849091,4161712827,2883604526,3968694238,1469521537,3780077382,3375584256,1763717519,136166297,4290970789,1295325189,2134727907,2798151366,1566297257,3672928234,2677174161,2672173615,
-965822077,2780786062,289653839,1133871874,3491843819,35685304,1068898316,418943774,672553190,642281022,2346158704,1954014401,3037126780,4079815205,2030668546,3840588673,672283427,1776201016,359975446,3750173538,555499703,2769985273,1324923,69110472,152125443,3176785106,3822147285,1340634837,798073664,1434183902,15393959,216384236,1303690150,3881221631,3711134124,3960975413,106373927,2578434224,1455997841,1801814300,1578393881,1854262133,3188178946,3258078583,2302670060,1539295533,3505142565,3078625975,
-2372746020,549938159,3278284284,2620926080,181285381,2865321098,3970029511,68876850,488006234,1728155692,2608167508,836007927,2435231793,919367643,3339422534,3655756360,1457871481,40520939,1380155135,797931188,234455205,2255801827,3990488299,397000196,739833055,3077865373,2871719860,4022553888,772369276,390177364,3853951029,557662966,740064294,1640166671,1699928825,3535942136,622006121,3625353122,68743880,1742502,219489963,1664179233,1577743084,1236991741,410585305,2366487942,823226535,1050371084,
-3426619607,3586839478,212779912,4147118561,1819446015,1911218849,530248558,3486241071,3252585495,2886188651,3410272728,2342195030,20547779,2982490058,3032363469,3631753222,312714466,1870521650,1493008054,3491686656,615382978,4103671749,2534517445,1932181,2196105170,278426614,6369430,3274544417,2913018367,697336853,2143000447,2946413531,701099306,1558357093,2805003052,3500818408,2321334417,3567135975,216290473,3591032198,23009561,1996984579,3735042806,2024298078,3739440863,569400510,2339758983,3016033873,
-3097871343,3639523026,3844324983,3256173865,795471839,2951117563,4101031090,4091603803,3603732598,971261452,534414648,428311343,3389027175,2844869880,694888862,1227866773,2456207019,3043454569,2614353370,3749578031,3676663836,459166190,4132644070,1794958188,51825668,2252611902,3084671440,2036672799,3436641603,1099053433,2469121526,3059204941,1323291266,2061838604,1018778475,2233344254,2553501054,334295216,3556750194,1065731521,183467730];f[4]=[2127105028,745436345,2601412319,2788391185,3093987327,
-500390133,1155374404,389092991,150729210,3891597772,3523549952,1935325696,716645080,946045387,2901812282,1774124410,3869435775,4039581901,3293136918,3438657920,948246080,363898952,3867875531,1286266623,1598556673,68334250,630723836,1104211938,1312863373,613332731,2377784574,1101634306,441780740,3129959883,1917973735,2510624549,3238456535,2544211978,3308894634,1299840618,4076074851,1756332096,3977027158,297047435,3790297736,2265573040,3621810518,1311375015,1667687725,47300608,3299642885,2474112369,
-201668394,1468347890,576830978,3594690761,3742605952,1958042578,1747032512,3558991340,1408974056,3366841779,682131401,1033214337,1545599232,4265137049,206503691,103024618,2855227313,1337551222,2428998917,2963842932,4015366655,3852247746,2796956967,3865723491,3747938335,247794022,3755824572,702416469,2434691994,397379957,851939612,2314769512,218229120,1380406772,62274761,214451378,3170103466,2276210409,3845813286,28563499,446592073,1693330814,3453727194,29968656,3093872512,220656637,2470637031,77972100,
-1667708854,1358280214,4064765667,2395616961,325977563,4277240721,4220025399,3605526484,3355147721,811859167,3069544926,3962126810,652502677,3075892249,4132761541,3498924215,1217549313,3250244479,3858715919,3053989961,1538642152,2279026266,2875879137,574252750,3324769229,2651358713,1758150215,141295887,2719868960,3515574750,4093007735,4194485238,1082055363,3417560400,395511885,2966884026,179534037,3646028556,3738688086,1092926436,2496269142,257381841,3772900718,1636087230,1477059743,2499234752,3811018894,
-2675660129,3285975680,90732309,1684827095,1150307763,1723134115,3237045386,1769919919,1240018934,815675215,750138730,2239792499,1234303040,1995484674,138143821,675421338,1145607174,1936608440,3238603024,2345230278,2105974004,323969391,779555213,3004902369,2861610098,1017501463,2098600890,2628620304,2940611490,2682542546,1171473753,3656571411,3687208071,4091869518,393037935,159126506,1662887367,1147106178,391545844,3452332695,1891500680,3016609650,1851642611,546529401,1167818917,3194020571,2848076033,
-3953471836,575554290,475796850,4134673196,450035699,2351251534,844027695,1080539133,86184846,1554234488,3692025454,1972511363,2018339607,1491841390,1141460869,1061690759,4244549243,2008416118,2351104703,2868147542,1598468138,722020353,1027143159,212344630,1387219594,1725294528,3745187956,2500153616,458938280,4129215917,1828119673,544571780,3503225445,2297937496,1241802790,267843827,2694610800,1397140384,1558801448,3782667683,1806446719,929573330,2234912681,400817706,616011623,4121520928,3603768725,
-1761550015,1968522284,4053731006,4192232858,4005120285,872482584,3140537016,3894607381,2287405443,1963876937,3663887957,1584857E3,2975024454,1833426440,4025083860];f[5]=[4143615901,749497569,1285769319,3795025788,2514159847,23610292,3974978748,844452780,3214870880,3751928557,2213566365,1676510905,448177848,3730751033,4086298418,2307502392,871450977,3222878141,4110862042,3831651966,2735270553,1310974780,2043402188,1218528103,2736035353,4274605013,2702448458,3936360550,2693061421,162023535,2827510090,
-687910808,23484817,3784910947,3371371616,779677500,3503626546,3473927188,4157212626,3500679282,4248902014,2466621104,3899384794,1958663117,925738300,1283408968,3669349440,1840910019,137959847,2679828185,1239142320,1315376211,1547541505,1690155329,739140458,3128809933,3933172616,3876308834,905091803,1548541325,4040461708,3095483362,144808038,451078856,676114313,2861728291,2469707347,993665471,373509091,2599041286,4025009006,4170239449,2149739950,3275793571,3749616649,2794760199,1534877388,572371878,
-2590613551,1753320020,3467782511,1405125690,4270405205,633333386,3026356924,3475123903,632057672,2846462855,1404951397,3882875879,3915906424,195638627,2385783745,3902872553,1233155085,3355999740,2380578713,2702246304,2144565621,3663341248,3894384975,2502479241,4248018925,3094885567,1594115437,572884632,3385116731,767645374,1331858858,1475698373,3793881790,3532746431,1321687957,619889600,1121017241,3440213920,2070816767,2833025776,1933951238,4095615791,890643334,3874130214,859025556,360630002,925594799,
-1764062180,3920222280,4078305929,979562269,2810700344,4087740022,1949714515,546639971,1165388173,3069891591,1495988560,922170659,1291546247,2107952832,1813327274,3406010024,3306028637,4241950635,153207855,2313154747,1608695416,1150242611,1967526857,721801357,1220138373,3691287617,3356069787,2112743302,3281662835,1111556101,1778980689,250857638,2298507990,673216130,2846488510,3207751581,3562756981,3008625920,3417367384,2198807050,529510932,3547516680,3426503187,2364944742,102533054,2294910856,1617093527,
-1204784762,3066581635,1019391227,1069574518,1317995090,1691889997,3661132003,510022745,3238594800,1362108837,1817929911,2184153760,805817662,1953603311,3699844737,120799444,2118332377,207536705,2282301548,4120041617,145305846,2508124933,3086745533,3261524335,1877257368,2977164480,3160454186,2503252186,4221677074,759945014,254147243,2767453419,3801518371,629083197,2471014217,907280572,3900796746,940896768,2751021123,2625262786,3161476951,3661752313,3260732218,1425318020,2977912069,1496677566,3988592072,
-2140652971,3126511541,3069632175,977771578,1392695845,1698528874,1411812681,1369733098,1343739227,3620887944,1142123638,67414216,3102056737,3088749194,1626167401,2546293654,3941374235,697522451,33404913,143560186,2595682037,994885535,1247667115,3859094837,2699155541,3547024625,4114935275,2968073508,3199963069,2732024527,1237921620,951448369,1898488916,1211705605,2790989240,2233243581,3598044975];f[6]=[2246066201,858518887,1714274303,3485882003,713916271,2879113490,3730835617,539548191,36158695,1298409750,
-419087104,1358007170,749914897,2989680476,1261868530,2995193822,2690628854,3443622377,3780124940,3796824509,2976433025,4259637129,1551479E3,512490819,1296650241,951993153,2436689437,2460458047,144139966,3136204276,310820559,3068840729,643875328,1969602020,1680088954,2185813161,3283332454,672358534,198762408,896343282,276269502,3014846926,84060815,197145886,376173866,3943890818,3813173521,3545068822,1316698879,1598252827,2633424951,1233235075,859989710,2358460855,3503838400,3409603720,1203513385,1193654839,
-2792018475,2060853022,207403770,1144516871,3068631394,1121114134,177607304,3785736302,326409831,1929119770,2983279095,4183308101,3474579288,3200513878,3228482096,119610148,1170376745,3378393471,3163473169,951863017,3337026068,3135789130,2907618374,1183797387,2015970143,4045674555,2182986399,2952138740,3928772205,384012900,2454997643,10178499,2879818989,2596892536,111523738,2995089006,451689641,3196290696,235406569,1441906262,3890558523,3013735005,4158569349,1644036924,376726067,1006849064,3664579700,
-2041234796,1021632941,1374734338,2566452058,371631263,4007144233,490221539,206551450,3140638584,1053219195,1853335209,3412429660,3562156231,735133835,1623211703,3104214392,2738312436,4096837757,3366392578,3110964274,3956598718,3196820781,2038037254,3877786376,2339753847,300912036,3766732888,2372630639,1516443558,4200396704,1574567987,4069441456,4122592016,2699739776,146372218,2748961456,2043888151,35287437,2596680554,655490400,1132482787,110692520,1031794116,2188192751,1324057718,1217253157,919197030,
-686247489,3261139658,1028237775,3135486431,3059715558,2460921700,986174950,2661811465,4062904701,2752986992,3709736643,367056889,1353824391,731860949,1650113154,1778481506,784341916,357075625,3608602432,1074092588,2480052770,3811426202,92751289,877911070,3600361838,1231880047,480201094,3756190983,3094495953,434011822,87971354,363687820,1717726236,1901380172,3926403882,2481662265,400339184,1490350766,2661455099,1389319756,2558787174,784598401,1983468483,30828846,3550527752,2716276238,3841122214,1765724805,
-1955612312,1277890269,1333098070,1564029816,2704417615,1026694237,3287671188,1260819201,3349086767,1016692350,1582273796,1073413053,1995943182,694588404,1025494639,3323872702,3551898420,4146854327,453260480,1316140391,1435673405,3038941953,3486689407,1622062951,403978347,817677117,950059133,4246079218,3278066075,1486738320,1417279718,481875527,2549965225,3933690356,760697757,1452955855,3897451437,1177426808,1702951038,4085348628,2447005172,1084371187,3516436277,3068336338,1073369276,1027665953,3284188590,
-1230553676,1368340146,2226246512,267243139,2274220762,4070734279,2497715176,2423353163,2504755875];f[7]=[3793104909,3151888380,2817252029,895778965,2005530807,3871412763,237245952,86829237,296341424,3851759377,3974600970,2475086196,709006108,1994621201,2972577594,937287164,3734691505,168608556,3189338153,2225080640,3139713551,3033610191,3025041904,77524477,185966941,1208824168,2344345178,1721625922,3354191921,1066374631,1927223579,1971335949,2483503697,1551748602,2881383779,2856329572,3003241482,
-48746954,1398218158,2050065058,313056748,4255789917,393167848,1912293076,940740642,3465845460,3091687853,2522601570,2197016661,1727764327,364383054,492521376,1291706479,3264136376,1474851438,1685747964,2575719748,1619776915,1814040067,970743798,1561002147,2925768690,2123093554,1880132620,3151188041,697884420,2550985770,2607674513,2659114323,110200136,1489731079,997519150,1378877361,3527870668,478029773,2766872923,1022481122,431258168,1112503832,897933369,2635587303,669726182,3383752315,918222264,
-163866573,3246985393,3776823163,114105080,1903216136,761148244,3571337562,1690750982,3166750252,1037045171,1888456500,2010454850,642736655,616092351,365016990,1185228132,4174898510,1043824992,2023083429,2241598885,3863320456,3279669087,3674716684,108438443,2132974366,830746235,606445527,4173263986,2204105912,1844756978,2532684181,4245352700,2969441100,3796921661,1335562986,4061524517,2720232303,2679424040,634407289,885462008,3294724487,3933892248,2094100220,339117932,4048830727,3202280980,1458155303,
-2689246273,1022871705,2464987878,3714515309,353796843,2822958815,4256850100,4052777845,551748367,618185374,3778635579,4020649912,1904685140,3069366075,2670879810,3407193292,2954511620,4058283405,2219449317,3135758300,1120655984,3447565834,1474845562,3577699062,550456716,3466908712,2043752612,881257467,869518812,2005220179,938474677,3305539448,3850417126,1315485940,3318264702,226533026,965733244,321539988,1136104718,804158748,573969341,3708209826,937399083,3290727049,2901666755,1461057207,4013193437,
-4066861423,3242773476,2421326174,1581322155,3028952165,786071460,3900391652,3918438532,1485433313,4023619836,3708277595,3678951060,953673138,1467089153,1930354364,1533292819,2492563023,1346121658,1685000834,1965281866,3765933717,4190206607,2052792609,3515332758,690371149,3125873887,2180283551,2903598061,3933952357,436236910,289419410,14314871,1242357089,2904507907,1616633776,2666382180,585885352,3471299210,2699507360,1432659641,277164553,3354103607,770115018,2303809295,3741942315,3177781868,2853364978,
-2269453327,3774259834,987383833,1290892879,225909803,1741533526,890078084,1496906255,1111072499,916028167,243534141,1252605537,2204162171,531204876,290011180,3916834213,102027703,237315147,209093447,1486785922,220223953,2758195998,4175039106,82940208,3127791296,2569425252,518464269,1353887104,3941492737,2377294467,3935040926]}
-function desede(b,a){var c=a.substring(0,8),d=a.substring(8,16),e=a.substring(16,24);return util.str2bin(des(des_createKeys(e),des(des_createKeys(d),des(des_createKeys(c),util.bin2str(b),!0,0,null,null),!1,0,null,null),!0,0,null,null))}
-function des(b,a,c,d,e,f){var g=[16843776,0,65536,16843780,16842756,66564,4,65536,1024,16843776,16843780,1024,16778244,16842756,16777216,4,1028,16778240,16778240,66560,66560,16842752,16842752,16778244,65540,16777220,16777220,65540,0,1028,66564,16777216,65536,16843780,4,16842752,16843776,16777216,16777216,1024,16842756,65536,66560,16777220,1024,4,16778244,66564,16843780,65540,16842752,16778244,16777220,1028,66564,16843776,1028,16778240,16778240,0,65540,66560,0,16842756],h=[-2146402272,-2147450880,
-32768,1081376,1048576,32,-2146435040,-2147450848,-2147483616,-2146402272,-2146402304,-2147483648,-2147450880,1048576,32,-2146435040,1081344,1048608,-2147450848,0,-2147483648,32768,1081376,-2146435072,1048608,-2147483616,0,1081344,32800,-2146402304,-2146435072,32800,0,1081376,-2146435040,1048576,-2147450848,-2146435072,-2146402304,32768,-2146435072,-2147450880,32,-2146402272,1081376,32,32768,-2147483648,32800,-2146402304,1048576,-2147483616,1048608,-2147450848,-2147483616,1048608,1081344,0,-2147450880,
-32800,-2147483648,-2146435040,-2146402272,1081344],j=[520,134349312,0,134348808,134218240,0,131592,134218240,131080,134217736,134217736,131072,134349320,131080,134348800,520,134217728,8,134349312,512,131584,134348800,134348808,131592,134218248,131584,131072,134218248,8,134349320,512,134217728,134349312,134217728,131080,520,131072,134349312,134218240,0,512,131080,134349320,134218240,134217736,512,0,134348808,134218248,131072,134217728,134349320,8,131592,131584,134217736,134348800,134218248,520,134348800,
-131592,8,134348808,131584],k=[8396801,8321,8321,128,8396928,8388737,8388609,8193,0,8396800,8396800,8396929,129,0,8388736,8388609,1,8192,8388608,8396801,128,8388608,8193,8320,8388737,1,8320,8388736,8192,8396928,8396929,129,8388736,8388609,8396800,8396929,129,0,0,8396800,8320,8388736,8388737,1,8396801,8321,8321,128,8396929,129,1,8192,8388609,8193,8396928,8388737,8193,8320,8388608,8396801,128,8388608,8192,8396928],l=[256,34078976,34078720,1107296512,524288,256,1073741824,34078720,1074266368,524288,33554688,
-1074266368,1107296512,1107820544,524544,1073741824,33554432,1074266112,1074266112,0,1073742080,1107820800,1107820800,33554688,1107820544,1073742080,0,1107296256,34078976,33554432,1107296256,524544,524288,1107296512,256,33554432,1073741824,34078720,1107296512,1074266368,33554688,1073741824,1107820544,34078976,1074266368,256,33554432,1107820544,1107820800,524544,1107296256,1107820800,34078720,0,1074266112,1107296256,524544,33554688,1073742080,524288,0,1074266112,34078976,1073742080],m=[536870928,541065216,
-16384,541081616,541065216,16,541081616,4194304,536887296,4210704,4194304,536870928,4194320,536887296,536870912,16400,0,4194320,536887312,16384,4210688,536887312,16,541065232,541065232,0,4210704,541081600,16400,4210688,541081600,536870912,536887296,16,541065232,4210688,541081616,4194304,16400,536870928,4194304,536887296,536870912,16400,536870928,541081616,4210688,541065216,4210704,541081600,0,541065232,16,16384,541065216,4210704,16384,4194320,536887312,0,541081600,536870912,4194320,536887312],r=[2097152,
-69206018,67110914,0,2048,67110914,2099202,69208064,69208066,2097152,0,67108866,2,67108864,69206018,2050,67110912,2099202,2097154,67110912,67108866,69206016,69208064,2097154,69206016,2048,2050,69208066,2099200,2,67108864,2099200,67108864,2099200,2097152,67110914,67110914,69206018,69206018,2,2097154,67108864,67110912,2097152,69208064,2050,2099202,69208064,2050,67108866,69208066,69206016,2099200,0,2,69208066,0,2099202,69206016,2048,67108866,67110912,2048,2097154],p=[268439616,4096,262144,268701760,268435456,
-268439616,64,268435456,262208,268697600,268701760,266240,268701696,266304,4096,64,268697600,268435520,268439552,4160,266240,262208,268697664,268701696,4160,0,0,268697664,268435520,268439552,266304,262144,266304,262144,268701696,4096,64,268697664,4096,266304,268439552,64,268435520,268697600,268697664,268435456,262144,268439616,0,268701760,262208,268435520,268697600,268439552,268439616,0,268701760,266240,266240,4160,4160,262208,268435456,268701696],o=0,y,v,w,A,t,u,P,C,Q,E,x,z,V,K=a.length,D=0,B=32==
-b.length?3:9;P=3==B?c?[0,32,2]:[30,-2,-2]:c?[0,32,2,62,30,-2,64,96,2]:[94,62,-2,32,64,2,30,-2,-2];if(c)a=des_addPadding(a,f),K=a.length;tempresult=result="";1==d&&(C=e.charCodeAt(o++)<<24|e.charCodeAt(o++)<<16|e.charCodeAt(o++)<<8|e.charCodeAt(o++),E=e.charCodeAt(o++)<<24|e.charCodeAt(o++)<<16|e.charCodeAt(o++)<<8|e.charCodeAt(o++),o=0);for(;o<K;){t=a.charCodeAt(o++)<<24|a.charCodeAt(o++)<<16|a.charCodeAt(o++)<<8|a.charCodeAt(o++);u=a.charCodeAt(o++)<<24|a.charCodeAt(o++)<<16|a.charCodeAt(o++)<<8|
-a.charCodeAt(o++);1==d&&(c?(t^=C,u^=E):(Q=C,x=E,C=t,E=u));v=(t>>>4^u)&252645135;u^=v;t^=v<<4;v=(t>>>16^u)&65535;u^=v;t^=v<<16;v=(u>>>2^t)&858993459;t^=v;u^=v<<2;v=(u>>>8^t)&16711935;t^=v;u^=v<<8;v=(t>>>1^u)&1431655765;u^=v;t^=v<<1;t=t<<1|t>>>31;u=u<<1|u>>>31;for(y=0;y<B;y+=3){z=P[y+1];V=P[y+2];for(e=P[y];e!=z;e+=V)w=u^b[e],A=(u>>>4|u<<28)^b[e+1],v=t,t=u,u=v^(h[w>>>24&63]|k[w>>>16&63]|m[w>>>8&63]|p[w&63]|g[A>>>24&63]|j[A>>>16&63]|l[A>>>8&63]|r[A&63]);v=t;t=u;u=v}t=t>>>1|t<<31;u=u>>>1|u<<31;v=(t>>>
-1^u)&1431655765;u^=v;t^=v<<1;v=(u>>>8^t)&16711935;t^=v;u^=v<<8;v=(u>>>2^t)&858993459;t^=v;u^=v<<2;v=(t>>>16^u)&65535;u^=v;t^=v<<16;v=(t>>>4^u)&252645135;u^=v;t^=v<<4;1==d&&(c?(C=t,E=u):(t^=Q,u^=x));tempresult+=String.fromCharCode(t>>>24,t>>>16&255,t>>>8&255,t&255,u>>>24,u>>>16&255,u>>>8&255,u&255);D+=8;512==D&&(result+=tempresult,tempresult="",D=0)}result+=tempresult;c||(result=des_removePadding(result,f));return result}
-function des_createKeys(b){pc2bytes0=[0,4,536870912,536870916,65536,65540,536936448,536936452,512,516,536871424,536871428,66048,66052,536936960,536936964];pc2bytes1=[0,1,1048576,1048577,67108864,67108865,68157440,68157441,256,257,1048832,1048833,67109120,67109121,68157696,68157697];pc2bytes2=[0,8,2048,2056,16777216,16777224,16779264,16779272,0,8,2048,2056,16777216,16777224,16779264,16779272];pc2bytes3=[0,2097152,134217728,136314880,8192,2105344,134225920,136323072,131072,2228224,134348800,136445952,
-139264,2236416,134356992,136454144];pc2bytes4=[0,262144,16,262160,0,262144,16,262160,4096,266240,4112,266256,4096,266240,4112,266256];pc2bytes5=[0,1024,32,1056,0,1024,32,1056,33554432,33555456,33554464,33555488,33554432,33555456,33554464,33555488];pc2bytes6=[0,268435456,524288,268959744,2,268435458,524290,268959746,0,268435456,524288,268959744,2,268435458,524290,268959746];pc2bytes7=[0,65536,2048,67584,536870912,536936448,536872960,536938496,131072,196608,133120,198656,537001984,537067520,537004032,
-537069568];pc2bytes8=[0,262144,0,262144,2,262146,2,262146,33554432,33816576,33554432,33816576,33554434,33816578,33554434,33816578];pc2bytes9=[0,268435456,8,268435464,0,268435456,8,268435464,1024,268436480,1032,268436488,1024,268436480,1032,268436488];pc2bytes10=[0,32,0,32,1048576,1048608,1048576,1048608,8192,8224,8192,8224,1056768,1056800,1056768,1056800];pc2bytes11=[0,16777216,512,16777728,2097152,18874368,2097664,18874880,67108864,83886080,67109376,83886592,69206016,85983232,69206528,85983744];
-pc2bytes12=[0,4096,134217728,134221824,524288,528384,134742016,134746112,16,4112,134217744,134221840,524304,528400,134742032,134746128];pc2bytes13=[0,4,256,260,0,4,256,260,1,5,257,261,1,5,257,261];for(var a=8<b.length?3:1,c=Array(32*a),d=[0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0],e,f,g=0,h=0,j,k=0;k<a;k++){left=b.charCodeAt(g++)<<24|b.charCodeAt(g++)<<16|b.charCodeAt(g++)<<8|b.charCodeAt(g++);right=b.charCodeAt(g++)<<24|b.charCodeAt(g++)<<16|b.charCodeAt(g++)<<8|b.charCodeAt(g++);j=(left>>>4^right)&252645135;
-right^=j;left^=j<<4;j=(right>>>-16^left)&65535;left^=j;right^=j<<-16;j=(left>>>2^right)&858993459;right^=j;left^=j<<2;j=(right>>>-16^left)&65535;left^=j;right^=j<<-16;j=(left>>>1^right)&1431655765;right^=j;left^=j<<1;j=(right>>>8^left)&16711935;left^=j;right^=j<<8;j=(left>>>1^right)&1431655765;right^=j;left^=j<<1;j=left<<8|right>>>20&240;left=right<<24|right<<8&16711680|right>>>8&65280|right>>>24&240;right=j;for(i=0;i<d.length;i++)d[i]?(left=left<<2|left>>>26,right=right<<2|right>>>26):(left=left<<
-1|left>>>27,right=right<<1|right>>>27),left&=-15,right&=-15,e=pc2bytes0[left>>>28]|pc2bytes1[left>>>24&15]|pc2bytes2[left>>>20&15]|pc2bytes3[left>>>16&15]|pc2bytes4[left>>>12&15]|pc2bytes5[left>>>8&15]|pc2bytes6[left>>>4&15],f=pc2bytes7[right>>>28]|pc2bytes8[right>>>24&15]|pc2bytes9[right>>>20&15]|pc2bytes10[right>>>16&15]|pc2bytes11[right>>>12&15]|pc2bytes12[right>>>8&15]|pc2bytes13[right>>>4&15],j=(f>>>16^e)&65535,c[h++]=e^j,c[h++]=f^j<<16}return c}
-function des_addPadding(b,a){var c=8-b.length%8;2==a&&8>c?b+="        ".substr(0,c):1==a?b+=String.fromCharCode(c,c,c,c,c,c,c,c).substr(0,c):!a&&8>c&&(b+="\x00\x00\x00\x00\x00\x00\x00\x00".substr(0,c));return b}function des_removePadding(b,a){if(2==a)b=b.replace(/ *$/g,"");else if(1==a)var c=b.charCodeAt(b.length-1),b=b.substr(0,b.length-c);else a||(b=b.replace(/\0*$/g,""));return b}
-function TFencrypt(b,a){var c=[].concat(b),d=createTwofish();d.open(util.str2bin(a),0);c=d.encrypt(c,0);d.close();return c}var MAXINT=4294967295;function rotb(b,a){return(b<<a|b>>>8-a)&255}function rotw(b,a){return(b<<a|b>>>32-a)&MAXINT}function getW(b,a){return b[a]|b[a+1]<<8|b[a+2]<<16|b[a+3]<<24}function setW(b,a,c){b.splice(a,4,c&255,c>>>8&255,c>>>16&255,c>>>24&255)}function setWInv(b,a,c){b.splice(a,4,c>>>24&255,c>>>16&255,c>>>8&255,c&255)}function getB(b,a){return b>>>8*a&255}
-function getNrBits(b){for(var a=0;0<b;)a++,b>>>=1;return a}function getMask(b){return(1<<b)-1}function randByte(){return Math.floor(256*Math.random())}
-function createTwofish(){function b(a){return g[0][getB(a,0)]^g[1][getB(a,1)]^g[2][getB(a,2)]^g[3][getB(a,3)]}function a(a){return g[0][getB(a,3)]^g[1][getB(a,0)]^g[2][getB(a,1)]^g[3][getB(a,2)]}var c=null,d=null,e=-1,f=[],g=[[],[],[],[]];return{name:"twofish",blocksize:16,open:function(a){function b(a,c){var d,e,f;for(d=0;8>d;d++)e=c>>>24,c=c<<8&MAXINT|a>>>24,a=a<<8&MAXINT,f=e<<1,e&128&&(f^=333),c^=e^f<<16,f^=e>>>1,e&1&&(f^=166),c^=f<<24|f<<8;return c}function d(a,b){var c,e,f;c=b>>4;e=b&15;f=t[a][c^
-e];c=u[a][Q[e]^E[c]];return C[a][Q[c]^E[f]]<<4|P[a][f^c]}function e(a,b){var c=getB(a,0),d=getB(a,1),f=getB(a,2),g=getB(a,3);switch(v){case 4:c=x[1][c]^getB(b[3],0),d=x[0][d]^getB(b[3],1),f=x[0][f]^getB(b[3],2),g=x[1][g]^getB(b[3],3);case 3:c=x[1][c]^getB(b[2],0),d=x[1][d]^getB(b[2],1),f=x[0][f]^getB(b[2],2),g=x[0][g]^getB(b[2],3);case 2:c=x[0][x[0][c]^getB(b[1],0)]^getB(b[0],0),d=x[0][x[1][d]^getB(b[1],1)]^getB(b[0],1),f=x[1][x[0][f]^getB(b[1],2)]^getB(b[0],2),g=x[1][x[1][g]^getB(b[1],3)]^getB(b[0],
-3)}return z[0][c]^z[1][d]^z[2][f]^z[3][g]}c=a;var m,r,p,o;p=[];o=[];var y=[],v,w=[],A,t=[[8,1,7,13,6,15,3,2,0,11,5,9,14,12,10,4],[2,8,11,13,15,7,6,14,3,1,9,4,0,10,12,5]],u=[[14,12,11,8,1,2,3,5,15,4,10,6,7,0,9,13],[1,14,2,11,4,12,3,7,6,13,10,5,15,9,0,8]],P=[[11,10,5,14,6,13,9,0,12,8,15,3,2,4,7,1],[4,12,7,5,1,6,9,10,0,14,13,8,2,11,3,15]],C=[[13,7,15,4,1,2,6,14,9,11,3,0,8,5,12,10],[11,9,5,1,12,3,13,14,6,4,7,15,2,0,8,10]],Q=[0,8,1,9,2,10,3,11,4,12,5,13,6,14,7,15],E=[0,9,2,11,4,13,6,15,8,1,10,3,12,5,14,
-7],x=[[],[]],z=[[],[],[],[]];c=c.slice(0,32);for(a=c.length;16!=a&&24!=a&&32!=a;)c[a++]=0;for(a=0;a<c.length;a+=4)y[a>>2]=getW(c,a);for(a=0;256>a;a++)x[0][a]=d(0,a),x[1][a]=d(1,a);for(a=0;256>a;a++)m=x[1][a],r=m^m>>2^[0,90,180,238][m&3],A=m^m>>1^m>>2^[0,238,180,90][m&3],z[0][a]=m+(r<<8)+(A<<16)+(A<<24),z[2][a]=r+(A<<8)+(m<<16)+(A<<24),m=x[0][a],r=m^m>>2^[0,90,180,238][m&3],A=m^m>>1^m>>2^[0,238,180,90][m&3],z[1][a]=A+(A<<8)+(r<<16)+(m<<24),z[3][a]=r+(m<<8)+(A<<16)+(r<<24);v=y.length/2;for(a=0;a<v;a++)m=
-y[a+a],p[a]=m,r=y[a+a+1],o[a]=r,w[v-a-1]=b(m,r);for(a=0;40>a;a+=2)m=16843009*a,r=m+16843009,m=e(m,p),r=rotw(e(r,o),8),f[a]=m+r&MAXINT,f[a+1]=rotw(m+2*r,9);for(a=0;256>a;a++)switch(m=r=p=o=a,v){case 4:m=x[1][m]^getB(w[3],0),r=x[0][r]^getB(w[3],1),p=x[0][p]^getB(w[3],2),o=x[1][o]^getB(w[3],3);case 3:m=x[1][m]^getB(w[2],0),r=x[1][r]^getB(w[2],1),p=x[0][p]^getB(w[2],2),o=x[0][o]^getB(w[2],3);case 2:g[0][a]=z[0][x[0][x[0][m]^getB(w[1],0)]^getB(w[0],0)],g[1][a]=z[1][x[0][x[1][r]^getB(w[1],1)]^getB(w[0],
-1)],g[2][a]=z[2][x[1][x[0][p]^getB(w[1],2)]^getB(w[0],2)],g[3][a]=z[3][x[1][x[1][o]^getB(w[1],3)]^getB(w[0],3)]}},close:function(){f=[];g=[[],[],[],[]]},encrypt:function(c,g){d=c;e=g;for(var k=[getW(d,e)^f[0],getW(d,e+4)^f[1],getW(d,e+8)^f[2],getW(d,e+12)^f[3]],l=0;8>l;l++){var m=l,r=k,p=b(r[0]),o=a(r[1]);r[2]=rotw(r[2]^p+o+f[4*m+8]&MAXINT,31);r[3]=rotw(r[3],1)^p+2*o+f[4*m+9]&MAXINT;p=b(r[2]);o=a(r[3]);r[0]=rotw(r[0]^p+o+f[4*m+10]&MAXINT,31);r[1]=rotw(r[1],1)^p+2*o+f[4*m+11]&MAXINT}setW(d,e,k[2]^
-f[4]);setW(d,e+4,k[3]^f[5]);setW(d,e+8,k[0]^f[6]);setW(d,e+12,k[1]^f[7]);e+=16;return d},decrypt:function(c,g){d=c;e=g;for(var k=[getW(d,e)^f[4],getW(d,e+4)^f[5],getW(d,e+8)^f[6],getW(d,e+12)^f[7]],l=7;0<=l;l--){var m=l,r=k,p=b(r[0]),o=a(r[1]);r[2]=rotw(r[2],1)^p+o+f[4*m+10]&MAXINT;r[3]=rotw(r[3]^p+2*o+f[4*m+11]&MAXINT,31);p=b(r[2]);o=a(r[3]);r[0]=rotw(r[0],1)^p+o+f[4*m+8]&MAXINT;r[1]=rotw(r[1]^p+2*o+f[4*m+9]&MAXINT,31)}setW(d,e,k[2]^f[0]);setW(d,e+4,k[3]^f[1]);setW(d,e+8,k[0]^f[2]);setW(d,e+12,k[1]^
-f[3]);e+=16},finalize:function(){return d}}}JXG={exists:function(b){return function(a){return!(a===b||null===a)}}()};JXG.decompress=function(b){return unescape((new JXG.Util.Unzip(JXG.Util.Base64.decodeAsArray(b))).unzip()[0][0])};JXG.Util={};
-JXG.Util.Unzip=function(b){function a(){aa+=8;return D<K.length?K[D++]:-1}function c(){var b;aa++;b=B&1;B>>=1;0==B&&(B=a(),b=B&1,B=B>>1|128);return b}function d(a){for(var b=0,d=a;d--;)b=b<<1|c();a&&(b=C[b]>>8-a);return b}function e(a){P++;A[t++]=a;p.push(String.fromCharCode(a));32768==t&&(t=0)}function f(){this.b1=this.b0=0;this.jump=null;this.jumppos=-1}function g(){for(;;){if(W[M]>=ra)return-1;if(qa[W[M]]==M)return W[M]++;W[M]++}}function h(){var a=U[T],b;o&&document.write("<br>len:"+M+" treepos:"+
-T);if(17==M)return-1;T++;M++;b=g();o&&document.write("<br>IsPat "+b);if(0<=b)a.b0=b,o&&document.write("<br>b0 "+a.b0);else if(a.b0=32768,o&&document.write("<br>b0 "+a.b0),h())return-1;b=g();if(0<=b)a.b1=b,o&&document.write("<br>b1 "+a.b1),a.jump=null;else if(a.b1=32768,o&&document.write("<br>b1 "+a.b1),a.jump=U[T],a.jumppos=T,h())return-1;M--;return 0}function j(a,b,c,d){o&&document.write("currentTree "+a+" numval "+b+" lengths "+c+" show "+d);U=a;T=0;qa=c;ra=b;for(a=0;17>a;a++)W[a]=0;M=0;if(h())return o&&
-alert("invalid huffman tree\n"),-1;if(o){document.write("<br>Tree: "+U.length);for(a=0;32>a;a++)document.write("Places["+a+"].b0="+U[a].b0+"<br>"),document.write("Places["+a+"].b1="+U[a].b1+"<br>")}return 0}function k(a){for(var b,d,e=0,f=a[e];;)if(b=c(),o&&document.write("b="+b),b){if(!(f.b1&32768))return o&&document.write("ret1"),f.b1;f=f.jump;b=a.length;for(d=0;d<b;d++)if(a[d]===f){e=d;break}}else{if(!(f.b0&32768))return o&&document.write("ret2"),f.b0;e++;f=a[e]}o&&document.write("ret3");return-1}
-function l(){var b,g,h,l,m;do{b=c();h=d(2);switch(h){case 0:o&&alert("Stored\n");break;case 1:o&&alert("Fixed Huffman codes\n");break;case 2:o&&alert("Dynamic Huffman codes\n");break;case 3:o&&alert("Reserved block type!!\n");break;default:o&&alert("Unexpected value %d!\n",h)}if(0==h){B=1;h=a();h|=a()<<8;g=a();g|=a()<<8;for((h^~g)&65535&&document.write("BlockLen checksum mismatch\n");h--;)g=a(),e(g)}else if(1==h)for(;;)if(h=C[d(7)]>>1,23<h?(h=h<<1|c(),199<h?(h-=128,h=h<<1|c()):(h-=48,143<h&&(h+=136))):
-h+=256,256>h)e(h);else if(256==h)break;else{var p;h-=257;m=d(E[h])+Q[h];h=C[d(5)]>>3;8<z[h]?(p=d(8),p|=d(z[h]-8)<<8):p=d(z[h]);p+=x[h];for(h=0;h<m;h++)g=A[t-p&32767],e(g)}else if(2==h){var r=Array(320);g=257+d(5);p=1+d(5);l=4+d(4);for(h=0;19>h;h++)r[h]=0;for(h=0;h<l;h++)r[V[h]]=d(3);m=O.length;for(l=0;l<m;l++)O[l]=new f;if(j(O,19,r,0))return t=0,1;if(o){document.write("<br>distanceTree");for(h=0;h<O.length;h++)document.write("<br>"+O[h].b0+" "+O[h].b1+" "+O[h].jump+" "+O[h].jumppos)}m=g+p;l=0;var u=
--1;for(o&&document.write("<br>n="+m+" bits: "+aa+"<br>");l<m;)if(u++,h=k(O),o&&document.write("<br>"+u+" i:"+l+" decode: "+h+"    bits "+aa+"<br>"),16>h)r[l++]=h;else if(16==h){var v;h=3+d(2);if(l+h>m)return t=0,1;for(v=l?r[l-1]:0;h--;)r[l++]=v}else{h=17==h?3+d(3):11+d(7);if(l+h>m)return t=0,1;for(;h--;)r[l++]=0}m=ba.length;for(l=0;l<m;l++)ba[l]=new f;if(j(ba,g,r,0))return t=0,1;m=ba.length;for(l=0;l<m;l++)O[l]=new f;h=[];for(l=g;l<r.length;l++)h[l-g]=r[l];if(j(O,p,h,0))return t=0,1;o&&document.write("<br>literalTree");
-a:for(;;)if(h=k(ba),256<=h){h-=256;if(0==h)break;h--;m=d(E[h])+Q[h];h=k(O);8<z[h]?(p=d(8),p|=d(z[h]-8)<<8):p=d(z[h]);for(p+=x[h];m--;){if(0>t-p)break a;g=A[t-p&32767];e(g)}}else e(h)}}while(!b);t=0;B=1;return 0}function m(){o&&alert("NEXTFILE");p=[];var b=[];u=!1;b[0]=a();b[1]=a();o&&alert("type: "+b[0]+" "+b[1]);120==b[0]&&218==b[1]&&(o&&alert("GEONExT-GZIP"),l(),o&&alert(p.join("")),w[v]=Array(2),w[v][0]=p.join(""),w[v][1]="geonext.gxt",v++);120==b[0]&&156==b[1]&&(o&&alert("ZLIB"),l(),o&&alert(p.join("")),
-w[v]=Array(2),w[v][0]=p.join(""),w[v][1]="ZLIB",v++);31==b[0]&&139==b[1]&&(o&&alert("GZIP"),r(),o&&alert(p.join("")),w[v]=Array(2),w[v][0]=p.join(""),w[v][1]="file",v++);if(80==b[0]&&75==b[1]&&(u=!0,b[2]=a(),b[3]=a(),3==b[2]&&4==b[3])){b[0]=a();b[1]=a();o&&alert("ZIP-Version: "+b[1]+" "+b[0]/10+"."+b[0]%10);y=a();y|=a()<<8;o&&alert("gpflags: "+y);b=a();b|=a()<<8;o&&alert("method: "+b);a();a();a();a();var c=a(),c=c|a()<<8,c=c|a()<<16,c=c|a()<<24,d=a(),d=d|a()<<8,d=d|a()<<16,d=d|a()<<24,e=a(),e=e|a()<<
-8,e=e|a()<<16,e=e|a()<<24;o&&alert("local CRC: "+c+"\nlocal Size: "+e+"\nlocal CompSize: "+d);c=a();c|=a()<<8;d=a();d|=a()<<8;o&&alert("filelen "+c);f=0;for(R=[];c--;)e=a(),"/"==e|":"==e?f=0:f<oa-1&&(R[f++]=String.fromCharCode(e));o&&alert("nameBuf: "+R);pa||(pa=R);for(var f=0;f<d;)a(),f++;P=0;8==b&&(l(),o&&alert(p.join("")),w[v]=Array(2),w[v][0]=p.join(""),w[v][1]=R.join(""),v++);r()}}function r(){var b=[],c;y&8&&(b[0]=a(),b[1]=a(),b[2]=a(),b[3]=a(),80==b[0]&&75==b[1]&&7==b[2]&&8==b[3]&&(a(),a(),
-a(),a()),a(),a(),a(),a(),a(),a(),a(),a(),o&&alert("CRC:"));u&&m();b[0]=a();if(8!=b[0])return o&&alert("Unknown compression method!"),0;y=a();o&&y&-32&&alert("Unknown flags set!");a();a();a();a();a();a();if(y&4){b[0]=a();b[2]=a();M=b[0]+256*b[1];o&&alert("Extra field size: "+M);for(b=0;b<M;b++)a()}if(y&8){b=0;for(R=[];c=a();){if("7"==c||":"==c)b=0;b<oa-1&&(R[b++]=c)}o&&alert("original file name: "+R)}if(y&16)for(;a(););y&2&&(a(),a());l();a();a();a();a();a();a();a();a();u&&m()}var p=[],o=!1,y,v=0,w=
-[],A=Array(32768),t=0,u=!1,P,C=[0,128,64,192,32,160,96,224,16,144,80,208,48,176,112,240,8,136,72,200,40,168,104,232,24,152,88,216,56,184,120,248,4,132,68,196,36,164,100,228,20,148,84,212,52,180,116,244,12,140,76,204,44,172,108,236,28,156,92,220,60,188,124,252,2,130,66,194,34,162,98,226,18,146,82,210,50,178,114,242,10,138,74,202,42,170,106,234,26,154,90,218,58,186,122,250,6,134,70,198,38,166,102,230,22,150,86,214,54,182,118,246,14,142,78,206,46,174,110,238,30,158,94,222,62,190,126,254,1,129,65,193,
-33,161,97,225,17,145,81,209,49,177,113,241,9,137,73,201,41,169,105,233,25,153,89,217,57,185,121,249,5,133,69,197,37,165,101,229,21,149,85,213,53,181,117,245,13,141,77,205,45,173,109,237,29,157,93,221,61,189,125,253,3,131,67,195,35,163,99,227,19,147,83,211,51,179,115,243,11,139,75,203,43,171,107,235,27,155,91,219,59,187,123,251,7,135,71,199,39,167,103,231,23,151,87,215,55,183,119,247,15,143,79,207,47,175,111,239,31,159,95,223,63,191,127,255],Q=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,
-67,83,99,115,131,163,195,227,258,0,0],E=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,99,99],x=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577],z=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],V=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15],K=b,D=0,B=1,aa=0,oa=256,R=[],pa,ba=Array(288),O=Array(32),T=0,U=null,M=0,W=Array(17);W[0]=0;var qa,ra;JXG.Util.Unzip.prototype.unzipFile=function(a){var b;this.unzip();
-for(b=0;b<w.length;b++)if(w[b][1]==a)return w[b][0]};JXG.Util.Unzip.prototype.deflate=function(){p=[];u=!1;l();o&&alert(p.join(""));w[v]=Array(2);w[v][0]=p.join("");w[v][1]="DEFLATE";v++;return w};JXG.Util.Unzip.prototype.unzip=function(){o&&alert(K);m();return w}};
-JXG.Util.Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(b){for(var a=[],c,d,e,f,g,h,j=0,b=JXG.Util.Base64._utf8_encode(b);j<b.length;)c=b.charCodeAt(j++),d=b.charCodeAt(j++),e=b.charCodeAt(j++),f=c>>2,c=(c&3)<<4|d>>4,g=(d&15)<<2|e>>6,h=e&63,isNaN(d)?g=h=64:isNaN(e)&&(h=64),a.push([this._keyStr.charAt(f),this._keyStr.charAt(c),this._keyStr.charAt(g),this._keyStr.charAt(h)].join(""));return a.join("")},decode:function(b,a){for(var c=[],d,e,f,g,h,
-j=0,b=b.replace(/[^A-Za-z0-9\+\/\=]/g,"");j<b.length;)d=this._keyStr.indexOf(b.charAt(j++)),e=this._keyStr.indexOf(b.charAt(j++)),g=this._keyStr.indexOf(b.charAt(j++)),h=this._keyStr.indexOf(b.charAt(j++)),d=d<<2|e>>4,e=(e&15)<<4|g>>2,f=(g&3)<<6|h,c.push(String.fromCharCode(d)),64!=g&&c.push(String.fromCharCode(e)),64!=h&&c.push(String.fromCharCode(f));c=c.join("");a&&(c=JXG.Util.Base64._utf8_decode(c));return c},_utf8_encode:function(b){for(var b=b.replace(/\r\n/g,"\n"),a="",c=0;c<b.length;c++){var d=
-b.charCodeAt(c);128>d?a+=String.fromCharCode(d):(127<d&&2048>d?a+=String.fromCharCode(d>>6|192):(a+=String.fromCharCode(d>>12|224),a+=String.fromCharCode(d>>6&63|128)),a+=String.fromCharCode(d&63|128))}return a},_utf8_decode:function(b){for(var a=[],c=0,d=0,e=0,f=0;c<b.length;)d=b.charCodeAt(c),128>d?(a.push(String.fromCharCode(d)),c++):191<d&&224>d?(e=b.charCodeAt(c+1),a.push(String.fromCharCode((d&31)<<6|e&63)),c+=2):(e=b.charCodeAt(c+1),f=b.charCodeAt(c+2),a.push(String.fromCharCode((d&15)<<12|
-(e&63)<<6|f&63)),c+=3);return a.join("")},_destrip:function(b,a){var c=[],d,e,f=[];null==a&&(a=76);b.replace(/ /g,"");d=b.length/a;for(e=0;e<d;e++)c[e]=b.substr(e*a,a);d!=b.length/a&&(c[c.length]=b.substr(d*a,b.length-d*a));for(e=0;e<c.length;e++)f.push(c[e]);return f.join("\n")},decodeAsArray:function(b){var b=this.decode(b),a=[],c;for(c=0;c<b.length;c++)a[c]=b.charCodeAt(c);return a},decodeGEONExT:function(b){return decodeAsArray(destrip(b),!1)}};
-JXG.Util.asciiCharCodeAt=function(b,a){var c=b.charCodeAt(a);if(255<c)switch(c){case 8364:c=128;break;case 8218:c=130;break;case 402:c=131;break;case 8222:c=132;break;case 8230:c=133;break;case 8224:c=134;break;case 8225:c=135;break;case 710:c=136;break;case 8240:c=137;break;case 352:c=138;break;case 8249:c=139;break;case 338:c=140;break;case 381:c=142;break;case 8216:c=145;break;case 8217:c=146;break;case 8220:c=147;break;case 8221:c=148;break;case 8226:c=149;break;case 8211:c=150;break;case 8212:c=
-151;break;case 732:c=152;break;case 8482:c=153;break;case 353:c=154;break;case 8250:c=155;break;case 339:c=156;break;case 382:c=158;break;case 376:c=159}return c};
-JXG.Util.utf8Decode=function(b){var a=[],c=0,d=0,e=0,f;if(!JXG.exists(b))return"";for(;c<b.length;)d=b.charCodeAt(c),128>d?(a.push(String.fromCharCode(d)),c++):191<d&&224>d?(e=b.charCodeAt(c+1),a.push(String.fromCharCode((d&31)<<6|e&63)),c+=2):(e=b.charCodeAt(c+1),f=b.charCodeAt(c+2),a.push(String.fromCharCode((d&15)<<12|(e&63)<<6|f&63)),c+=3);return a.join("")};
-JXG.Util.genUUID=function(){for(var b="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split(""),a=Array(36),c=0,d,e=0;36>e;e++)8==e||13==e||18==e||23==e?a[e]="-":14==e?a[e]="4":(2>=c&&(c=33554432+16777216*Math.random()|0),d=c&15,c>>=4,a[e]=b[19==e?d&3|8:d]);return a.join("")};
-function openpgp_config(){this.config=null;this.default_config={prefer_hash_algorithm:8,encryption_cipher:9,compression:1,show_version:!0,show_comment:!0,integrity_protect:!0,composition_behavior:0,keyserver:"keyserver.linux.it"};this.versionstring="OpenPGP.js v.1.20131009";this.commentstring="http://openpgpjs.org";this.debug=!1;this.read=function(){var b=JSON.parse(window.localStorage.getItem("config"));null==b?(this.config=this.default_config,this.write()):this.config=b};this.write=function(){window.localStorage.setItem("config",
-JSON.stringify(this.config))}}var b64s="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-function s2r(b){var a,c,d,e="",f=0,g=0,h=b.length;for(d=0;d<h;d++)c=b.charCodeAt(d),0==g?(e+=b64s.charAt(c>>2&63),a=(c&3)<<4):1==g?(e+=b64s.charAt(a|c>>4&15),a=(c&15)<<2):2==g&&(e+=b64s.charAt(a|c>>6&3),f+=1,0==f%60&&(e+="\n"),e+=b64s.charAt(c&63)),f+=1,0==f%60&&(e+="\n"),g+=1,3==g&&(g=0);0<g&&(e+=b64s.charAt(a),f+=1,0==f%60&&(e+="\n"),e+="=",f+=1);1==g&&(0==f%60&&(e+="\n"),e+="=");"\n"===e.charAt(e.length-1)&&(e=e.slice(0,-1));return e}
-function r2s(b){var a,c,d="",e=0,f=0,g=b.length;for(c=0;c<g;c++)a=b64s.indexOf(b.charAt(c)),0<=a&&(e&&(d+=String.fromCharCode(f|a>>6-e&255)),e=e+2&7,f=a<<e&255);return d}
-function openpgp_encoding_deArmor(b){var b=b.replace(/\r/g,""),b=b.replace(/\n\s+\n/,"\n\n"),a=openpgp_encoding_get_type(b);if(2!=a){b=b.split("-----");b[2].split("\n\n");var c=b[2].split("\n\n")[1].split("\n="),d=c[0].replace(/\n- /g,"\n"),b=1==c.length?b[2].replace(/[\n=]/g,""):c[1].split("\n")[0],a={openpgp:openpgp_encoding_base64_decode(d),type:a};if(verifyCheckSum(a.openpgp,b))return a;util.print_error("Ascii armor integrity check on message failed: '"+b+"' should be '"+getCheckSum(a));return!1}b=
-b.split("-----");a={text:b[2].replace(/\n- /g,"\n").split("\n\n")[1],openpgp:openpgp_encoding_base64_decode(b[4].split("\n\n")[1].split("\n=")[0]),type:a};if(verifyCheckSum(a.openpgp,b[4].split("\n\n")[1].split("\n=")[1]))return a;util.print_error("Ascii armor integrity check on message failed");return!1}
-function openpgp_encoding_get_type(b){b=b.split("-----");if(b[1].match(/BEGIN PGP MESSAGE, PART \d+\/\d+/))return 0;if(b[1].match(/BEGIN PGP MESSAGE, PART \d+/))return 1;if(b[1].match(/BEGIN PGP SIGNED MESSAGE/))return 2;if(b[1].match(/BEGIN PGP MESSAGE/))return 3;if(b[1].match(/BEGIN PGP PUBLIC KEY BLOCK/))return 4;if(b[1].match(/BEGIN PGP PRIVATE KEY BLOCK/))return 5}
-function openpgp_encoding_armor_addheader(){var b="";openpgp.config.config.show_version&&(b+="Version: "+openpgp.config.versionstring+"\r\n");openpgp.config.config.show_comment&&(b+="Comment: "+openpgp.config.commentstring+"\r\n");return b+"\r\n"}
-function openpgp_encoding_armor(b,a,c,d){var e="";switch(b){case 0:e=e+("-----BEGIN PGP MESSAGE, PART "+c+"/"+d+"-----\r\n")+openpgp_encoding_armor_addheader();e+=openpgp_encoding_base64_encode(a);e+="\r\n="+getCheckSum(a)+"\r\n";e+="-----END PGP MESSAGE, PART "+c+"/"+d+"-----\r\n";break;case 1:e=e+("-----BEGIN PGP MESSAGE, PART "+c+"-----\r\n")+openpgp_encoding_armor_addheader();e+=openpgp_encoding_base64_encode(a);e+="\r\n="+getCheckSum(a)+"\r\n";e+="-----END PGP MESSAGE, PART "+c+"-----\r\n";break;
-case 2:e+="\r\n-----BEGIN PGP SIGNED MESSAGE-----\r\nHash: "+a.hash+"\r\n\r\n";e+=a.text.replace(/\n-/g,"\n- -");e=e+"\r\n-----BEGIN PGP SIGNATURE-----\r\n"+openpgp_encoding_armor_addheader();e+=openpgp_encoding_base64_encode(a.openpgp);e+="\r\n="+getCheckSum(a.openpgp)+"\r\n";e+="-----END PGP SIGNATURE-----\r\n";break;case 3:e=e+"-----BEGIN PGP MESSAGE-----\r\n"+openpgp_encoding_armor_addheader();e+=openpgp_encoding_base64_encode(a);e+="\r\n="+getCheckSum(a)+"\r\n";e+="-----END PGP MESSAGE-----\r\n";
-break;case 4:e=e+"-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n"+openpgp_encoding_armor_addheader();e+=openpgp_encoding_base64_encode(a);e+="\r\n="+getCheckSum(a)+"\r\n";e+="-----END PGP PUBLIC KEY BLOCK-----\r\n\r\n";break;case 5:e=e+"-----BEGIN PGP PRIVATE KEY BLOCK-----\r\n"+openpgp_encoding_armor_addheader(),e+=openpgp_encoding_base64_encode(a),e+="\r\n="+getCheckSum(a)+"\r\n",e+="-----END PGP PRIVATE KEY BLOCK-----\r\n"}return e}
-function getCheckSum(b){b=createcrc24(b);b=""+String.fromCharCode(b>>16)+String.fromCharCode(b>>8&255)+String.fromCharCode(b&255);return openpgp_encoding_base64_encode(b)}function verifyCheckSum(b,a){var c=getCheckSum(b);return c[0]==a[0]&&c[1]==a[1]&&c[2]==a[2]}
-var crc_table=[0,8801531,25875725,17603062,60024545,51751450,35206124,44007191,128024889,120049090,103502900,112007375,70412248,78916387,95990485,88014382,264588937,256049778,240098180,248108927,207005800,215016595,232553829,224014750,140824496,149062475,166599357,157832774,200747345,191980970,176028764,184266919,520933865,529177874,512099556,503334943,480196360,471432179,487973381,496217854,414011600,405478443,422020573,430033190,457094705,465107658,448029500,439496647,281648992,273666971,289622637,
-298124950,324696449,333198714,315665548,307683447,392699481,401494690,383961940,375687087,352057528,343782467,359738805,368533838,1041867730,1050668841,1066628831,1058355748,1032471859,1024199112,1006669886,1015471301,968368875,960392720,942864358,951368477,975946762,984451313,1000411399,992435708,836562267,828023200,810956886,818967725,844041146,852051777,868605623,860066380,914189410,922427545,938981743,930215316,904825475,896059E3,878993294,887231349,555053627,563297984,547333942,538569677,579245274,
-570480673,588005847,596249900,649392898,640860153,658384399,666397428,623318499,631331096,615366894,606833685,785398962,777416777,794487231,802989380,759421523,767923880,751374174,743392165,695319947,704115056,687564934,679289981,719477610,711202705,728272487,737067676,2083735460,2092239711,2109313705,2101337682,2141233477,2133257662,2116711496,2125215923,2073216669,2064943718,2048398224,2057199467,2013339772,2022141063,2039215473,2030942602,1945504045,1936737750,1920785440,1929023707,1885728716,
-1893966647,1911503553,1902736954,1951893524,1959904495,1977441561,1968902626,2009362165,2000822798,1984871416,1992881923,1665111629,1673124534,1656046400,1647513531,1621913772,1613380695,1629922721,1637935450,1688082292,1679317903,1695859321,1704103554,1728967061,1737211246,1720132760,1711368291,1828378820,1820103743,1836060105,1844855090,1869168165,1877963486,1860430632,1852155859,1801148925,1809650950,1792118E3,1784135691,1757986588,1750004711,1765960209,1774462698,1110107254,1118611597,1134571899,
-1126595968,1102643863,1094667884,1077139354,1085643617,1166763343,1158490548,1140961346,1149762745,1176011694,1184812885,1200772771,1192499800,1307552511,1298785796,1281720306,1289958153,1316768798,1325007077,1341561107,1332794856,1246636998,1254647613,1271201483,1262662192,1239272743,1230733788,1213667370,1221678289,1562785183,1570797924,1554833554,1546300521,1588974462,1580441477,1597965939,1605978760,1518843046,1510078557,1527603627,1535847760,1494504007,1502748348,1486784330,1478020017,1390639894,
-1382365165,1399434779,1408230112,1366334967,1375129868,1358579962,1350304769,1430452783,1438955220,1422405410,1414423513,1456544974,1448562741,1465633219,1474135352];
-function createcrc24(b){for(var a=11994318,c=0;16<b.length-c;)a=a<<8^crc_table[(a>>16^b.charCodeAt(c))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+1))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+2))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+3))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+4))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+5))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+6))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+7))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+8))&255],a=a<<8^crc_table[(a>>
-16^b.charCodeAt(c+9))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+10))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+11))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+12))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+13))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+14))&255],a=a<<8^crc_table[(a>>16^b.charCodeAt(c+15))&255],c+=16;for(var d=c;d<b.length;d++)a=a<<8^crc_table[(a>>16^b.charCodeAt(c++))&255];return a&16777215}function openpgp_encoding_base64_encode(b){return s2r(b)}
-function openpgp_encoding_base64_decode(b){return r2s(b)}function openpgp_encoding_html_encode(b){return null==b?"":$("<div/>").text(b).html()}function openpgp_encoding_eme_pkcs1_encode(b,a){if(b.length>a-11)return-1;var c;c=""+String.fromCharCode(0);c+=String.fromCharCode(2);for(var d=0;d<a-b.length-3;d++)c+=String.fromCharCode(openpgp_crypto_getPseudoRandom(1,255));c+=String.fromCharCode(0);return c+b}
-function openpgp_encoding_eme_pkcs1_decode(b,a){b.length<a&&(b=String.fromCharCode(0)+b);if(12>b.length||0!=b.charCodeAt(0)||2!=b.charCodeAt(1))return-1;for(var c=2;0!=b.charCodeAt(c)&&b.length>c;)c++;return b.substring(c+1,b.length)}hash_headers=[,[48,32,48,12,6,8,42,134,72,134,247,13,2,5,5,0,4,16],[48,33,48,9,6,5,43,14,3,2,26,5,0,4,20],[48,33,48,9,6,5,43,36,3,2,1,5,0,4,20]];hash_headers[8]=[48,49,48,13,6,9,96,134,72,1,101,3,4,2,1,5,0,4,32];
-hash_headers[9]=[48,65,48,13,6,9,96,134,72,1,101,3,4,2,2,5,0,4,48];hash_headers[10]=[48,81,48,13,6,9,96,134,72,1,101,3,4,2,3,5,0,4,64];hash_headers[11]=[48,49,48,13,6,9,96,134,72,1,101,3,4,2,4,5,0,4,28];
-function openpgp_encoding_emsa_pkcs1_encode(b,a,c){var d;d=""+String.fromCharCode(0);d+=String.fromCharCode(1);for(var e=0;e<c-hash_headers[b].length-3-openpgp_crypto_getHashByteLength(b);e++)d+=String.fromCharCode(255);d+=String.fromCharCode(0);for(e=0;e<hash_headers[b].length;e++)d+=String.fromCharCode(hash_headers[b][e]);d+=openpgp_crypto_hashData(b,a);return new BigInteger(util.hexstrdump(d),16)}
-function openpgp_encoding_emsa_pkcs1_decode(b,a){var c=0;if(0!=a.charCodeAt(0)&&1!=a.charCodeAt(0))return-1;for(c++;255==a.charCodeAt(c);)c++;if(0!=a.charCodeAt(c++))return-1;for(var d=0,d=0;d<hash_headers[b].length&&d+c<a.length;d++)if(a.charCodeAt(d+c)!=hash_headers[b][d])return-1;c+=d;return a.substring(c).length<openpgp_crypto_getHashByteLength(b)?-1:a.substring(c)}
-function _openpgp(){function b(a){for(var b=a.openpgp,d=a.text,e=[],f=0,g=0,h=b.length;g<b.length;){var j=openpgp_packet.read_packet(b,g,h);if(!j)break;if(1==j.tagType||2==j.tagType&&16>j.signatureType||3==j.tagType||4==j.tagType||8==j.tagType||9==j.tagType||10==j.tagType||11==j.tagType||18==j.tagType||19==j.tagType)if(e[e.length]=new openpgp_msg_message,e[f].messagePacket=j,e[f].type=a.type,9==j.tagType||1==j.tagType||3==j.tagType||18==j.tagType)if(9==j.tagType){util.print_error("unexpected openpgp packet");
-break}else if(1==j.tagType){util.print_debug("session key found:\n "+j.toString());var k=!0;e[f].sessionKeys=[];for(var l=0;k;)e[f].sessionKeys[l]=j,g+=j.packetLength+j.headerLength,h-=j.packetLength+j.headerLength,j=openpgp_packet.read_packet(b,g,h),1!=j.tagType&&3!=j.tagType&&(k=!1),l++;18==j.tagType||9==j.tagType?(util.print_debug("encrypted data found:\n "+j.toString()),e[f].encryptedData=j,g+=j.packetLength+j.headerLength,h-=j.packetLength+j.headerLength,f++):util.print_debug("something is wrong: "+
-j.tagType)}else{if(18==j.tagType){util.print_debug("symmetric encrypted data");break}}else 2==j.tagType&&3>j.signatureType?(g+=j.packetLength+j.headerLength,h-=j.packetLength+j.headerLength,e[f].text=d,e[f].signature=j,f++):4==j.tagType?(g+=j.packetLength+j.headerLength,h-=j.packetLength+j.headerLength):8==j.tagType?(g+=j.packetLength+j.headerLength,h-=j.packetLength+j.headerLength,j=j.decompress(),e=e.concat(openpgp.read_messages_dearmored({text:j,openpgp:j}))):10==j.tagType?(e.length=0,g+=j.packetLength+
-j.headerLength,h-=j.packetLength+j.headerLength):11==j.tagType?(g+=j.packetLength+j.headerLength,h-=j.packetLength+j.headerLength,d=j.data,e[f].data=j.data,f++):19==j.tagType&&(g+=j.packetLength+j.headerLength,h-=j.packetLength+j.headerLength);else return util.print_error("no message found!"),null}return e}this.tostring="";this.generate_key_pair=function(a,b,d,e){var f=(new openpgp_packet_userid).write_packet(d),b=openpgp_crypto_generateKeyPair(a,b,e,openpgp.config.config.prefer_hash_algorithm,3),
-a=b.privateKey,g=(new openpgp_packet_keymaterial).read_priv_key(a.string,3,a.string.length);g.decryptSecretMPIs(e)||util.print_error("Issue creating key. Unable to read resulting private key");e=new openpgp_msg_privatekey;e.privateKeyPacket=g;e.getPreferredSignatureHashAlgorithm=function(){return openpgp.config.config.prefer_hash_algorithm};g=e.privateKeyPacket.publicKey.data;d=util.encode_utf8(d);g=String.fromCharCode(153)+String.fromCharCode(g.length>>8&255)+String.fromCharCode(g.length&255)+g+
-String.fromCharCode(180)+String.fromCharCode(d.length>>24)+String.fromCharCode(d.length>>16&255)+String.fromCharCode(d.length>>8&255)+String.fromCharCode(d.length&255)+d;d=new openpgp_packet_signature;d=d.write_message_signature(16,g,e);b=openpgp_encoding_armor(4,b.publicKey.string+f+d.openpgp);f=openpgp_encoding_armor(5,a.string+f+d.openpgp);return{privateKey:e,privateKeyArmored:f,publicKeyArmored:b}};this.write_signed_message=function(a,b){var d=(new openpgp_packet_signature).write_message_signature(1,
-b.replace(/\r\n/g,"\n").replace(/\n/g,"\r\n"),a),d={text:b.replace(/\r\n/g,"\n").replace(/\n/g,"\r\n"),openpgp:d.openpgp,hash:d.hash};return openpgp_encoding_armor(2,d,null,null)};this.write_signed_and_encrypted_message=function(a,b,d){var e="",f=(new openpgp_packet_literaldata).write_packet(d.replace(/\r\n/g,"\n").replace(/\n/g,"\r\n"));util.print_debug_hexstr_dump("literal_packet: |"+f+"|\n",f);for(var g=0;g<b.length;g++){var h="",h=(new openpgp_packet_onepasssignature).write_packet(1,openpgp.config.config.prefer_hash_algorithm,
-a,!1);util.print_debug_hexstr_dump("onepasssigstr: |"+h+"|\n",h);var j=(new openpgp_packet_signature).write_message_signature(1,d.replace(/\r\n/g,"\n").replace(/\n/g,"\r\n"),a);util.print_debug_hexstr_dump("datasignature: |"+j.openpgp+"|\n",j.openpgp);e=0==g?h+f+j.openpgp:h+e+j.openpgp}util.print_debug_hexstr_dump("signed packet: |"+e+"|\n",e);a=openpgp_crypto_generateSessionKey(openpgp.config.config.encryption_cipher);d="";for(g=0;g<b.length;g++){f=b[g].getEncryptionKey();if(null==f)return util.print_error("no encryption key found! Key is for signing only."),
-null;d+=(new openpgp_packet_encryptedsessionkey).write_pub_key_packet(f.getKeyId(),f.MPIs,f.publicKeyAlgorithm,openpgp.config.config.encryption_cipher,a)}d=openpgp.config.config.integrity_protect?d+(new openpgp_packet_encryptedintegrityprotecteddata).write_packet(openpgp.config.config.encryption_cipher,a,e):d+(new openpgp_packet_encrypteddata).write_packet(openpgp.config.config.encryption_cipher,a,e);return openpgp_encoding_armor(3,d,null,null)};this.write_encrypted_message=function(a,b){var d="",
-d=(new openpgp_packet_literaldata).write_packet(b.replace(/\r\n/g,"\n").replace(/\n/g,"\r\n"));util.print_debug_hexstr_dump("literal_packet: |"+d+"|\n",d);for(var e=openpgp_crypto_generateSessionKey(openpgp.config.config.encryption_cipher),f="",g=0;g<a.length;g++){var h=a[g].getEncryptionKey();if(null==h)return util.print_error("no encryption key found! Key is for signing only."),null;f+=(new openpgp_packet_encryptedsessionkey).write_pub_key_packet(h.getKeyId(),h.MPIs,h.publicKeyAlgorithm,openpgp.config.config.encryption_cipher,
-e)}f=openpgp.config.config.integrity_protect?f+(new openpgp_packet_encryptedintegrityprotecteddata).write_packet(openpgp.config.config.encryption_cipher,e,d):f+(new openpgp_packet_encrypteddata).write_packet(openpgp.config.config.encryption_cipher,e,d);return openpgp_encoding_armor(3,f,null,null)};this.read_message=function(a){var c;try{c=openpgp_encoding_deArmor(a.replace(/\r/g,""))}catch(d){return util.print_error("no message found!"),null}return b(c)};this.read_messages_dearmored=b;this.read_publicKey=
-function(a){for(var b=0,d=[],e=0,a=openpgp_encoding_deArmor(a.replace(/\r/g,"")).openpgp,f=a.length;b!=a.length;){var g=openpgp_packet.read_packet(a,b,f);if(153==a[b].charCodeAt()||6==g.tagType)d[e]=new openpgp_msg_publickey,d[e].header=a.substring(b,b+3),153==a[b].charCodeAt()?(b++,f=a[b++].charCodeAt()<<8|a[b++].charCodeAt(),d[e].publicKeyPacket=new openpgp_packet_keymaterial,d[e].publicKeyPacket.header=d[e].header,d[e].publicKeyPacket.read_tag6(a,b,f),b+=d[e].publicKeyPacket.packetLength,b+=d[e].read_nodes(d[e].publicKeyPacket,
-a,b,a.length-b)):(d[e]=new openpgp_msg_publickey,d[e].publicKeyPacket=g,b+=g.headerLength+g.packetLength,b+=d[e].read_nodes(g,a,b,a.length-b));else return util.print_error("no public key found!"),null;d[e].data=a.substring(0,b);e++}return d};this.read_privateKey=function(a){for(var b=[],d=0,e=0,a=openpgp_encoding_deArmor(a.replace(/\r/g,"")).openpgp,f=a.length;e!=a.length;){var g=openpgp_packet.read_packet(a,e,f);if(5==g.tagType)b[b.length]=new openpgp_msg_privatekey,e+=g.headerLength+g.packetLength,
-e+=b[d].read_nodes(g,a,e,f);else return util.print_error("no block packet found!"),null;b[d].data=a.substring(0,e);d++}return b};this.init=function(){this.config=new openpgp_config;this.config.read();this.keyring=new openpgp_keyring;this.keyring.init()}}var openpgp=new _openpgp;
-function openpgp_keyring(){this.init=function(){var b=JSON.parse(window.localStorage.getItem("privatekeys")),a=JSON.parse(window.localStorage.getItem("publickeys"));if(null==b||0==b.length)b=[];if(null==a||0==a.length)a=[];this.publicKeys=[];this.privateKeys=[];for(var c=0,d=0;d<b.length;d++){var e=openpgp.read_privateKey(b[d]);this.privateKeys[c]={armored:b[d],obj:e[0],keyId:e[0].getKeyId()};c++}for(d=c=0;d<a.length;d++)e=openpgp.read_publicKey(a[d]),null!=e[0]&&(this.publicKeys[c]={armored:a[d],
-obj:e[0],keyId:e[0].getKeyId()},c++)};this.hasPrivateKey=function(){return 0<this.privateKeys.length};this.store=function(){for(var b=[],a=0;a<this.privateKeys.length;a++)b[a]=this.privateKeys[a].armored;for(var c=[],a=0;a<this.publicKeys.length;a++)c[a]=this.publicKeys[a].armored;window.localStorage.setItem("privatekeys",JSON.stringify(b));window.localStorage.setItem("publickeys",JSON.stringify(c))};this.getPublicKeyForAddress=function(b){var a=[],c=b.split("<"),d="",d=1<c.length?c[1].split(">")[0]:
-b.trim(),d=d.toLowerCase();if(!util.emailRegEx.test(d))return a;for(b=0;b<this.publicKeys.length;b++)for(c=0;c<this.publicKeys[b].obj.userIds.length;c++)0<=this.publicKeys[b].obj.userIds[c].text.toLowerCase().indexOf(d)&&(a[a.length]=this.publicKeys[b]);return a};this.getPrivateKeyForAddress=function(b){var a=[],c=b.split("<"),d="",d=1<c.length?c[1].split(">")[0]:b.trim(),d=d.toLowerCase();if(!util.emailRegEx.test(d))return a;for(b=0;b<this.privateKeys.length;b++)for(c=0;c<this.privateKeys[b].obj.userIds.length;c++)0<=
-this.privateKeys[b].obj.userIds[c].text.toLowerCase().indexOf(d)&&(a[a.length]=this.privateKeys[b]);return a};this.getPublicKeysForKeyId=function(b){for(var a=[],c=0;c<this.publicKeys.length;c++){var d=this.publicKeys[c];if(b==d.obj.getKeyId())a[a.length]=d;else if(null!=d.obj.subKeys)for(var e=0;e<d.obj.subKeys.length;e++){var f=d.obj.subKeys[e];b==f.getKeyId()&&(a[a.length]={obj:d.obj.getSubKeyAsKey(e),keyId:f.getKeyId()})}}return a};this.getPrivateKeyForKeyId=function(b){for(var a=[],c=0;c<this.privateKeys.length;c++)if(b==
-this.privateKeys[c].obj.getKeyId()&&(a[a.length]={key:this.privateKeys[c],keymaterial:this.privateKeys[c].obj.privateKeyPacket}),null!=this.privateKeys[c].obj.subKeys)for(var d=this.privateKeys[c].obj.getSubKeyIds(),e=0;e<d.length;e++)b==util.hexstrdump(d[e])&&(a[a.length]={key:this.privateKeys[c],keymaterial:this.privateKeys[c].obj.subKeys[e]});return a};this.importPublicKey=function(b){for(var a=openpgp.read_publicKey(b),c=0;c<a.length;c++)this.publicKeys[this.publicKeys.length]={armored:b,obj:a[c],
-keyId:a[c].getKeyId()};return!0};this.importPrivateKey=function(b,a){var c=openpgp.read_privateKey(b);if(!c[0].decryptSecretMPIs(a))return!1;for(var d=0;d<c.length;d++)this.privateKeys[this.privateKeys.length]={armored:b,obj:c[d],keyId:c[d].getKeyId()};return!0};this.exportPublicKey=function(b){return this.publicKey[b]};this.removePublicKey=function(b){b=this.publicKeys.splice(b,1);this.store();return b};this.exportPrivateKey=function(b){return this.privateKeys[b]};this.removePrivateKey=function(b){b=
-this.privateKeys.splice(b,1);this.store();return b}}
-function openpgp_msg_message(){this.text="";this.type=this.messagePacket=null;this.decrypt=function(b,a){return this.decryptAndVerifySignature(b,a).text};this.decryptAndVerifySignature=function(b,a,c){if(null==b||null==a||""==a)return null;a=a.decrypt(this,b.keymaterial);if(null==a)return null;b=[];util.print_debug_hexstr_dump("openpgp.msg.messge decrypt:\n",a);var a=openpgp.read_messages_dearmored({text:a,openpgp:a}),d;for(d in a){if(a[d].data)this.text=a[d].data;a[d].signature&&b.push(a[d].verifySignature(c))}return{text:this.text,
-validSignatures:b}};this.verifySignature=function(b){var a=!1;if(2==this.signature.tagType){if(!b||0==b.length)if(4==this.signature.version)b=openpgp.keyring.getPublicKeysForKeyId(this.signature.issuerKeyId);else if(3==this.signature.version)b=openpgp.keyring.getPublicKeysForKeyId(this.signature.keyId);else return util.print_error("unknown signature type on message!"),!1;if(0==b.length)util.print_warning("Unable to verify signature of issuer: "+util.hexstrdump(this.signature.issuerKeyId)+". Public key not found in keyring.");
-else for(var c=0;c<b.length;c++)this.signature.verify(this.text.replace(/\r\n/g,"\n").replace(/\n/g,"\r\n"),b[c])?(util.print_info("Found Good Signature from "+b[c].obj.userIds[0].text+" (0x"+util.hexstrdump(b[c].obj.getKeyId()).substring(8)+")"),a=!0):util.print_error("Signature verification failed: Bad Signature from "+b[c].obj.userIds[0].text+" (0x"+util.hexstrdump(b[0].obj.getKeyId()).substring(8)+")")}return a};this.toString=function(){var b="Session Keys:\n";if(null!=this.sessionKeys)for(var a=
-0;a<this.sessionKeys.length;a++)b+=this.sessionKeys[a].toString();b+="\n\n EncryptedData:\n";null!=this.encryptedData&&(b+=this.encryptedData.toString());b+="\n\n Signature:\n";null!=this.signature&&(b+=this.signature.toString());b+="\n\n Text:\n";null!=this.signature&&(b+=this.text);return b}}
-function openpgp_msg_privatekey(){this.subKeys=[];this.privateKeyPacket=null;this.userIds=[];this.userAttributes=[];this.revocationSignatures=[];this.subKeys=[];this.extractPublicKey=function(){for(var b=this.privateKeyPacket.publicKey.header+this.privateKeyPacket.publicKey.data,a=0;a<this.userIds.length;a++){if(0===this.userIds[a].certificationSignatures.length)return util.print_error("extractPublicKey - missing certification signatures"),null;for(var c=new openpgp_packet_userid,b=b+c.write_packet(this.userIds[a].text),
-c=0;c<this.userIds[a].certificationSignatures.length;c++)var d=this.userIds[a].certificationSignatures[c],b=b+(openpgp_packet.write_packet_header(2,d.data.length)+d.data)}for(a=0;a<this.subKeys.length;a++)if(c=this.subKeys[a].publicKey,b+=openpgp_packet.write_old_packet_header(14,c.data.length)+c.data,c=this.subKeys[a].subKeySignature,null!==c)b+=openpgp_packet.write_packet_header(2,c.data.length)+c.data;else return util.print_error("extractPublicKey - missing subkey signature"),null;return openpgp_encoding_armor(4,
-b)};this.getSigningKey=function(){if((17==this.privateKeyPacket.publicKey.publicKeyAlgorithm||2!=this.privateKeyPacket.publicKey.publicKeyAlgorithm)&&3==this.privateKeyPacket.publicKey.verifyKey())return this.privateKeyPacket;if(4==this.privateKeyPacket.publicKey.version)for(var b=0;b<this.privateKeyPacket.subKeys.length;b++)if((17==this.privateKeyPacket.subKeys[b].publicKey.publicKeyAlgorithm||2!=this.privateKeyPacket.subKeys[b].publicKey.publicKeyAlgorithm)&&3==this.privateKeyPacket.subKeys[b].publicKey.verifyKey())return this.privateKeyPacket.subKeys[b];
-return null};this.getFingerprint=function(){return this.privateKeyPacket.publicKey.getFingerprint()};this.getPreferredSignatureHashAlgorithm=function(){var b=this.getSigningKey();return null==b?(util.print_error("private key is for encryption only! Cannot create a signature."),null):17==b.publicKey.publicKeyAlgorithm?(new DSA).select_hash_algorithm(b.publicKey.MPIs[1].toBigInteger()):openpgp.config.config.prefer_hash_algorithm};this.read_nodes=function(b,a,c,d){this.privateKeyPacket=b;for(b=c;a.length>
-b;){var e=openpgp_packet.read_packet(a,b,a.length-b);if(null==e){util.print_error("openpgp.msg.messge decrypt:\n[pub/priv_key]parsing ends here @:"+b+" l:"+d);break}else switch(e.tagType){case 2:if(32==e.signatureType)this.revocationSignatures[this.revocationSignatures.length]=e;else if(15<e.signatureType&&20>e.signatureType){if(null==this.certificationsignatures)this.certificationSignatures=[];this.certificationSignatures[this.certificationSignatures.length]=e}else util.print_error("openpgp.msg.messge decrypt:\nunknown signature type directly on key "+
-e.signatureType+" @"+b);b+=e.packetLength+e.headerLength;break;case 7:this.subKeys[this.subKeys.length]=e;b+=e.packetLength+e.headerLength;b+=e.read_nodes(this.privateKeyPacket,a,b,a.length-b);break;case 17:this.userAttributes[this.userAttributes.length]=e;b+=e.packetLength+e.headerLength;b+=e.read_nodes(this.privateKeyPacket,a,b,a.length-b);break;case 13:this.userIds[this.userIds.length]=e;b+=e.packetLength+e.headerLength;b+=e.read_nodes(this.privateKeyPacket,a,b,a.length-b);break;default:return this.position=
-c-this.privateKeyPacket.packetLength-this.privateKeyPacket.headerLength,this.len=b-c}}this.position=c-this.privateKeyPacket.packetLength-this.privateKeyPacket.headerLength;return this.len=b-c};this.decryptSecretMPIs=function(b){return this.privateKeyPacket.decryptSecretMPIs(b)};this.getSubKeyIds=function(){if(4==this.privateKeyPacket.publicKey.version)var b=[];for(var a=0;a<this.subKeys.length;a++)b[a]=str_sha1(this.subKeys[a].publicKey.header+this.subKeys[a].publicKey.data).substring(12,20);return b};
-this.getKeyId=function(){return this.privateKeyPacket.publicKey.getKeyId()}}
-function openpgp_msg_publickey(){this.tostring="OPENPGP PUBLIC KEY\n";this.publicKeyPacket=this.bindingSignature=null;this.userIds=[];this.userAttributes=[];this.revocationSignatures=[];this.subKeys=[];this.arbitraryPacket=[];this.directSignatures=[];this.verifyCertificationSignatures=function(){for(var b=[],a=0;a<this.userIds.length;a++)b[a]=this.userIds[a].verifyCertificationSignatures(this.publicKeyPacket);return b};this.getEncryptionKey=function(){for(var b=0;b<this.subKeys.length;b++)if(17!=
-this.subKeys[b].publicKeyAlgorithm&&3!=this.subKeys[b].publicKeyAlgorithm&&this.subKeys[b].verifyKey())return this.subKeys[b];return 17!=this.publicKeyPacket.publicKeyAlgorithm&&3!=this.publicKeyPacket.publicKeyAlgorithm&&this.publicKeyPacket.verifyKey()?this.publicKeyPacket:null};this.getSigningKey=function(){if(17==this.publicKeyPacket.publicKeyAlgorithm||2!=this.publicKeyPacket.publicKeyAlgorithm)return this.publicKeyPacket;if(4==this.publicKeyPacket.version)for(var b=0;b<this.subKeys.length;b++)if((17==
-this.subKeys[b].publicKeyAlgorithm||2!=this.subKeys[b].publicKeyAlgorithm)&&this.subKeys[b].verifyKey())return this.subKeys[b];return null};this.read_nodes=function(b,a,c,d){this.publicKeyPacket=b;for(b=c;a.length!=b;){var e=openpgp_packet.read_packet(a,b,a.length-b);if(null==e){util.print_error("openpgp.msg.publickey read_nodes:\n[pub_key]parsing ends here @:"+b+" l:"+d);break}else switch(e.tagType){case 2:32==e.signatureType?this.revocationSignatures[this.revocationSignatures.length]=e:16==e.signatureType||
-17==e.signatureType||18==e.signatureType||19==e.signatureType?this.certificationSignature=e:25==e.signatureType?this.bindingSignature=e:31==e.signatureType?this.directSignatures[this.directSignatures.length]=e:util.print_error("openpgp.msg.publickey read_nodes:\nunknown signature type directly on key "+e.signatureType);b+=e.packetLength+e.headerLength;break;case 14:this.subKeys[this.subKeys.length]=e;b+=e.packetLength+e.headerLength;b+=e.read_nodes(this.publicKeyPacket,a,b,a.length-b);break;case 17:this.userAttributes[this.userAttributes.length]=
-e;b+=e.packetLength+e.headerLength;b+=e.read_nodes(this.publicKeyPacket,a,b,a.length-b);break;case 13:this.userIds[this.userIds.length]=e;b+=e.packetLength+e.headerLength;b+=e.read_nodes(this.publicKeyPacket,a,b,a.length-b);break;default:return this.data=a,this.position=c-this.publicKeyPacket.packetLength-this.publicKeyPacket.headerLength,this.len=b-c}}this.data=a;this.position=c-(this.publicKeyPacket.packetLength-this.publicKeyPacket.headerLength);return this.len=b-c};this.write=function(){};this.toString=
-function(){for(var b=" OPENPGP Public Key\n    length: "+this.len+"\n",b=b+"    Revocation Signatures:\n",a=0;a<this.revocationSignatures.length;a++)b+="    "+this.revocationSignatures[a].toString();b+="    User Ids:\n";for(a=0;a<this.userIds.length;a++)b+="    "+this.userIds[a].toString();b+="    User Attributes:\n";for(a=0;a<this.userAttributes.length;a++)b+="    "+this.userAttributes[a].toString();b+="    Public Key SubKeys:\n";for(a=0;a<this.subKeys.length;a++)b+="    "+this.subKeys[a].toString();
-return b};this.validate=function(){for(var b=0;b<this.revocationSignatures.length;b++)if(this.revocationSignatures[b].verify(this.publicKeyPacket.header+this.publicKeyPacket.data,this.publicKeyPacket))return!1;if(0!=this.subKeys.length){for(var a=!1,b=0;b<this.subKeys.length;b++)if(3==this.subKeys[b].verifyKey()){a=!0;break}if(!a)return!1}a=!1;for(b=0;b<this.userIds.length;b++)if(0==this.userIds[b].verify(this.publicKeyPacket)){a=!0;break}return!a?!1:!0};this.getFingerprint=function(){return this.publicKeyPacket.getFingerprint()};
-this.getKeyId=function(){return this.publicKeyPacket.getKeyId()};this.verifyBasicSignatures=function(){for(var b=0;b<this.revocationSignatures.length;b++)if(this.revocationSignatures[b].verify(this.publicKeyPacket.header+this.publicKeyPacket.data,this.publicKeyPacket))return!1;if(0!=this.subKeys.length){for(var a=!1,b=0;b<this.subKeys.length;b++)if(null!=this.subKeys[b]&&3==this.subKeys[b].verifyKey()){a=!0;break}if(!a)return!1}a=this.getKeyId();for(b=0;b<this.userIds.length;b++)for(var c=0;c<this.userIds[b].certificationRevocationSignatures.length;c++)if(this.userIds[b].certificationSignatures[c].getIssuer==
-a&&4!=this.userIds[b].certificationSignatures[c].verifyBasic(this.publicKeyPacket))return!1;return!0};this.getSubKeyAsKey=function(b){var a=new openpgp_msg_publickey;a.userIds=this.userIds;a.userAttributes=this.userAttributes;a.publicKeyPacket=this.subKeys[b];return a}}
-function openpgp_packet_compressed(){this.tagType=8;this.decompressedData=null;this.read_packet=function(b,a,c){this.packetLength=c;var d=a;this.type=b.charCodeAt(d++);this.compressedData=b.substring(a+1,a+c);return this};this.toString=function(){return"5.6.  Compressed Data Packet (Tag 8)\n    length:  "+this.packetLength+"\n    Compression Algorithm = "+this.type+"\n    Compressed Data: Byte ["+util.hexstrdump(this.compressedData)+"]\n"};this.compress=function(b,a){this.type=b;this.decompressedData=
-a;switch(this.type){case 0:this.compressedData=this.decompressedData;break;case 1:util.print_error("Compression algorithm ZIP [RFC1951] is not implemented.");break;case 2:util.print_error("Compression algorithm ZLIB [RFC1950] is not implemented.");break;case 3:util.print_error("Compression algorithm BZip2 [BZ2] is not implemented.");break;default:util.print_error("Compression algorithm unknown :"+this.type)}this.packetLength=this.compressedData.length+1;return this.compressedData};this.decompress=
-function(){if(null!=this.decompressedData)return this.decompressedData;if(null==this.type)return null;switch(this.type){case 0:this.decompressedData=this.compressedData;break;case 1:util.print_info("Decompressed packet [Type 1-ZIP]: "+this.toString());var b=this.compressedData,b=s2r(b).replace(/\n/g,""),b=new JXG.Util.Unzip(JXG.Util.Base64.decodeAsArray(b));this.decompressedData=unescape(b.deflate()[0][0]);break;case 2:util.print_info("Decompressed packet [Type 2-ZLIB]: "+this.toString());if(8==this.compressedData.charCodeAt(0)%
-16){b=this.compressedData.substring(0,this.compressedData.length-4);b=s2r(b).replace(/\n/g,"");this.decompressedData=JXG.decompress(b);break}else util.print_error("Compression algorithm ZLIB only supports DEFLATE compression method.");break;case 3:util.print_error("Compression algorithm BZip2 [BZ2] is not implemented.");break;default:util.print_error("Compression algorithm unknown :"+this.type)}util.print_debug("decompressed:"+util.hexstrdump(this.decompressedData));return this.decompressedData};
-this.write_packet=function(b,a){this.decompressedData=a;if(null==b)this.type=1;var c=String.fromCharCode(this.type)+this.compress(this.type);return openpgp_packet.write_packet_header(8,c.length)+c}}
-function openpgp_packet_encrypteddata(){this.tagType=9;this.decryptedData=this.encryptedData=this.packetLength=null;this.decrypt_sym=function(b,a){this.decryptedData=openpgp_crypto_symmetricDecrypt(b,a,this.encryptedData,!0);util.print_debug("openpgp.packet.encryptedintegrityprotecteddata.js\ndata: "+util.hexstrdump(this.decryptedData));return this.decryptedData};this.toString=function(){return"5.7.  Symmetrically Encrypted Data Packet (Tag 9)\n    length:  "+this.packetLength+"\n    Used symmetric algorithm: "+
-this.algorithmType+"\n    encrypted data: Bytes ["+util.hexstrdump(this.encryptedData)+"]\n"};this.read_packet=function(b,a,c){this.packetLength=c;this.encryptedData=b.substring(a,a+c);return this};this.write_packet=function(b,a,c){b=""+openpgp_crypto_symmetricEncrypt(openpgp_crypto_getPrefixRandom(b),b,a,c,!0);return b=openpgp_packet.write_packet_header(9,b.length)+b}}
-function openpgp_packet_encryptedintegrityprotecteddata(){this.tagType=18;this.hash=this.decrytpedData=this.encryptedData=this.packetLength=this.version=null;this.write_packet=function(b,a,c){var d=openpgp_crypto_getPrefixRandom(b),e=d+d.charAt(d.length-2)+d.charAt(d.length-1),c=c+String.fromCharCode(211),c=c+String.fromCharCode(20);util.print_debug_hexstr_dump("data to be hashed:",e+c);c+=str_sha1(e+c);util.print_debug_hexstr_dump("hash:",c.substring(c.length-20,c.length));b=openpgp_crypto_symmetricEncrypt(d,
-b,a,c,!1).substring(0,e.length+c.length);a=openpgp_packet.write_packet_header(18,b.length+1)+String.fromCharCode(1);this.encryptedData=b;return a+b};this.read_packet=function(b,a,c){this.packetLength=c;this.version=b[a].charCodeAt();if(1!=this.version)return util.print_error("openpgp.packet.encryptedintegrityprotecteddata.js\nunknown encrypted integrity protected data packet version: "+this.version+" , @ "+a+"hex:"+util.hexstrdump(b)),null;this.encryptedData=b.substring(a+1,a+1+c);util.print_debug("openpgp.packet.encryptedintegrityprotecteddata.js\n"+
-this.toString());return this};this.toString=function(){var b="";openpgp.config.debug&&(b="    data: Bytes ["+util.hexstrdump(this.encryptedData)+"]");return"5.13.  Sym. Encrypted Integrity Protected Data Packet (Tag 18)\n    length:  "+this.packetLength+"\n    version: "+this.version+"\n"+b};this.decrypt=function(b,a){this.decryptedData=openpgp_crypto_symmetricDecrypt(b,a,this.encryptedData,!1);this.hash=str_sha1(openpgp_crypto_MDCSystemBytes(b,a,this.encryptedData)+this.decryptedData.substring(0,
-this.decryptedData.length-20));util.print_debug_hexstr_dump("calc hash = ",this.hash);if(this.hash==this.decryptedData.substring(this.decryptedData.length-20,this.decryptedData.length))return this.decryptedData;util.print_error("Decryption stopped: discovered a modification of encrypted data.");return null}}
-function openpgp_packet_encryptedsessionkey(){this.read_pub_key_packet=function(b,a,c){this.tagType=1;this.packetLength=c;var d=a;if(10>c)return util.print_error("openpgp.packet.encryptedsessionkey.js\ninvalid length"),null;this.version=b[d++].charCodeAt();this.keyId=new openpgp_type_keyid;this.keyId.read_packet(b,d);d+=8;this.publicKeyAlgorithmUsed=b[d++].charCodeAt();switch(this.publicKeyAlgorithmUsed){case 1:case 2:this.MPIs=[];this.MPIs[0]=new openpgp_type_mpi;this.MPIs[0].read(b,d,d-a);break;
-case 16:this.MPIs=[];this.MPIs[0]=new openpgp_type_mpi;this.MPIs[0].read(b,d,d-a);d+=this.MPIs[0].packetLength;this.MPIs[1]=new openpgp_type_mpi;this.MPIs[1].read(b,d,d-a);break;default:util.print_error("openpgp.packet.encryptedsessionkey.js\nunknown public key packet algorithm type "+this.publicKeyAlgorithmType)}return this};this.read_symmetric_key_packet=function(b,a,c){this.tagType=3;var d=a;this.version=b[d++];this.symmetricKeyAlgorithmUsed=b[d++];this.s2k=new openpgp_type_s2k;this.s2k.read(b,
-d);if(s2k.s2kLength+d<c){this.encryptedSessionKey=[];for(a=d-a;a<c;a++)this.encryptedSessionKey[a]=b[d++]}return this};this.write_pub_key_packet=function(b,a,c,d,e){for(var f=String.fromCharCode(3),d=String.fromCharCode(d),d=d+e,e=util.calc_checksum(e),d=d+String.fromCharCode(e>>8&255),d=d+String.fromCharCode(e&255),f=f+b+String.fromCharCode(c),b=new openpgp_type_mpi,a=openpgp_crypto_asymetricEncrypt(c,a,b.create(openpgp_encoding_eme_pkcs1_encode(d,a[0].mpiByteLength))),c=0;c<a.length;c++)f+=a[c];
-return f=openpgp_packet.write_packet_header(1,f.length)+f};this.toString=function(){if(1==this.tagType){for(var b="5.1.  Public-Key Encrypted Session Key Packets (Tag 1)\n    KeyId:  "+this.keyId.toString()+"\n    length: "+this.packetLength+"\n    version:"+this.version+"\n    pubAlgUs:"+this.publicKeyAlgorithmUsed+"\n",a=0;a<this.MPIs.length;a++)b+=this.MPIs[a].toString();return b}return"5.3 Symmetric-Key Encrypted Session Key Packets (Tag 3)\n    KeyId:  "+this.keyId.toString()+"\n    length: "+
-this.packetLength+"\n    version:"+this.version+"\n    symKeyA:"+this.symmetricKeyAlgorithmUsed+"\n    s2k:    "+this.s2k+"\n"};this.decrypt=function(b,a){if(1==this.tagType){var c=openpgp_crypto_asymetricDecrypt(this.publicKeyAlgorithmUsed,a.publicKey.MPIs,a.secMPIs,this.MPIs).toMPI();c.charCodeAt(c.length-2);c.charCodeAt(c.length-1);var d=openpgp_encoding_eme_pkcs1_decode(c.substring(2,c.length-2),a.publicKey.MPIs[0].getByteLength()),c=d.substring(1),d=d.charCodeAt(0);return 18==b.encryptedData.tagType?
-b.encryptedData.decrypt(d,c):b.encryptedData.decrypt_sym(d,c)}if(3==this.tagType)return util.print_error("Symmetric encrypted sessionkey is not supported!"),null}}
-function _openpgp_packet(){function b(a){result="";192>a?result+=String.fromCharCode(a):191<a&&8384>a?(result+=String.fromCharCode((a-192>>8)+192),result+=String.fromCharCode(a-192&255)):(result+=String.fromCharCode(255),result+=String.fromCharCode(a>>24&255),result+=String.fromCharCode(a>>16&255),result+=String.fromCharCode(a>>8&255),result+=String.fromCharCode(a&255));return result}this.encode_length=b;this.write_old_packet_header=function(a,b){var d="";256>b?(d+=String.fromCharCode(128|a<<2),d+=
-String.fromCharCode(b)):(65536>b?(d+=String.fromCharCode(a<<2|129),d+=String.fromCharCode(b>>8)):(d+=String.fromCharCode(a<<2|130),d+=String.fromCharCode(b>>24&255),d+=String.fromCharCode(b>>16&255),d+=String.fromCharCode(b>>8&255)),d+=String.fromCharCode(b&255));return d};this.write_packet_header=function(a,c){var d;d=""+String.fromCharCode(192|a);return d+=b(c)};this.read_packet=function(a,b,d){if(null==a||a.length<=b||2>a.substring(b).length||0==(a[b].charCodeAt()&128))return util.print_error("Error during parsing. This message / key is probably not containing a valid OpenPGP format."),
-null;var e=b,f=-1,g=-1,g=0;0!=(a[e].charCodeAt()&64)&&(g=1);var h;g?f=a[e].charCodeAt()&63:(f=(a[e].charCodeAt()&63)>>2,h=a[e].charCodeAt()&3);e++;var j=null,k=-1;if(g)if(192>a[e].charCodeAt())packet_length=a[e++].charCodeAt(),util.print_debug("1 byte length:"+packet_length);else if(192<=a[e].charCodeAt()&&224>a[e].charCodeAt())packet_length=(a[e++].charCodeAt()-192<<8)+a[e++].charCodeAt()+192,util.print_debug("2 byte length:"+packet_length);else if(223<a[e].charCodeAt()&&255>a[e].charCodeAt()){packet_length=
-1<<(a[e++].charCodeAt()&31);util.print_debug("4 byte length:"+packet_length);k=e+packet_length;for(j=a.substring(e,e+packet_length);;)if(192>a[k].charCodeAt()){d=a[k++].charCodeAt();packet_length+=d;j+=a.substring(k,k+d);k+=d;break}else if(192<=a[k].charCodeAt()&&224>a[k].charCodeAt()){d=(a[k++].charCodeAt()-192<<8)+a[k++].charCodeAt()+192;packet_length+=d;j+=a.substring(k,k+d);k+=d;break}else if(223<a[k].charCodeAt()&&255>a[k].charCodeAt())d=1<<(a[k++].charCodeAt()&31),packet_length+=d,j+=a.substring(k,
-k+d),k+=d;else{k++;d=a[k++].charCodeAt()<<24|a[k++].charCodeAt()<<16|a[k++].charCodeAt()<<8|a[k++].charCodeAt();j+=a.substring(k,k+d);packet_length+=d;k+=d;break}}else e++,packet_length=a[e++].charCodeAt()<<24|a[e++].charCodeAt()<<16|a[e++].charCodeAt()<<8|a[e++].charCodeAt();else switch(h){case 0:packet_length=a[e++].charCodeAt();break;case 1:packet_length=a[e++].charCodeAt()<<8|a[e++].charCodeAt();break;case 2:packet_length=a[e++].charCodeAt()<<24|a[e++].charCodeAt()<<16|a[e++].charCodeAt()<<8|
-a[e++].charCodeAt();break;default:packet_length=d}-1==k&&(k=packet_length);null==j&&(j=a.substring(e,e+k));switch(f){case 0:break;case 1:f=new openpgp_packet_encryptedsessionkey;if(null!=f.read_pub_key_packet(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 2:f=new openpgp_packet_signature;if(null!=f.read_packet(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 3:f=new openpgp_packet_encryptedsessionkey;if(null!=f.read_symmetric_key_packet(j,0,packet_length))return f.headerLength=
-e-b,f.packetLength=k,f;break;case 4:f=new openpgp_packet_onepasssignature;if(f.read_packet(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 5:f=new openpgp_packet_keymaterial;f.header=a.substring(b,e);if(null!=f.read_tag5(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 6:f=new openpgp_packet_keymaterial;f.header=a.substring(b,e);if(null!=f.read_tag6(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 7:f=new openpgp_packet_keymaterial;
-if(null!=f.read_tag7(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 8:f=new openpgp_packet_compressed;if(null!=f.read_packet(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 9:f=new openpgp_packet_encrypteddata;if(null!=f.read_packet(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 10:f=new openpgp_packet_marker;if(null!=f.read_packet(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 11:f=new openpgp_packet_literaldata;
-if(null!=f.read_packet(j,0,packet_length))return f.headerLength=e-b,f.header=a.substring(b,e),f.packetLength=k,f;break;case 12:break;case 13:f=new openpgp_packet_userid;if(null!=f.read_packet(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 14:f=new openpgp_packet_keymaterial;f.header=a.substring(b,e);if(null!=f.read_tag14(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 17:f=new openpgp_packet_userattribute;if(null!=f.read_packet(j,0,packet_length))return f.headerLength=
-e-b,f.packetLength=k,f;break;case 18:f=new openpgp_packet_encryptedintegrityprotecteddata;if(null!=f.read_packet(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;case 19:f=new openpgp_packet_modificationdetectioncode;if(null!=f.read_packet(j,0,packet_length))return f.headerLength=e-b,f.packetLength=k,f;break;default:return util.print_error("openpgp.packet.js\n[ERROR] openpgp_packet: failed to parse packet @:"+e+"\nchar:'"+util.hexstrdump(a.substring(e))+"'\ninput:"+util.hexstrdump(a)),
-null}}}var openpgp_packet=new _openpgp_packet;
-function openpgp_packet_keymaterial(){this.subKeyRevocationSignature=this.subKeySignature=this.parentNode=this.checksum=this.hasUnencryptedSecretKeyData=this.encryptedMPIData=this.IVLength=this.s2kUsageConventions=this.symmetricEncryptionAlgorithm=this.publicKey=this.secMPIs=this.MPIs=this.expiration=this.version=this.creationTime=this.tagType=this.publicKeyAlgorithm=null;this.read_tag5=function(b,a,c){this.tagType=5;this.read_priv_key(b,a,c);return this};this.read_tag6=function(b,a,c){this.tagType=
-6;this.packetLength=c;this.read_pub_key(b,a,c);return this};this.read_tag7=function(b,a,c){this.tagType=7;this.packetLength=c;return this.read_priv_key(b,a,c)};this.read_tag14=function(b,a,c){this.subKeySignature=null;this.subKeyRevocationSignature=[];this.tagType=14;this.packetLength=c;this.read_pub_key(b,a,c);return this};this.toString=function(){var b="";switch(this.tagType){case 6:b+="5.5.1.1. Public-Key Packet (Tag 6)\n    length:             "+this.packetLength+"\n    version:            "+
-this.version+"\n    creation time:      "+this.creationTime+"\n    expiration time:    "+this.expiration+"\n    publicKeyAlgorithm: "+this.publicKeyAlgorithm+"\n";break;case 14:b+="5.5.1.2. Public-Subkey Packet (Tag 14)\n    length:             "+this.packetLength+"\n    version:            "+this.version+"\n    creation time:      "+this.creationTime+"\n    expiration time:    "+this.expiration+"\n    publicKeyAlgorithm: "+this.publicKeyAlgorithm+"\n";break;case 5:b+="5.5.1.3. Secret-Key Packet (Tag 5)\n    length:             "+
-this.packetLength+"\n    version:            "+this.publicKey.version+"\n    creation time:      "+this.publicKey.creationTime+"\n    expiration time:    "+this.publicKey.expiration+"\n    publicKeyAlgorithm: "+this.publicKey.publicKeyAlgorithm+"\n";break;case 7:b+="5.5.1.4. Secret-Subkey Packet (Tag 7)\n    length:             "+this.packetLength+"\n    version[1]:         "+(4==this.version)+"\n    creationtime[4]:    "+this.creationTime+"\n    expiration[2]:      "+this.expiration+"\n    publicKeyAlgorithm: "+
-this.publicKeyAlgorithm+"\n";break;default:b+="unknown key material packet\n"}if(null!=this.MPIs)for(var b=b+"Public Key MPIs:\n",a=0;a<this.MPIs.length;a++)b+=this.MPIs[a].toString();if(null!=this.publicKey&&null!=this.publicKey.MPIs){b+="Public Key MPIs:\n";for(a=0;a<this.publicKey.MPIs.length;a++)b+=this.publicKey.MPIs[a].toString()}if(null!=this.secMPIs){b+="Secret Key MPIs:\n";for(a=0;a<this.secMPIs.length;a++)b+=this.secMPIs[a].toString()}null!=this.subKeySignature&&(b+="subKey Signature:\n"+
-this.subKeySignature.toString());null!=this.subKeyRevocationSignature&&(b+="subKey Revocation Signature:\n"+this.subKeyRevocationSignature.toString());return b};this.read_pub_key=function(b,a){var c=a;this.version=b[c++].charCodeAt();if(3==this.version){this.creationTime=new Date(1E3*(b[c++].charCodeAt()<<24|b[c++].charCodeAt()<<16|b[c++].charCodeAt()<<8|b[c++].charCodeAt()));this.expiration=b[c++].charCodeAt()<<8&b[c++].charCodeAt();this.publicKeyAlgorithm=b[c++].charCodeAt();var d=0;0<this.publicKeyAlgorithm&&
-4>this.publicKeyAlgorithm?d=2:16==this.publicKeyAlgorithm?d=3:17==this.publicKeyAlgorithm&&(d=4);this.MPIs=[];for(var e=0;e<d;e++)this.MPIs[e]=new openpgp_type_mpi,null!=this.MPIs[e].read(b,c,c-a)&&!this.packetLength<c-a?c+=this.MPIs[e].packetLength:util.print_error("openpgp.packet.keymaterial.js\nerror reading MPI @:"+c);this.packetLength=c-a}else if(4==this.version){this.creationTime=new Date(1E3*(b[c++].charCodeAt()<<24|b[c++].charCodeAt()<<16|b[c++].charCodeAt()<<8|b[c++].charCodeAt()));this.publicKeyAlgorithm=
-b[c++].charCodeAt();d=0;0<this.publicKeyAlgorithm&&4>this.publicKeyAlgorithm?d=2:16==this.publicKeyAlgorithm?d=3:17==this.publicKeyAlgorithm&&(d=4);this.MPIs=[];for(e=0;e<d;e++)this.MPIs[e]=new openpgp_type_mpi,null!=this.MPIs[e].read(b,c,c-a)&&!this.packetLength<c-a?c+=this.MPIs[e].packetLength:util.print_error("openpgp.packet.keymaterial.js\nerror reading MPI @:"+c);this.packetLength=c-a}else return null;this.data=b.substring(a,c);this.packetdata=b.substring(a,c);return this};this.read_priv_key=
-function(b,a,c){this.publicKey=new openpgp_packet_keymaterial;if(null==this.publicKey.read_pub_key(b,a,c))return util.print_error("openpgp.packet.keymaterial.js\nFailed reading public key portion of a private key: "+b[a].charCodeAt()+" "+a+" "+c+"\n Aborting here..."),null;this.publicKey.header=openpgp_packet.write_old_packet_header(6,this.publicKey.packetLength);var d=a+this.publicKey.data.length;this.packetLength=c;this.s2kUsageConventions=b[d++].charCodeAt();if(0==this.s2kUsageConventions)this.hasUnencryptedSecretKeyData=
-!0;if(255==this.s2kUsageConventions||254==this.s2kUsageConventions)this.symmetricEncryptionAlgorithm=b[d++].charCodeAt();if(255==this.s2kUsageConventions||254==this.s2kUsageConventions)this.s2k=new openpgp_type_s2k,this.s2k.read(b,d),d+=this.s2k.s2kLength;this.symkeylength=0;if(0!=this.s2kUsageConventions&&255!=this.s2kUsageConventions&&254!=this.s2kUsageConventions)this.symmetricEncryptionAlgorithm=this.s2kUsageConventions;if(0!=this.s2kUsageConventions&&1001!=this.s2k.type){this.hasIV=!0;switch(this.symmetricEncryptionAlgorithm){case 1:return util.print_error("openpgp.packet.keymaterial.js\nsymmetric encrytryption algorithim: IDEA is not implemented"),
-null;case 2:case 3:this.IVLength=8;break;case 4:case 7:case 8:case 9:this.IVLength=16;break;case 10:this.IVLength=32;break;default:return util.print_error("openpgp.packet.keymaterial.js\nunknown encryption algorithm for secret key :"+this.symmetricEncryptionAlgorithm),null}d++;this.IV=b.substring(d,d+this.IVLength);d+=this.IVLength}if(0!=this.s2kUsageConventions&&1001==this.s2k.type)this.encryptedMPIData=this.secMPIs=null;else if(this.hasUnencryptedSecretKeyData){if(0<this.publicKey.publicKeyAlgorithm&&
-4>this.publicKey.publicKeyAlgorithm)this.secMPIs=[],this.secMPIs[0]=new openpgp_type_mpi,this.secMPIs[0].read(b,d,c-2-(d-a)),d+=this.secMPIs[0].packetLength,this.secMPIs[1]=new openpgp_type_mpi,this.secMPIs[1].read(b,d,c-2-(d-a)),d+=this.secMPIs[1].packetLength,this.secMPIs[2]=new openpgp_type_mpi,this.secMPIs[2].read(b,d,c-2-(d-a)),d+=this.secMPIs[2].packetLength,this.secMPIs[3]=new openpgp_type_mpi,this.secMPIs[3].read(b,d,c-2-(d-a)),d+=this.secMPIs[3].packetLength;else if(16==this.publicKey.publicKeyAlgorithm)this.secMPIs=
-[],this.secMPIs[0]=new openpgp_type_mpi,this.secMPIs[0].read(b,d,c-2-(d-a)),d+=this.secMPIs[0].packetLength;else if(17==this.publicKey.publicKeyAlgorithm)this.secMPIs=[],this.secMPIs[0]=new openpgp_type_mpi,this.secMPIs[0].read(b,d,c-2-(d-a)),d+=this.secMPIs[0].packetLength;this.checksum=[];this.checksum[0]=b[d++].charCodeAt();this.checksum[1]=b[d++].charCodeAt()}else this.encryptedMPIData=b.substring(d,c);return this};this.decryptSecretMPIs=function(b){if(this.hasUnencryptedSecretKeyData)return this.secMPIs;
-var a=this.s2k.produce_key(b),c="";switch(this.symmetricEncryptionAlgorithm){case 1:return util.print_error("openpgp.packet.keymaterial.js\nsymmetric encryption algorithim: IDEA is not implemented"),!1;case 2:c=normal_cfb_decrypt(function(a,b){return des(b,a,1,null,0)},this.IVLength,a,this.encryptedMPIData,this.IV);break;case 3:c=normal_cfb_decrypt(function(a,b){var c=new openpgp_symenc_cast5;c.setKey(b);return c.encrypt(util.str2bin(a))},this.IVLength,util.str2bin(a.substring(0,16)),this.encryptedMPIData,
-this.IV);break;case 4:c=normal_cfb_decrypt(function(a,b){return(new Blowfish(b)).encrypt(a)},this.IVLength,a,this.encryptedMPIData,this.IV);break;case 7:case 8:case 9:c=16;8==this.symmetricEncryptionAlgorithm&&(c=24,a=this.s2k.produce_key(b,c));9==this.symmetricEncryptionAlgorithm&&(c=32,a=this.s2k.produce_key(b,c));c=normal_cfb_decrypt(function(a,b){return AESencrypt(util.str2bin(a),b)},this.IVLength,keyExpansion(a.substring(0,c)),this.encryptedMPIData,this.IV);break;case 10:return util.print_error("openpgp.packet.keymaterial.js\nKey material is encrypted with twofish: not implemented"),
-!1;default:return util.print_error("openpgp.packet.keymaterial.js\nunknown encryption algorithm for secret key :"+this.symmetricEncryptionAlgorithm),!1}if(null==c)return util.print_error("openpgp.packet.keymaterial.js\ncleartextMPIs was null"),!1;b=c.length;if(254==this.s2kUsageConventions&&str_sha1(c.substring(0,c.length-20))==c.substring(c.length-20))b-=20;else if(254!=this.s2kUsageConventions&&util.calc_checksum(c.substring(0,c.length-2))==(c.charCodeAt(c.length-2)<<8|c.charCodeAt(c.length-1)))b-=
-2;else return!1;if(0<this.publicKey.publicKeyAlgorithm&&4>this.publicKey.publicKeyAlgorithm)a=0,this.secMPIs=[],this.secMPIs[0]=new openpgp_type_mpi,this.secMPIs[0].read(c,0,b),a+=this.secMPIs[0].packetLength,this.secMPIs[1]=new openpgp_type_mpi,this.secMPIs[1].read(c,a,b-a),a+=this.secMPIs[1].packetLength,this.secMPIs[2]=new openpgp_type_mpi,this.secMPIs[2].read(c,a,b-a),a+=this.secMPIs[2].packetLength,this.secMPIs[3]=new openpgp_type_mpi,this.secMPIs[3].read(c,a,b-a),a+=this.secMPIs[3].packetLength;
-else if(16==this.publicKey.publicKeyAlgorithm)this.secMPIs=[],this.secMPIs[0]=new openpgp_type_mpi,this.secMPIs[0].read(c,0,c);else if(17==this.publicKey.publicKeyAlgorithm)this.secMPIs=[],this.secMPIs[0]=new openpgp_type_mpi,this.secMPIs[0].read(c,0,b);return!0};this.read_nodes=function(b,a,c,d){this.parentNode=b;if(14==this.tagType){for(var b=c,e=null;a.length!=b;)if(d=a.length-b,e=openpgp_packet.read_packet(a,b,d),null==e){util.print_error("openpgp.packet.keymaterial.js\n[user_keymat_pub]parsing ends here @:"+
-b+" l:"+d);break}else switch(e.tagType){case 2:if(24==e.signatureType){this.subKeySignature=e;b+=e.packetLength+e.headerLength;break}else if(40==e.signatureType){this.subKeyRevocationSignature[this.subKeyRevocationSignature.length]=e;b+=e.packetLength+e.headerLength;break}else util.print_error("openpgp.packet.keymaterial.js\nunknown signature:"+e.toString());default:return this.data=a,this.position=c-this.parentNode.packetLength,this.len=b-c}this.data=a;this.position=c-this.parentNode.packetLength;
-return this.len=b-c}if(7==this.tagType){for(b=c;a.length!=b;)if(e=openpgp_packet.read_packet(a,b,d-(b-c)),null==e){util.print_error("openpgp.packet.keymaterial.js\n[user_keymat_priv] parsing ends here @:"+b);break}else switch(e.tagType){case 2:24==e.signatureType?this.subKeySignature=e:40==e.signatureType&&(this.subKeyRevocationSignature[this.subKeyRevocationSignature.length]=e);b+=e.packetLength+e.headerLength;break;default:return this.data=a,this.position=c-this.parentNode.packetLength,this.len=
-b-c}this.data=a;this.position=c-this.parentNode.packetLength;return this.len=b-c}util.print_error("openpgp.packet.keymaterial.js\nunknown parent node for a key material packet "+b.tagType)};this.verifyKey=function(){if(14==this.tagType){if(null==this.subKeySignature)return 0;if(4==this.subKeySignature.version&&null!=this.subKeySignature.keyNeverExpires&&!this.subKeySignature.keyNeverExpires&&new Date(1E3*this.subKeySignature.keyExpirationTime+this.creationTime.getTime())<new Date)return 1;if(!this.subKeySignature.verify(String.fromCharCode(153)+
-this.parentNode.header.substring(1)+this.parentNode.data+String.fromCharCode(153)+this.header.substring(1)+this.packetdata,this.parentNode))return 0;for(var b=0;b<this.subKeyRevocationSignature.length;b++)if(this.getKeyId()==this.subKeyRevocationSignature[b].keyId)return 2}return 3};this.getKeyId=function(){if(4==this.version)return this.getFingerprint().substring(12,20);if(3==this.version&&0<this.publicKeyAlgorithm&&4>this.publicKeyAlgorithm){var b=this.MPIs[0].MPI.substring(this.MPIs[0].mpiByteLength-
-8);util.print_debug("openpgp.msg.publickey read_nodes:\nV3 key ID: "+b);return b}};this.getFingerprint=function(){if(4==this.version)return tohash=String.fromCharCode(153)+String.fromCharCode(this.packetdata.length>>8&255)+String.fromCharCode(this.packetdata.length&255)+this.packetdata,util.print_debug("openpgp.msg.publickey creating subkey fingerprint by hashing:"+util.hexstrdump(tohash)+"\npublickeyalgorithm: "+this.publicKeyAlgorithm),str_sha1(tohash,tohash.length);if(3==this.version&&0<this.publicKeyAlgorithm&&
-4>this.publicKeyAlgorithm)return MD5(this.MPIs[0].MPI)};this.write_private_key=function(b,a,c,d,e,f){this.symmetricEncryptionAlgorithm=e;e=String.fromCharCode(4);e+=f;switch(b){case 1:e+=String.fromCharCode(b);e+=a.n.toMPI();e+=a.ee.toMPI();if(c)switch(e+=String.fromCharCode(254),e+=String.fromCharCode(this.symmetricEncryptionAlgorithm),e+=String.fromCharCode(3),e+=String.fromCharCode(d),b=a.d.toMPI()+a.p.toMPI()+a.q.toMPI()+a.u.toMPI(),a=str_sha1(b),util.print_debug_hexstr_dump("write_private_key sha1: ",
-a),f=openpgp_crypto_getRandomBytes(8),util.print_debug_hexstr_dump("write_private_key Salt: ",f),e=e+f+String.fromCharCode(96),util.print_debug("write_private_key c: 96"),c=(new openpgp_type_s2k).write(3,d,c,f,96),this.symmetricEncryptionAlgorithm){case 3:this.IVLength=8;this.IV=openpgp_crypto_getRandomBytes(this.IVLength);ciphertextMPIs=normal_cfb_encrypt(function(a,b){var c=new openpgp_symenc_cast5;c.setKey(b);return c.encrypt(util.str2bin(a))},this.IVLength,util.str2bin(c.substring(0,16)),b+a,
-this.IV);e+=this.IV+ciphertextMPIs;break;case 7:case 8:case 9:this.IVLength=16,this.IV=openpgp_crypto_getRandomBytes(this.IVLength),ciphertextMPIs=normal_cfb_encrypt(AESencrypt,this.IVLength,c,b+a,this.IV),e+=this.IV+ciphertextMPIs}else e+=String.fromCharCode(0),e+=a.d.toMPI()+a.p.toMPI()+a.q.toMPI()+a.u.toMPI(),c=util.calc_checksum(a.d.toMPI()+a.p.toMPI()+a.q.toMPI()+a.u.toMPI()),e+=String.fromCharCode(c/256)+String.fromCharCode(c%256),util.print_debug_hexstr_dump("write_private_key basic checksum: "+
-c);break;default:e="",util.print_error("openpgp.packet.keymaterial.js\nerror writing private key, unknown type :"+b)}c=openpgp_packet.write_packet_header(5,e.length);return{string:c+e,header:c,body:e}};this.write_public_key=function(b,a,c){var d=String.fromCharCode(4),d=d+c;switch(b){case 1:d+=String.fromCharCode(1);d+=a.n.toMPI();d+=a.ee.toMPI();break;default:util.print_error("openpgp.packet.keymaterial.js\nerror writing private key, unknown type :"+b)}b=openpgp_packet.write_packet_header(6,d.length);
-return{string:b+d,header:b,body:d}}}
-function openpgp_packet_literaldata(){this.tagType=11;this.set_data=function(b,a){this.format=a;this.data=b};this.set_data_bytes=function(b,a){this.format=a;a==openpgp_packet_literaldata.formats.utf8&&(b=util.decode_utf8(b));this.data=b};this.get_data_bytes=function(){return this.format==openpgp_packet_literaldata.formats.utf8?util.encode_utf8(this.data):this.data};this.read_packet=function(b,a,c){this.packetLength=c;c=b[a];this.filename=util.decode_utf8(b.substr(a+2,b.charCodeAt(a+1)));this.date=
-new Date(1E3*parseInt(b.substr(a+2+b.charCodeAt(a+1),4)));this.set_data_bytes(b.substring(a+6+b.charCodeAt(a+1)),c);return this};this.write_packet=function(b){this.set_data(b,openpgp_packet_literaldata.formats.utf8);this.filename=util.encode_utf8("msg.txt");this.date=new Date;var b=this.get_data_bytes(),a=openpgp_packet.write_packet_header(11,b.length+6+this.filename.length),a=a+this.format,a=a+String.fromCharCode(this.filename.length),a=a+this.filename,a=a+String.fromCharCode(Math.round(this.date.getTime()/
-1E3)>>24&255),a=a+String.fromCharCode(Math.round(this.date.getTime()/1E3)>>16&255),a=a+String.fromCharCode(Math.round(this.date.getTime()/1E3)>>8&255),a=a+String.fromCharCode(Math.round(this.date.getTime()/1E3)&255);return a+b};this.toString=function(){return"5.9.  Literal Data Packet (Tag 11)\n    length: "+this.packetLength+"\n    format: "+this.format+"\n    filename:"+this.filename+"\n    date:   "+this.date+"\n    data:  |"+this.data+"|\n    rdata: |"+this.real_data+"|\n"}}
-openpgp_packet_literaldata.formats={binary:"b",text:"t",utf8:"u"};function openpgp_packet_marker(){this.tagType=10;this.read_packet=function(b,a){this.packetLength=3;return 80==b[a].charCodeAt()&&71==b[a+1].charCodeAt()&&80==b[a+2].charCodeAt()?this:null};this.toString=function(){return'5.8.  Marker Packet (Obsolete Literal Packet) (Tag 10)\n     packet reads: "PGP"\n'}}
-function openpgp_packet_modificationdetectioncode(){this.tagType=19;this.hash=null;this.read_packet=function(b,a,c){this.packetLength=c;if(20!=c)return util.print_error("openpgp.packet.modificationdetectioncode.js\ninvalid length for a modification detection code packet!"+c),null;this.hash=b.substring(a,a+20);return this};this.toString=function(){return"5.14 Modification detection code packet\n    bytes ("+this.hash.length+"): ["+util.hexstrdump(this.hash)+"]"}}
-function openpgp_packet_onepasssignature(){this.tagType=4;this.flags=this.signingKeyId=this.publicKeyAlgorithm=this.hashAlgorithm=this.type=this.version=null;this.read_packet=function(b,a,c){this.packetLength=c;this.version=b.charCodeAt(a++);this.type=b.charCodeAt(a++);this.hashAlgorithm=b.charCodeAt(a++);this.publicKeyAlgorithm=b.charCodeAt(a++);this.signingKeyId=new openpgp_type_keyid;this.signingKeyId.read_packet(b,a);a+=8;this.flags=b.charCodeAt(a++);return this};this.toString=function(){return"5.4.  One-Pass Signature Packets (Tag 4)\n    length: "+
-this.packetLength+"\n    type:   "+this.type+"\n    keyID:  "+this.signingKeyId.toString()+"\n    hashA:  "+this.hashAlgorithm+"\n    pubKeyA:"+this.publicKeyAlgorithm+"\n    flags:  "+this.flags+"\n    version:"+this.version+"\n"};this.write_packet=function(b,a,c,d,e){d=""+openpgp_packet.write_packet_header(4,13);d+=String.fromCharCode(3);d+=String.fromCharCode(b);d+=String.fromCharCode(a);d+=String.fromCharCode(c.privateKeyPacket.publicKey.publicKeyAlgorithm);d+=c.getKeyId();return d=e?d+String.fromCharCode(0):
-d+String.fromCharCode(1)}}
-function openpgp_packet_signature(){function b(a,b){var d;d=""+openpgp_packet.encode_length(b.length+1);d+=String.fromCharCode(a);return d+b}this.tagType=2;this.embeddedSignature=this.signatureTargetHash=this.signatureTargetHashAlgorithm=this.signatureTargetPublicKeyAlgorithm=this.reasonForRevocationString=this.reasonForRevocationFlag=this.signersUserId=this.keyFlags=this.policyURI=this.isPrimaryUserID=this.preferredKeyServer=this.keyServerPreferences=this.preferredCompressionAlgorithms=this.preferredHashAlgorithms=
-this.notationValue=this.notationName=this.notationFlags=this.issuerKeyId=this.revocationKeyFingerprint=this.revocationKeyAlgorithm=this.revocationKeyClass=this.preferredSymmetricAlgorithms=this.keyNeverExpires=this.keyExpirationTime=this.revocable=this.regular_expression=this.trustAmount=this.trustLevel=this.exportable=this.hashAlgorithm=this.publicKeyAlgorithm=this.MPIs=this.signedHashValue=this.signatureNeverExpires=this.signatureExpirationTime=this.signatureData=this.keyId=this.creationTime=this.signatureType=
-null;this.verified=!1;this._raw_read_signature_sub_packet=function(a,b,d){0>d&&util.print_debug("openpgp.packet.signature.js\n_raw_read_signature_sub_packet length < 0 @:"+b);var e=b,f=0;192>a[e].charCodeAt()?f=a[e++].charCodeAt():192<=a[e].charCodeAt()&&224>a[e].charCodeAt()?f=(a[e++].charCodeAt()-192<<8)+a[e++].charCodeAt()+192:223<a[e].charCodeAt()&&255>a[e].charCodeAt()?f=1<<(a[e++].charCodeAt()&31):255>a[e].charCodeAt()&&(e++,f=a[e++].charCodeAt()<<24|a[e++].charCodeAt()<<16|a[e++].charCodeAt()<<
-8|a[e++].charCodeAt());var g=a[e++].charCodeAt()&127;switch(g){case 2:this.creationTime=new Date(1E3*(a[e++].charCodeAt()<<24|a[e++].charCodeAt()<<16|a[e++].charCodeAt()<<8|a[e++].charCodeAt()));break;case 3:this.signatureExpirationTime=a[e++].charCodeAt()<<24|a[e++].charCodeAt()<<16|a[e++].charCodeAt()<<8|a[e++].charCodeAt();this.signatureNeverExpires=0==this.signature_expiration_time;break;case 4:this.exportable=1==a[e++].charCodeAt();break;case 5:this.trustLevel=a[e++].charCodeAt();this.trustAmount=
-a[e++].charCodeAt();break;case 6:this.regular_expression=new String;for(g=0;g<f-1;g++)this.regular_expression+=a[e++];break;case 7:this.revocable=1==a[e++].charCodeAt();break;case 9:this.keyExpirationTime=a[e++].charCodeAt()<<24|a[e++].charCodeAt()<<16|a[e++].charCodeAt()<<8|a[e++].charCodeAt();this.keyNeverExpires=0==this.keyExpirationTime;break;case 11:this.preferredSymmetricAlgorithms=[];for(g=0;g<f-1;g++)this.preferredSymmetricAlgorithms=a[e++].charCodeAt();break;case 12:this.revocationKeyClass=
-a[e++].charCodeAt();this.revocationKeyAlgorithm=a[e++].charCodeAt();this.revocationKeyFingerprint=[];for(g=0;20>g;g++)this.revocationKeyFingerprint=a[e++].charCodeAt();break;case 16:this.issuerKeyId=a.substring(e,e+8);e+=8;break;case 20:this.notationFlags=a[e++].charCodeAt()<<24|a[e++].charCodeAt()<<16|a[e++].charCodeAt()<<8|a[e++].charCodeAt();d=a[e++].charCodeAt()<<8|a[e++].charCodeAt();f=a[e++].charCodeAt()<<8|a[e++].charCodeAt();this.notationName="";for(g=0;g<d;g++)this.notationName+=a[e++];this.notationValue=
-"";for(g=0;g<f;g++)this.notationValue+=a[e++];break;case 21:this.preferredHashAlgorithms=[];for(g=0;g<f-1;g++)this.preferredHashAlgorithms=a[e++].charCodeAt();break;case 22:this.preferredCompressionAlgorithms=[];for(g=0;g<f-1;g++)this.preferredCompressionAlgorithms=a[e++].charCodeAt();break;case 23:this.keyServerPreferences=[];for(g=0;g<f-1;g++)this.keyServerPreferences=a[e++].charCodeAt();break;case 24:this.preferredKeyServer=new String;for(g=0;g<f-1;g++)this.preferredKeyServer+=a[e++];break;case 25:this.isPrimaryUserID=
-0!=a[e++];break;case 26:this.policyURI=new String;for(g=0;g<f-1;g++)this.policyURI+=a[e++];break;case 27:this.keyFlags=[];for(g=0;g<f-1;g++)this.keyFlags=a[e++].charCodeAt();break;case 28:this.signersUserId=new String;for(g=0;g<f-1;g++)this.signersUserId+=a[e++];break;case 29:this.reasonForRevocationFlag=a[e++].charCodeAt();this.reasonForRevocationString=new String;for(g=0;g<f-2;g++)this.reasonForRevocationString+=a[e++];break;case 30:return f+1;case 31:this.signatureTargetPublicKeyAlgorithm=a[e++].charCodeAt();
-this.signatureTargetHashAlgorithm=a[e++].charCodeAt();f=0;switch(this.signatureTargetHashAlgorithm){case 1:case 2:f=20;break;case 3:case 8:case 9:case 10:case 11:break;default:return util.print_error("openpgp.packet.signature.js\nunknown signature target hash algorithm:"+this.signatureTargetHashAlgorithm),null}this.signatureTargetHash=[];for(g=0;g<f;g++)this.signatureTargetHash[g]=a[e++];case 32:return this.embeddedSignature=new openpgp_packet_signature,this.embeddedSignature.read_packet(a,e,d-(e-
-b)),e+this.embeddedSignature.packetLength-b;case 100:case 101:case 102:case 103:case 104:case 105:case 106:case 107:case 108:case 109:case 110:return util.print_error("openpgp.packet.signature.js\nprivate or experimental signature subpacket type "+g+" @:"+e+" subplen:"+f+" len:"+d),f+1;default:return util.print_error("openpgp.packet.signature.js\nunknown signature subpacket type "+g+" @:"+e+" subplen:"+f+" len:"+d),f+1}return e-b};this.getIssuerKey=function(){var a=null;if(4==this.version)a=openpgp.keyring.getPublicKeysForKeyId(this.issuerKeyId);
-else if(3==this.version)a=openpgp.keyring.getPublicKeysForKeyId(this.keyId);else return null;return 0==a.length?null:a[0]};this.getIssuer=function(){return 4==this.version?this.issuerKeyId:4==this.verions?this.keyId:null};this.write_message_signature=function(a,c,d){var e=d.privateKeyPacket.publicKey,f=d.getPreferredSignatureHashAlgorithm(),g=String.fromCharCode(4),g=g+String.fromCharCode(a),g=g+String.fromCharCode(e.publicKeyAlgorithm),g=g+String.fromCharCode(f),a=Math.round((new Date).getTime()/
-1E3),a=b(2,""+String.fromCharCode(a>>24&255)+String.fromCharCode(a>>16&255)+String.fromCharCode(a>>8&255)+String.fromCharCode(a&255)),h=b(16,d.getKeyId()),g=g+String.fromCharCode(a.length+h.length>>8&255),g=g+String.fromCharCode(a.length+h.length&255),g=g+a+h,a=""+String.fromCharCode(4),a=a+String.fromCharCode(255),a=a+String.fromCharCode(g.length>>24),a=a+String.fromCharCode(g.length>>16&255),a=a+String.fromCharCode(g.length>>8&255),a=a+String.fromCharCode(g.length&255),h=String.fromCharCode(0),
-h=h+String.fromCharCode(0),j=openpgp_crypto_hashData(f,c+g+a);util.print_debug("DSA Signature is calculated with:|"+c+g+a+"|\n"+util.hexstrdump(c+g+a)+"\n hash:"+util.hexstrdump(j));h+=j.charAt(0);h+=j.charAt(1);h+=openpgp_crypto_signData(f,d.privateKeyPacket.publicKey.publicKeyAlgorithm,e.MPIs,d.privateKeyPacket.secMPIs,c+g+a);return{openpgp:openpgp_packet.write_packet_header(2,(g+h).length)+g+h,hash:util.get_hashAlgorithmString(f)}};this.verify=function(a,b){var d;d=""+String.fromCharCode(this.version);
-d+=String.fromCharCode(255);d+=String.fromCharCode(this.signatureData.length>>24);d+=String.fromCharCode(this.signatureData.length>>16&255);d+=String.fromCharCode(this.signatureData.length>>8&255);d+=String.fromCharCode(this.signatureData.length&255);switch(this.signatureType){case 0:if(4==this.version)this.verified=openpgp_crypto_verifySignature(this.publicKeyAlgorithm,this.hashAlgorithm,this.MPIs,b.obj.publicKeyPacket.MPIs,a+this.signatureData+d);break;case 1:if(4==this.version){this.verified=openpgp_crypto_verifySignature(this.publicKeyAlgorithm,
-this.hashAlgorithm,this.MPIs,b.obj.publicKeyPacket.MPIs,a+this.signatureData+d);break}break;case 2:if(3==this.version){this.verified=!1;break}this.verified=openpgp_crypto_verifySignature(this.publicKeyAlgorithm,this.hashAlgorithm,this.MPIs,b.obj.publicKeyPacket.MPIs,this.signatureData+d);break;case 16:case 17:case 18:case 19:case 48:this.verified=openpgp_crypto_verifySignature(this.publicKeyAlgorithm,this.hashAlgorithm,this.MPIs,b.MPIs,a+this.signatureData+d);break;case 24:if(3==this.version){this.verified=
-!1;break}this.verified=openpgp_crypto_verifySignature(this.publicKeyAlgorithm,this.hashAlgorithm,this.MPIs,b.MPIs,a+this.signatureData+d);break;case 25:case 31:case 32:case 40:this.verified=openpgp_crypto_verifySignature(this.publicKeyAlgorithm,this.hashAlgorithm,this.MPIs,b.MPIs,a+this.signatureData+d);break;default:util.print_error("openpgp.packet.signature.js\nsignature verification for type"+this.signatureType+" not implemented")}return this.verified};this.read_packet=function(a,b,d){this.data=
-a.substring(b,b+d);if(0>d)return util.print_debug("openpgp.packet.signature.js\nopenpgp_packet_signature read_packet length < 0 @:"+b),null;var e=b;this.packetLength=d;this.version=a[e++].charCodeAt();switch(this.version){case 3:5!=a[e++].charCodeAt()&&util.print_debug("openpgp.packet.signature.js\ninvalid One-octet length of following hashed material.  MUST be 5. @:"+(e-1));this.signatureType=a[e++].charCodeAt();this.creationTime=new Date(1E3*(a[e++].charCodeAt()<<24|a[e++].charCodeAt()<<16|a[e++].charCodeAt()<<
-8|a[e++].charCodeAt()));this.signatureData=a.substring(b,e);this.keyId=a.substring(e,e+8);e+=8;this.publicKeyAlgorithm=a[e++].charCodeAt();this.hashAlgorithm=a[e++].charCodeAt();this.signedHashValue=a[e++].charCodeAt()<<8|a[e++].charCodeAt();d=0;0<this.publicKeyAlgorithm&&4>this.publicKeyAlgorithm?d=1:17==this.publicKeyAlgorithm&&(d=2);this.MPIs=[];for(var f=0;f<d;f++)this.MPIs[f]=new openpgp_type_mpi,null!=this.MPIs[f].read(a,e,e-b)&&!this.packetLength<e-b?e+=this.MPIs[f].packetLength:util.print_error("signature contains invalid MPI @:"+
-e);break;case 4:this.signatureType=a[e++].charCodeAt();this.publicKeyAlgorithm=a[e++].charCodeAt();this.hashAlgorithm=a[e++].charCodeAt();f=(a[e++].charCodeAt()<<8)+a[e++].charCodeAt();for(d=0;f!=d;)f<d&&util.print_debug("openpgp.packet.signature.js\nhashed missed something: "+e+" c:"+f+" l:"+d),d+=this._raw_read_signature_sub_packet(a,e+d,f-d);e+=f;this.signatureData=a.substring(b,e);f=(a[e++].charCodeAt()<<8)+a[e++].charCodeAt();for(d=0;f!=d;)f<d&&util.print_debug("openpgp.packet.signature.js\nmissed something: "+
-d+" c:"+f+"  l:"+d),d+=this._raw_read_signature_sub_packet(a,e+d,f-d);e+=f;this.signedHashValue=a[e++].charCodeAt()<<8|a[e++].charCodeAt();d=0;0<this.publicKeyAlgorithm&&4>this.publicKeyAlgorithm?d=1:17==this.publicKeyAlgorithm&&(d=2);this.MPIs=[];for(f=0;f<d;f++)this.MPIs[f]=new openpgp_type_mpi,null!=this.MPIs[f].read(a,e,e-b)&&!this.packetLength<e-b?e+=this.MPIs[f].packetLength:util.print_error("signature contains invalid MPI @:"+e);break;default:util.print_error("openpgp.packet.signature.js\nunknown signature packet version"+
-this.version)}return this};this.toString=function(){for(var a=3==this.version?"5.2. Signature Packet (Tag 2)\nPacket Length:                     :"+this.packetLength+"\nPacket version:                    :"+this.version+"\nOne-octet signature type           :"+this.signatureType+"\nFour-octet creation time.          :"+this.creationTime+"\nEight-octet Key ID of signer.       :"+util.hexidump(this.keyId)+"\nOne-octet public-key algorithm.    :"+this.publicKeyAlgorithm+"\nOne-octet hash algorithm.          :"+
-this.hashAlgorithm+"\nTwo-octet field holding left\n 16 bits of signed hash value.     :"+this.signedHashValue+"\n":"5.2. Signature Packet (Tag 2)\nPacket Length:                     :"+this.packetLength+"\nPacket version:                    :"+this.version+"\nOne-octet signature type           :"+this.signatureType+"\nOne-octet public-key algorithm.    :"+this.publicKeyAlgorithm+"\nOne-octet hash algorithm.          :"+this.hashAlgorithm+"\nTwo-octet field holding left\n 16 bits of signed hash value.     :"+
-this.signedHashValue+"\nSignature Creation Time            :"+this.creationTime+"\nSignature Expiration Time          :"+this.signatureExpirationTime+"\nSignature Never Expires            :"+this.signatureNeverExpires+"\nExportable Certification           :"+this.exportable+"\nTrust Signature level:             :"+this.trustLevel+" amount"+this.trustAmount+"\nRegular Expression                 :"+this.regular_expression+"\nRevocable                          :"+this.revocable+"\nKey Expiration Time                :"+
-this.keyExpirationTime+" "+this.keyNeverExpires+"\nPreferred Symmetric Algorithms     :"+this.preferredSymmetricAlgorithms+"\nRevocation Key\n   ( 1 octet of class,             :"+this.revocationKeyClass+"\n     1 octet of public-key ID,     :"+this.revocationKeyAlgorithm+"\n    20 octets of fingerprint)      :"+this.revocationKeyFingerprint+"\nIssuer                             :"+util.hexstrdump(this.issuerKeyId)+"\nPreferred Hash Algorithms          :"+this.preferredHashAlgorithms+"\nPreferred Compression Alg.         :"+
-this.preferredCompressionAlgorithms+"\nKey Server Preferences             :"+this.keyServerPreferences+"\nPreferred Key Server               :"+this.preferredKeyServer+"\nPrimary User ID                    :"+this.isPrimaryUserID+"\nPolicy URI                         :"+this.policyURI+"\nKey Flags                          :"+this.keyFlags+"\nSigner's User ID                   :"+this.signersUserId+"\nNotation                           :"+this.notationName+" = "+this.notationValue+"\nReason for Revocation\n      Flag                         :"+
-this.reasonForRevocationFlag+"\n      Reason                       :"+this.reasonForRevocationString+"\nMPI:\n",b=0;b<this.MPIs.length;b++)a+=this.MPIs[b].toString();return a}}
-function openpgp_packet_userattribute(){this.tagType=17;this.certificationSignatures=[];this.certificationRevocationSignatures=[];this.revocationSignatures=[];this.parentNode=null;this.read_packet=function(b,a,c){var d=0;this.packetLength=c;this.userattributes=[];for(var e=a;c!=d;){var f=0;192>b[e].charCodeAt()?(packet_length=b[e++].charCodeAt(),f=1):192<=b[e].charCodeAt()&&224>b[e].charCodeAt()?(packet_length=(b[e++].charCodeAt()-192<<8)+b[e++].charCodeAt()+192,f=2):223<b[e].charCodeAt()&&255>b[e].charCodeAt()?
-(packet_length=1<<(b[e++].charCodeAt()&31),f=1):(f=5,e++,packet_length=b[e++].charCodeAt()<<24|b[e++].charCodeAt()<<16|b[e++].charCodeAt()<<8|b[e++].charCodeAt());b[e++].charCodeAt();packet_length--;f++;this.userattributes[0]=[];this.userattributes[0]=b.substring(e,e+packet_length);e+=packet_length;d+=f+packet_length}this.packetLength=e-a;return this};this.read_nodes=function(b,a,c,d){this.parentNode=b;for(var e=c,f=d;a.length!=e;){var g=openpgp_packet.read_packet(a,e,f);if(null==g){util.print_error("openpgp.packet.userattribute.js\n[user_attr] parsing ends here @:"+
-e+" l:"+f);break}else switch(g.tagType){case 2:15<g.signatureType&&20>g.signatureType?this.certificationSignatures[this.certificationSignatures.length]=g:32==g.signatureType&&(this.certificationRevocationSignatures[this.certificationRevocationSignatures.length]=g);e+=g.packetLength+g.headerLength;f=d-(e-c);break;default:return this.data=a,this.position=c-b.packetLength,this.len=e-c}}this.data=a;this.position=c-b.packetLength;return this.len=e-c};this.toString=function(){for(var b="5.12.  User Attribute Packet (Tag 17)\n    AttributePackets: (count = "+
-this.userattributes.length+")\n",a=0;a<this.userattributes.length;a++)b+="    ("+this.userattributes[a].length+") bytes: ["+util.hexidump(this.userattributes[a])+"]\n";return b}}
-function openpgp_packet_userid(){this.text="";this.tagType=13;this.certificationSignatures=[];this.certificationRevocationSignatures=[];this.revocationSignatures=[];this.parentNode=null;this.set_text=function(b){this.text=b};this.set_text_bytes=function(b){this.text=util.decode_utf8(b)};this.get_text_bytes=function(){return util.encode_utf8(this.text)};this.read_packet=function(b,a,c){this.packetLength=c;for(var d="",e=0;e<c;e++)d+=b[a+e];this.set_text_bytes(d);return this};this.write_packet=function(b){this.set_text(b);
-var b=this.get_text_bytes(),a=openpgp_packet.write_packet_header(13,b.length);return a+b};this.read_nodes=function(b,a,c,d){if(6==b.tagType){this.parentNode=b;for(var e=c,f=d;a.length!=e;){var g=openpgp_packet.read_packet(a,e,f-(e-c));if(null==g){util.print_error("[user_id] parsing ends here @:"+e+" l:"+f);break}else switch(e+=g.packetLength+g.headerLength,f=a.length-e,g.tagType){case 2:if(15<g.signatureType&&20>g.signatureType){this.certificationSignatures[this.certificationSignatures.length]=g;
-break}else if(48==g.signatureType){this.certificationRevocationSignatures[this.certificationRevocationSignatures.length]=g;break}else if(24==g.signatureType){this.certificationSignatures[this.certificationSignatures.length]=g;break}else util.print_debug("unknown sig t: "+g.signatureType+"@"+(e-(g.packetLength+g.headerLength)));default:return this.data=a,this.position=c-b.packetLength,this.len=e-c-(g.headerLength+g.packetLength)}}this.data=a;this.position=c-b.packetLength;return this.len=e-c-(g.headerLength+
-g.packetLength)}if(5==b.tagType){this.parentNode=b;for(e=c;a.length!=e;)if(g=openpgp_packet.read_packet(a,e,f-(e-c)),null==g){util.print_error("parsing ends here @:"+e+" l:"+f);break}else switch(e+=g.packetLength+g.headerLength,g.tagType){case 2:15<g.signatureType&&20>g.signatureType?this.certificationSignatures[this.certificationSignatures.length]=g:48==g.signatureType&&(this.certificationRevocationSignatures[this.certificationRevocationSignatures.length]=g);default:return this.data=a,this.position=
-c-b.packetLength,this.len=e-c-(g.headerLength+g.packetLength)}}else util.print_error("unknown parent node for a userId packet "+b.tagType)};this.toString=function(){for(var b="     5.11.  User ID Packet (Tag 13)\n    text ("+this.text.length+'): "'+this.text.replace("<","&lt;")+'"\n',b=b+"certification signatures:\n",a=0;a<this.certificationSignatures.length;a++)b+="        "+this.certificationSignatures[a].toString();b+="certification revocation signatures:\n";for(a=0;a<this.certificationRevocationSignatures.length;a++)b+=
-"        "+this.certificationRevocationSignatures[a].toString();return b};this.hasCertificationRevocationSignature=function(b){for(var a=0;a<this.certificationRevocationSignatures.length;a++)if(3==this.certificationRevocationSignatures[a].version&&this.certificationRevocationSignatures[a].keyId==b||4==this.certificationRevocationSignatures[a].version&&this.certificationRevocationSignatures[a].issuerKeyId==b)return this.certificationRevocationSignatures[a];return null};this.verifyCertificationSignatures=
-function(b){var a=this.get_text_bytes();result=[];for(var c=0;c<this.certificationSignatures.length;c++)if(4==this.certificationSignatures[c].version)if(null!=this.certificationSignatures[c].signatureExpirationTime&&null!=this.certificationSignatures[c].signatureExpirationTime&&0!=this.certificationSignatures[c].signatureExpirationTime&&!this.certificationSignatures[c].signatureNeverExpires&&new Date(this.certificationSignatures[c].creationTime.getTime()+1E3*this.certificationSignatures[c].signatureExpirationTime)<
-new Date)result[c]=this.certificationSignatures[c].issuerKeyId==b.getKeyId()?5:1;else if(null==this.certificationSignatures[c].issuerKeyId)result[c]=0;else{var d=openpgp.keyring.getPublicKeysForKeyId(this.certificationSignatures[c].issuerKeyId);if(null==d||0==d.length)result[c]=2;else if(d=d[0],d=d.obj.getSigningKey(),null==d)result[c]=0;else{var e=this.hasCertificationRevocationSignature(this.certificationSignatures[c].issuerKeyId);if(null!=e&&e.creationTime>this.certificationSignatures[c].creationTime){var f=
-String.fromCharCode(153)+b.header.substring(1)+b.data+String.fromCharCode(180)+String.fromCharCode(a.length>>24&255)+String.fromCharCode(a.length>>16&255)+String.fromCharCode(a.length>>8&255)+String.fromCharCode(a.length&255)+a;if(e.verify(f,d)){result[c]=this.certificationSignatures[c].issuerKeyId==b.getKeyId()?6:3;continue}}f=String.fromCharCode(153)+b.header.substring(1)+b.data+String.fromCharCode(180)+String.fromCharCode(a.length>>24&255)+String.fromCharCode(a.length>>16&255)+String.fromCharCode(a.length>>
-8&255)+String.fromCharCode(a.length&255)+a;result[c]=this.certificationSignatures[c].verify(f,d)?4:0}}else if(3==this.certificationSignatures[c].version)if(null==this.certificationSignatures[c].keyId)result[c]=0;else if(d=openpgp.keyring.getPublicKeysForKeyId(this.certificationSignatures[c].keyId),null==d||0==d.length)result[c]=2;else if(d=publicKey.obj.getSigningKey(),null==d)result[c]=0;else{e=this.hasCertificationRevocationSignature(this.certificationSignatures[c].keyId);if(null!=e&&e.creationTime>
-this.certificationSignatures[c].creationTime&&(f=String.fromCharCode(153)+this.publicKeyPacket.header.substring(1)+this.publicKeyPacket.data+a,e.verify(f,d))){result[c]=e.keyId==b.getKeyId()?6:3;continue}f=String.fromCharCode(153)+b.header.substring(1)+b.data+a;result[c]=this.certificationSignatures[c].verify(f,d)?4:0}else result[c]=0;return result};this.verify=function(b){b=this.verifyCertificationSignatures(b);return-1!=b.indexOf(6)?2:-1!=b.indexOf(5)?1:0};this.addCertification=function(){};this.revokeCertification=
-function(){}}function openpgp_type_keyid(){this.read_packet=function(b,a){this.bytes=b.substring(a,a+8);return this};this.toString=function(){return util.hexstrdump(this.bytes)}}
-function openpgp_type_mpi(){this.data=this.mpiByteLength=this.mpiBitLength=this.MPI=null;this.read=function(b,a){var c=a;this.mpiBitLength=b[c++].charCodeAt()<<8|b[c++].charCodeAt();this.mpiByteLength=(this.mpiBitLength-this.mpiBitLength%8)/8;0!=this.mpiBitLength%8&&this.mpiByteLength++;this.MPI=b.substring(c,c+this.mpiByteLength);this.data=b.substring(a,a+2+this.mpiByteLength);this.packetLength=this.mpiByteLength+2;return this};this.toBigInteger=function(){return new BigInteger(util.hexstrdump(this.MPI),
-16)};this.toString=function(){var b="    MPI("+this.mpiBitLength+"b/"+this.mpiByteLength+"B) : 0x",b=b+util.hexstrdump(this.MPI);return b+"\n"};this.create=function(b){this.MPI=b;var a=8*(b.length-1),c;a:for(var d=b.charCodeAt(0),e=0;9>e;e++)if(0==d>>e){c=e;break a}this.mpiBitLength=a+c;this.mpiByteLength=b.length;return this};this.toBin=function(){var b=String.fromCharCode(this.mpiBitLength>>8&255),b=b+String.fromCharCode(this.mpiBitLength&255);return b+=this.MPI};this.getByteLength=function(){return this.mpiByteLength}}
-function openpgp_type_s2k(){this.read=function(b,a){var c=a;this.type=b[c++].charCodeAt();switch(this.type){case 0:this.hashAlgorithm=b[c++].charCodeAt();this.s2kLength=1;break;case 1:this.hashAlgorithm=b[c++].charCodeAt();this.saltValue=b.substring(c,c+8);this.s2kLength=9;break;case 3:this.hashAlgorithm=b[c++].charCodeAt();this.saltValue=b.substring(c,c+8);c+=8;this.EXPBIAS=6;c=b[c++].charCodeAt();this.count=16+(c&15)<<(c>>4)+this.EXPBIAS;this.s2kLength=10;break;case 101:"GNU"==b.substring(c+1,c+
-4)?(this.hashAlgorithm=b[c++].charCodeAt(),c+=3,c=1E3+b[c++].charCodeAt(),1001==c?(this.type=c,this.s2kLength=5):util.print_error("unknown s2k gnu protection mode! "+this.type)):util.print_error("unknown s2k type! "+this.type);break;default:util.print_error("unknown s2k type! "+this.type)}return this};this.write=function(b,a,c,d,e){this.type=b;if(3==this.type)this.saltValue=d,this.hashAlgorithm=a,this.count=16+(e&15)<<(e>>4)+6,this.s2kLength=10;return this.produce_key(c)};this.produce_key=function(b,
-a){b=util.encode_utf8(b);if(0==this.type)return openpgp_crypto_hashData(this.hashAlgorithm,b);if(1==this.type)return openpgp_crypto_hashData(this.hashAlgorithm,this.saltValue+b);if(3==this.type){var c=[];for(c[0]=this.saltValue+b;c.length*(this.saltValue+b).length<this.count;)c.push(this.saltValue+b);c=c.join("");c.length>this.count&&(c=c.substr(0,this.count));return a&&(24==a||32==a)?openpgp_crypto_hashData(this.hashAlgorithm,c)+openpgp_crypto_hashData(this.hashAlgorithm,String.fromCharCode(0)+c):
-openpgp_crypto_hashData(this.hashAlgorithm,c)}return null}}
-var Util=function(){this.emailRegEx=/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;this.hexdump=function(a){for(var b=[],e=a.length,f=0,g,h=0;f<e;){for(g=a.charCodeAt(f++).toString(16);2>g.length;)g="0"+g;b.push(" "+g);h++;0==h%32&&b.push("\n           ")}return b.join("")};this.hexstrdump=function(a){if(null==a)return"";for(var b=[],e=a.length,f=0,g;f<e;){for(g=a[f++].charCodeAt().toString(16);2>g.length;)g=
-"0"+g;b.push(""+g)}return b.join("")};this.hex2bin=function(a){for(var b="",e=0;e<a.length;e+=2)b+=String.fromCharCode(parseInt(a.substr(e,2),16));return b};this.hexidump=function(a){for(var b=[],e=a.length,f=0,g;f<e;){for(g=a[f++].toString(16);2>g.length;)g="0"+g;b.push(""+g)}return b.join("")};this.encode_utf8=function(a){return unescape(encodeURIComponent(a))};this.decode_utf8=function(a){try{return decodeURIComponent(escape(a))}catch(b){return a}};var b=function(a,b){for(var e=0;e<a.length;e++)b[e]=
-a.charCodeAt(e);return b},a=function(a){for(var b=[],e=0;e<a.length;e++)b.push(String.fromCharCode(a[e]));return b.join("")};this.str2bin=function(a){return b(a,Array(a.length))};this.bin2str=a;this.str2Uint8Array=function(a){return b(a,new Uint8Array(new ArrayBuffer(a.length)))};this.Uint8Array2str=a;this.calc_checksum=function(a){for(var b={s:0,add:function(a){this.s=(this.s+a)%65536}},e=0;e<a.length;e++)b.add(a.charCodeAt(e));return b.s};this.print_debug=function(a){openpgp.config.debug&&(a=openpgp_encoding_html_encode(a),
-showMessages('<tt><p style="background-color: #ffffff; width: 652px; word-break: break-word; padding: 5px; border-bottom: 1px solid black;">'+a.replace(/\n/g,"<br>")+"</p></tt>"))};this.print_debug_hexstr_dump=function(a,b){openpgp.config.debug&&(a+=this.hexstrdump(b),a=openpgp_encoding_html_encode(a),showMessages('<tt><p style="background-color: #ffffff; width: 652px; word-break: break-word; padding: 5px; border-bottom: 1px solid black;">'+a.replace(/\n/g,"<br>")+"</p></tt>"))};this.print_error=
-function(a){a=openpgp_encoding_html_encode(a);showMessages('<p style="font-size: 80%; background-color: #FF8888; margin:0; width: 652px; word-break: break-word; padding: 5px; border-bottom: 1px solid black;"><span style="color: #888;"><b>ERROR:</b></span>\t'+a.replace(/\n/g,"<br>")+"</p>")};this.print_info=function(a){a=openpgp_encoding_html_encode(a);showMessages('<p style="font-size: 80%; background-color: #88FF88; margin:0; width: 652px; word-break: break-word; padding: 5px; border-bottom: 1px solid black;"><span style="color: #888;"><b>INFO:</b></span>\t'+
-a.replace(/\n/g,"<br>")+"</p>")};this.print_warning=function(a){a=openpgp_encoding_html_encode(a);showMessages('<p style="font-size: 80%; background-color: #FFAA88; margin:0; width: 652px; word-break: break-word; padding: 5px; border-bottom: 1px solid black;"><span style="color: #888;"><b>WARNING:</b></span>\t'+a.replace(/\n/g,"<br>")+"</p>")};this.getLeftNBits=function(a,b){var e=b%8;return 0==e?a.substring(0,b/8):this.shiftRight(a.substring(0,(b-e)/8+1),8-e)};this.shiftRight=function(a,b){var e=
-util.str2bin(a);if(0!=b%8)for(var f=e.length-1;0<=f;f--)e[f]>>=b%8,0<f&&(e[f]|=e[f-1]<<8-b%8&255);else return a;return util.bin2str(e)};this.get_hashAlgorithmString=function(a){switch(a){case 1:return"MD5";case 2:return"SHA1";case 3:return"RIPEMD160";case 8:return"SHA256";case 9:return"SHA384";case 10:return"SHA512";case 11:return"SHA224"}return"unknown"}},util=new Util;
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+// A Digital signature algorithm implementation
+
+function DSA() {
+	// s1 = ((g**s) mod p) mod q
+	// s1 = ((s**-1)*(sha-1(m)+(s1*x) mod q)
+	function sign(hashalgo, m, g, p, q, x) {
+		// If the output size of the chosen hash is larger than the number of
+		// bits of q, the hash result is truncated to fit by taking the number
+		// of leftmost bits equal to the number of bits of q.  This (possibly
+		// truncated) hash function result is treated as a number and used
+		// directly in the DSA signature algorithm.
+		var hashed_data = util.getLeftNBits(openpgp_crypto_hashData(hashalgo,m),q.bitLength());
+		var hash = new BigInteger(util.hexstrdump(hashed_data), 16);
+		var k = openpgp_crypto_getRandomBigIntegerInRange(BigInteger.ONE.add(BigInteger.ONE), q.subtract(BigInteger.ONE));
+		var s1 = (g.modPow(k,p)).mod(q); 
+		var s2 = (k.modInverse(q).multiply(hash.add(x.multiply(s1)))).mod(q);
+		var result = new Array();
+		result[0] = s1.toMPI();
+		result[1] = s2.toMPI();
+		return result;
+	}
+	function select_hash_algorithm(q) {
+		var usersetting = openpgp.config.config.prefer_hash_algorithm;
+		/*
+		 * 1024-bit key, 160-bit q, SHA-1, SHA-224, SHA-256, SHA-384, or SHA-512 hash
+		 * 2048-bit key, 224-bit q, SHA-224, SHA-256, SHA-384, or SHA-512 hash
+		 * 2048-bit key, 256-bit q, SHA-256, SHA-384, or SHA-512 hash
+		 * 3072-bit key, 256-bit q, SHA-256, SHA-384, or SHA-512 hash
+		 */
+		switch (Math.round(q.bitLength() / 8)) {
+		case 20: // 1024 bit
+			if (usersetting != 2 &&
+				usersetting > 11 &&
+				usersetting != 10 &&
+				usersetting < 8)
+				return 2; // prefer sha1
+			return usersetting;
+		case 28: // 2048 bit
+			if (usersetting > 11 &&
+					usersetting < 8)
+					return 11;
+			return usersetting;
+		case 32: // 4096 bit // prefer sha224
+			if (usersetting > 10 &&
+					usersetting < 8)
+					return 8; // prefer sha256
+			return usersetting;
+		default:
+			util.print_debug("DSA select hash algorithm: returning null for an unknown length of q");
+			return null;
+			
+		}
+	}
+	this.select_hash_algorithm = select_hash_algorithm;
+	
+	function verify(hashalgo, s1,s2,m,p,q,g,y) {
+		var hashed_data = util.getLeftNBits(openpgp_crypto_hashData(hashalgo,m),q.bitLength());
+		var hash = new BigInteger(util.hexstrdump(hashed_data), 16); 
+		if (BigInteger.ZERO.compareTo(s1) > 0 ||
+				s1.compareTo(q) > 0 ||
+				BigInteger.ZERO.compareTo(s2) > 0 ||
+				s2.compareTo(q) > 0) {
+			util.print_error("invalid DSA Signature");
+			return null;
+		}
+		var w = s2.modInverse(q);
+		var u1 = hash.multiply(w).mod(q);
+		var u2 = s1.multiply(w).mod(q);
+		return g.modPow(u1,p).multiply(y.modPow(u2,p)).mod(p).mod(q);
+	}
+	
+	/*
+	 * unused code. This can be used as a start to write a key generator
+	 * function.
+	
+	function generateKey(bitcount) {
+	    var qi = new BigInteger(bitcount, primeCenterie);
+	    var pi = generateP(q, 512);
+	    var gi = generateG(p, q, bitcount);
+	    var xi;
+	    do {
+	        xi = new BigInteger(q.bitCount(), rand);
+	    } while (x.compareTo(BigInteger.ZERO) != 1 && x.compareTo(q) != -1);
+	    var yi = g.modPow(x, p);
+	    return {x: xi, q: qi, p: pi, g: gi, y: yi};
+	}
+
+	function generateP(q, bitlength, randomfn) {
+	    if (bitlength % 64 != 0) {
+	    	return false;
+	    }
+	    var pTemp;
+	    var pTemp2;
+	    do {
+	        pTemp = randomfn(bitcount, true);
+	        pTemp2 = pTemp.subtract(BigInteger.ONE);
+	        pTemp = pTemp.subtract(pTemp2.remainder(q));
+	    } while (!pTemp.isProbablePrime(primeCenterie) || pTemp.bitLength() != l);
+	    return pTemp;
+	}
+	
+	function generateG(p, q, bitlength, randomfn) {
+	    var aux = p.subtract(BigInteger.ONE);
+	    var pow = aux.divide(q);
+	    var gTemp;
+	    do {
+	        gTemp = randomfn(bitlength);
+	    } while (gTemp.compareTo(aux) != -1 && gTemp.compareTo(BigInteger.ONE) != 1);
+	    return gTemp.modPow(pow, p);
+	}
+
+	function generateK(q, bitlength, randomfn) {
+	    var tempK;
+	    do {
+	        tempK = randomfn(bitlength, false);
+	    } while (tempK.compareTo(q) != -1 && tempK.compareTo(BigInteger.ZERO) != 1);
+	    return tempK;
+	}
+
+	function generateR(q,p) {
+	    k = generateK(q);
+	    var r = g.modPow(k, p).mod(q);
+	    return r;
+	}
+
+	function generateS(hashfn,k,r,m,q,x) {
+        var hash = hashfn(m);
+        s = (k.modInverse(q).multiply(hash.add(x.multiply(r)))).mod(q);
+	    return s;
+	} */
+	this.sign = sign;
+	this.verify = verify;
+	// this.generate = generateKey;
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+// ElGamal implementation
+
+function Elgamal() {
+	
+	function encrypt(m,g,p,y) {
+		//  choose k in {2,...,p-2}
+		var two = BigInteger.ONE.add(BigInteger.ONE);
+		var pMinus2 = p.subtract(two);
+		var k = openpgp_crypto_getRandomBigIntegerInRange(two, pMinus2);
+		var k = k.mod(pMinus2).add(BigInteger.ONE);
+		var c = new Array();
+		c[0] = g.modPow(k, p);
+		c[1] = y.modPow(k, p).multiply(m).mod(p).toMPI();
+		c[0] = c[0].toMPI();
+		return c;
+	}
+	
+	function decrypt(c1,c2,p,x) {
+		util.print_debug("Elgamal Decrypt:\nc1:"+util.hexstrdump(c1.toMPI())+"\n"+
+			  "c2:"+util.hexstrdump(c2.toMPI())+"\n"+
+			  "p:"+util.hexstrdump(p.toMPI())+"\n"+
+			  "x:"+util.hexstrdump(x.toMPI()));
+		return (c1.modPow(x, p).modInverse(p)).multiply(c2).mod(p);
+		//var c = c1.pow(x).modInverse(p); // c0^-a mod p
+	    //return c.multiply(c2).mod(p);
+	}
+	
+	// signing and signature verification using Elgamal is not required by OpenPGP.
+	this.encrypt = encrypt;
+	this.decrypt = decrypt;
+}/*
+ * Copyright (c) 2003-2005  Tom Wu (tjw@cs.Stanford.EDU) 
+ * All Rights Reserved.
+ *
+ * Modified by Recurity Labs GmbH
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+ *
+ * IN NO EVENT SHALL TOM WU BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
+ * INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
+ * RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER OR NOT ADVISED OF
+ * THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF LIABILITY, ARISING OUT
+ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * In addition, the following condition applies:
+ *
+ * All redistributions must retain an intact copy of this copyright notice
+ * and disclaimer.
+ */
+// Extended JavaScript BN functions, required for RSA private ops.
+
+// Version 1.1: new BigInteger("0", 10) returns "proper" zero
+// Version 1.2: square() API, isProbablePrime fix
+
+// (public)
+function bnClone() { var r = nbi(); this.copyTo(r); return r; }
+
+// (public) return value as integer
+function bnIntValue() {
+  if(this.s < 0) {
+    if(this.t == 1) return this[0]-this.DV;
+    else if(this.t == 0) return -1;
+  }
+  else if(this.t == 1) return this[0];
+  else if(this.t == 0) return 0;
+  // assumes 16 < DB < 32
+  return ((this[1]&((1<<(32-this.DB))-1))<<this.DB)|this[0];
+}
+
+// (public) return value as byte
+function bnByteValue() { return (this.t==0)?this.s:(this[0]<<24)>>24; }
+
+// (public) return value as short (assumes DB>=16)
+function bnShortValue() { return (this.t==0)?this.s:(this[0]<<16)>>16; }
+
+// (protected) return x s.t. r^x < DV
+function bnpChunkSize(r) { return Math.floor(Math.LN2*this.DB/Math.log(r)); }
+
+// (public) 0 if this == 0, 1 if this > 0
+function bnSigNum() {
+  if(this.s < 0) return -1;
+  else if(this.t <= 0 || (this.t == 1 && this[0] <= 0)) return 0;
+  else return 1;
+}
+
+// (protected) convert to radix string
+function bnpToRadix(b) {
+  if(b == null) b = 10;
+  if(this.signum() == 0 || b < 2 || b > 36) return "0";
+  var cs = this.chunkSize(b);
+  var a = Math.pow(b,cs);
+  var d = nbv(a), y = nbi(), z = nbi(), r = "";
+  this.divRemTo(d,y,z);
+  while(y.signum() > 0) {
+    r = (a+z.intValue()).toString(b).substr(1) + r;
+    y.divRemTo(d,y,z);
+  }
+  return z.intValue().toString(b) + r;
+}
+
+// (protected) convert from radix string
+function bnpFromRadix(s,b) {
+  this.fromInt(0);
+  if(b == null) b = 10;
+  var cs = this.chunkSize(b);
+  var d = Math.pow(b,cs), mi = false, j = 0, w = 0;
+  for(var i = 0; i < s.length; ++i) {
+    var x = intAt(s,i);
+    if(x < 0) {
+      if(s.charAt(i) == "-" && this.signum() == 0) mi = true;
+      continue;
+    }
+    w = b*w+x;
+    if(++j >= cs) {
+      this.dMultiply(d);
+      this.dAddOffset(w,0);
+      j = 0;
+      w = 0;
+    }
+  }
+  if(j > 0) {
+    this.dMultiply(Math.pow(b,j));
+    this.dAddOffset(w,0);
+  }
+  if(mi) BigInteger.ZERO.subTo(this,this);
+}
+
+// (protected) alternate constructor
+function bnpFromNumber(a,b,c) {
+  if("number" == typeof b) {
+    // new BigInteger(int,int,RNG)
+    if(a < 2) this.fromInt(1);
+    else {
+      this.fromNumber(a,c);
+      if(!this.testBit(a-1))	// force MSB set
+        this.bitwiseTo(BigInteger.ONE.shiftLeft(a-1),op_or,this);
+      if(this.isEven()) this.dAddOffset(1,0); // force odd
+      while(!this.isProbablePrime(b)) {
+        this.dAddOffset(2,0);
+        if(this.bitLength() > a) this.subTo(BigInteger.ONE.shiftLeft(a-1),this);
+      }
+    }
+  }
+  else {
+    // new BigInteger(int,RNG)
+    var x = new Array(), t = a&7;
+    x.length = (a>>3)+1;
+    b.nextBytes(x);
+    if(t > 0) x[0] &= ((1<<t)-1); else x[0] = 0;
+    this.fromString(x,256);
+  }
+}
+
+// (public) convert to bigendian byte array
+function bnToByteArray() {
+  var i = this.t, r = new Array();
+  r[0] = this.s;
+  var p = this.DB-(i*this.DB)%8, d, k = 0;
+  if(i-- > 0) {
+    if(p < this.DB && (d = this[i]>>p) != (this.s&this.DM)>>p)
+      r[k++] = d|(this.s<<(this.DB-p));
+    while(i >= 0) {
+      if(p < 8) {
+        d = (this[i]&((1<<p)-1))<<(8-p);
+        d |= this[--i]>>(p+=this.DB-8);
+      }
+      else {
+        d = (this[i]>>(p-=8))&0xff;
+        if(p <= 0) { p += this.DB; --i; }
+      }
+      //if((d&0x80) != 0) d |= -256;
+      //if(k == 0 && (this.s&0x80) != (d&0x80)) ++k;
+      if(k > 0 || d != this.s) r[k++] = d;
+    }
+  }
+  return r;
+}
+
+function bnEquals(a) { return(this.compareTo(a)==0); }
+function bnMin(a) { return(this.compareTo(a)<0)?this:a; }
+function bnMax(a) { return(this.compareTo(a)>0)?this:a; }
+
+// (protected) r = this op a (bitwise)
+function bnpBitwiseTo(a,op,r) {
+  var i, f, m = Math.min(a.t,this.t);
+  for(i = 0; i < m; ++i) r[i] = op(this[i],a[i]);
+  if(a.t < this.t) {
+    f = a.s&this.DM;
+    for(i = m; i < this.t; ++i) r[i] = op(this[i],f);
+    r.t = this.t;
+  }
+  else {
+    f = this.s&this.DM;
+    for(i = m; i < a.t; ++i) r[i] = op(f,a[i]);
+    r.t = a.t;
+  }
+  r.s = op(this.s,a.s);
+  r.clamp();
+}
+
+// (public) this & a
+function op_and(x,y) { return x&y; }
+function bnAnd(a) { var r = nbi(); this.bitwiseTo(a,op_and,r); return r; }
+
+// (public) this | a
+function op_or(x,y) { return x|y; }
+function bnOr(a) { var r = nbi(); this.bitwiseTo(a,op_or,r); return r; }
+
+// (public) this ^ a
+function op_xor(x,y) { return x^y; }
+function bnXor(a) { var r = nbi(); this.bitwiseTo(a,op_xor,r); return r; }
+
+// (public) this & ~a
+function op_andnot(x,y) { return x&~y; }
+function bnAndNot(a) { var r = nbi(); this.bitwiseTo(a,op_andnot,r); return r; }
+
+// (public) ~this
+function bnNot() {
+  var r = nbi();
+  for(var i = 0; i < this.t; ++i) r[i] = this.DM&~this[i];
+  r.t = this.t;
+  r.s = ~this.s;
+  return r;
+}
+
+// (public) this << n
+function bnShiftLeft(n) {
+  var r = nbi();
+  if(n < 0) this.rShiftTo(-n,r); else this.lShiftTo(n,r);
+  return r;
+}
+
+// (public) this >> n
+function bnShiftRight(n) {
+  var r = nbi();
+  if(n < 0) this.lShiftTo(-n,r); else this.rShiftTo(n,r);
+  return r;
+}
+
+// return index of lowest 1-bit in x, x < 2^31
+function lbit(x) {
+  if(x == 0) return -1;
+  var r = 0;
+  if((x&0xffff) == 0) { x >>= 16; r += 16; }
+  if((x&0xff) == 0) { x >>= 8; r += 8; }
+  if((x&0xf) == 0) { x >>= 4; r += 4; }
+  if((x&3) == 0) { x >>= 2; r += 2; }
+  if((x&1) == 0) ++r;
+  return r;
+}
+
+// (public) returns index of lowest 1-bit (or -1 if none)
+function bnGetLowestSetBit() {
+  for(var i = 0; i < this.t; ++i)
+    if(this[i] != 0) return i*this.DB+lbit(this[i]);
+  if(this.s < 0) return this.t*this.DB;
+  return -1;
+}
+
+// return number of 1 bits in x
+function cbit(x) {
+  var r = 0;
+  while(x != 0) { x &= x-1; ++r; }
+  return r;
+}
+
+// (public) return number of set bits
+function bnBitCount() {
+  var r = 0, x = this.s&this.DM;
+  for(var i = 0; i < this.t; ++i) r += cbit(this[i]^x);
+  return r;
+}
+
+// (public) true iff nth bit is set
+function bnTestBit(n) {
+  var j = Math.floor(n/this.DB);
+  if(j >= this.t) return(this.s!=0);
+  return((this[j]&(1<<(n%this.DB)))!=0);
+}
+
+// (protected) this op (1<<n)
+function bnpChangeBit(n,op) {
+  var r = BigInteger.ONE.shiftLeft(n);
+  this.bitwiseTo(r,op,r);
+  return r;
+}
+
+// (public) this | (1<<n)
+function bnSetBit(n) { return this.changeBit(n,op_or); }
+
+// (public) this & ~(1<<n)
+function bnClearBit(n) { return this.changeBit(n,op_andnot); }
+
+// (public) this ^ (1<<n)
+function bnFlipBit(n) { return this.changeBit(n,op_xor); }
+
+// (protected) r = this + a
+function bnpAddTo(a,r) {
+  var i = 0, c = 0, m = Math.min(a.t,this.t);
+  while(i < m) {
+    c += this[i]+a[i];
+    r[i++] = c&this.DM;
+    c >>= this.DB;
+  }
+  if(a.t < this.t) {
+    c += a.s;
+    while(i < this.t) {
+      c += this[i];
+      r[i++] = c&this.DM;
+      c >>= this.DB;
+    }
+    c += this.s;
+  }
+  else {
+    c += this.s;
+    while(i < a.t) {
+      c += a[i];
+      r[i++] = c&this.DM;
+      c >>= this.DB;
+    }
+    c += a.s;
+  }
+  r.s = (c<0)?-1:0;
+  if(c > 0) r[i++] = c;
+  else if(c < -1) r[i++] = this.DV+c;
+  r.t = i;
+  r.clamp();
+}
+
+// (public) this + a
+function bnAdd(a) { var r = nbi(); this.addTo(a,r); return r; }
+
+// (public) this - a
+function bnSubtract(a) { var r = nbi(); this.subTo(a,r); return r; }
+
+// (public) this * a
+function bnMultiply(a) { var r = nbi(); this.multiplyTo(a,r); return r; }
+
+// (public) this^2
+function bnSquare() { var r = nbi(); this.squareTo(r); return r; }
+
+// (public) this / a
+function bnDivide(a) { var r = nbi(); this.divRemTo(a,r,null); return r; }
+
+// (public) this % a
+function bnRemainder(a) { var r = nbi(); this.divRemTo(a,null,r); return r; }
+
+// (public) [this/a,this%a]
+function bnDivideAndRemainder(a) {
+  var q = nbi(), r = nbi();
+  this.divRemTo(a,q,r);
+  return new Array(q,r);
+}
+
+// (protected) this *= n, this >= 0, 1 < n < DV
+function bnpDMultiply(n) {
+  this[this.t] = this.am(0,n-1,this,0,0,this.t);
+  ++this.t;
+  this.clamp();
+}
+
+// (protected) this += n << w words, this >= 0
+function bnpDAddOffset(n,w) {
+  if(n == 0) return;
+  while(this.t <= w) this[this.t++] = 0;
+  this[w] += n;
+  while(this[w] >= this.DV) {
+    this[w] -= this.DV;
+    if(++w >= this.t) this[this.t++] = 0;
+    ++this[w];
+  }
+}
+
+// A "null" reducer
+function NullExp() {}
+function nNop(x) { return x; }
+function nMulTo(x,y,r) { x.multiplyTo(y,r); }
+function nSqrTo(x,r) { x.squareTo(r); }
+
+NullExp.prototype.convert = nNop;
+NullExp.prototype.revert = nNop;
+NullExp.prototype.mulTo = nMulTo;
+NullExp.prototype.sqrTo = nSqrTo;
+
+// (public) this^e
+function bnPow(e) { return this.exp(e,new NullExp()); }
+
+// (protected) r = lower n words of "this * a", a.t <= n
+// "this" should be the larger one if appropriate.
+function bnpMultiplyLowerTo(a,n,r) {
+  var i = Math.min(this.t+a.t,n);
+  r.s = 0; // assumes a,this >= 0
+  r.t = i;
+  while(i > 0) r[--i] = 0;
+  var j;
+  for(j = r.t-this.t; i < j; ++i) r[i+this.t] = this.am(0,a[i],r,i,0,this.t);
+  for(j = Math.min(a.t,n); i < j; ++i) this.am(0,a[i],r,i,0,n-i);
+  r.clamp();
+}
+
+// (protected) r = "this * a" without lower n words, n > 0
+// "this" should be the larger one if appropriate.
+function bnpMultiplyUpperTo(a,n,r) {
+  --n;
+  var i = r.t = this.t+a.t-n;
+  r.s = 0; // assumes a,this >= 0
+  while(--i >= 0) r[i] = 0;
+  for(i = Math.max(n-this.t,0); i < a.t; ++i)
+    r[this.t+i-n] = this.am(n-i,a[i],r,0,0,this.t+i-n);
+  r.clamp();
+  r.drShiftTo(1,r);
+}
+
+// Barrett modular reduction
+function Barrett(m) {
+  // setup Barrett
+  this.r2 = nbi();
+  this.q3 = nbi();
+  BigInteger.ONE.dlShiftTo(2*m.t,this.r2);
+  this.mu = this.r2.divide(m);
+  this.m = m;
+}
+
+function barrettConvert(x) {
+  if(x.s < 0 || x.t > 2*this.m.t) return x.mod(this.m);
+  else if(x.compareTo(this.m) < 0) return x;
+  else { var r = nbi(); x.copyTo(r); this.reduce(r); return r; }
+}
+
+function barrettRevert(x) { return x; }
+
+// x = x mod m (HAC 14.42)
+function barrettReduce(x) {
+  x.drShiftTo(this.m.t-1,this.r2);
+  if(x.t > this.m.t+1) { x.t = this.m.t+1; x.clamp(); }
+  this.mu.multiplyUpperTo(this.r2,this.m.t+1,this.q3);
+  this.m.multiplyLowerTo(this.q3,this.m.t+1,this.r2);
+  while(x.compareTo(this.r2) < 0) x.dAddOffset(1,this.m.t+1);
+  x.subTo(this.r2,x);
+  while(x.compareTo(this.m) >= 0) x.subTo(this.m,x);
+}
+
+// r = x^2 mod m; x != r
+function barrettSqrTo(x,r) { x.squareTo(r); this.reduce(r); }
+
+// r = x*y mod m; x,y != r
+function barrettMulTo(x,y,r) { x.multiplyTo(y,r); this.reduce(r); }
+
+Barrett.prototype.convert = barrettConvert;
+Barrett.prototype.revert = barrettRevert;
+Barrett.prototype.reduce = barrettReduce;
+Barrett.prototype.mulTo = barrettMulTo;
+Barrett.prototype.sqrTo = barrettSqrTo;
+
+// (public) this^e % m (HAC 14.85)
+function bnModPow(e,m) {
+  var i = e.bitLength(), k, r = nbv(1), z;
+  if(i <= 0) return r;
+  else if(i < 18) k = 1;
+  else if(i < 48) k = 3;
+  else if(i < 144) k = 4;
+  else if(i < 768) k = 5;
+  else k = 6;
+  if(i < 8)
+    z = new Classic(m);
+  else if(m.isEven())
+    z = new Barrett(m);
+  else
+    z = new Montgomery(m);
+
+  // precomputation
+  var g = new Array(), n = 3, k1 = k-1, km = (1<<k)-1;
+  g[1] = z.convert(this);
+  if(k > 1) {
+    var g2 = nbi();
+    z.sqrTo(g[1],g2);
+    while(n <= km) {
+      g[n] = nbi();
+      z.mulTo(g2,g[n-2],g[n]);
+      n += 2;
+    }
+  }
+
+  var j = e.t-1, w, is1 = true, r2 = nbi(), t;
+  i = nbits(e[j])-1;
+  while(j >= 0) {
+    if(i >= k1) w = (e[j]>>(i-k1))&km;
+    else {
+      w = (e[j]&((1<<(i+1))-1))<<(k1-i);
+      if(j > 0) w |= e[j-1]>>(this.DB+i-k1);
+    }
+
+    n = k;
+    while((w&1) == 0) { w >>= 1; --n; }
+    if((i -= n) < 0) { i += this.DB; --j; }
+    if(is1) {	// ret == 1, don't bother squaring or multiplying it
+      g[w].copyTo(r);
+      is1 = false;
+    }
+    else {
+      while(n > 1) { z.sqrTo(r,r2); z.sqrTo(r2,r); n -= 2; }
+      if(n > 0) z.sqrTo(r,r2); else { t = r; r = r2; r2 = t; }
+      z.mulTo(r2,g[w],r);
+    }
+
+    while(j >= 0 && (e[j]&(1<<i)) == 0) {
+      z.sqrTo(r,r2); t = r; r = r2; r2 = t;
+      if(--i < 0) { i = this.DB-1; --j; }
+    }
+  }
+  return z.revert(r);
+}
+
+// (public) gcd(this,a) (HAC 14.54)
+function bnGCD(a) {
+  var x = (this.s<0)?this.negate():this.clone();
+  var y = (a.s<0)?a.negate():a.clone();
+  if(x.compareTo(y) < 0) { var t = x; x = y; y = t; }
+  var i = x.getLowestSetBit(), g = y.getLowestSetBit();
+  if(g < 0) return x;
+  if(i < g) g = i;
+  if(g > 0) {
+    x.rShiftTo(g,x);
+    y.rShiftTo(g,y);
+  }
+  while(x.signum() > 0) {
+    if((i = x.getLowestSetBit()) > 0) x.rShiftTo(i,x);
+    if((i = y.getLowestSetBit()) > 0) y.rShiftTo(i,y);
+    if(x.compareTo(y) >= 0) {
+      x.subTo(y,x);
+      x.rShiftTo(1,x);
+    }
+    else {
+      y.subTo(x,y);
+      y.rShiftTo(1,y);
+    }
+  }
+  if(g > 0) y.lShiftTo(g,y);
+  return y;
+}
+
+// (protected) this % n, n < 2^26
+function bnpModInt(n) {
+  if(n <= 0) return 0;
+  var d = this.DV%n, r = (this.s<0)?n-1:0;
+  if(this.t > 0)
+    if(d == 0) r = this[0]%n;
+    else for(var i = this.t-1; i >= 0; --i) r = (d*r+this[i])%n;
+  return r;
+}
+
+// (public) 1/this % m (HAC 14.61)
+function bnModInverse(m) {
+  var ac = m.isEven();
+  if((this.isEven() && ac) || m.signum() == 0) return BigInteger.ZERO;
+  var u = m.clone(), v = this.clone();
+  var a = nbv(1), b = nbv(0), c = nbv(0), d = nbv(1);
+  while(u.signum() != 0) {
+    while(u.isEven()) {
+      u.rShiftTo(1,u);
+      if(ac) {
+        if(!a.isEven() || !b.isEven()) { a.addTo(this,a); b.subTo(m,b); }
+        a.rShiftTo(1,a);
+      }
+      else if(!b.isEven()) b.subTo(m,b);
+      b.rShiftTo(1,b);
+    }
+    while(v.isEven()) {
+      v.rShiftTo(1,v);
+      if(ac) {
+        if(!c.isEven() || !d.isEven()) { c.addTo(this,c); d.subTo(m,d); }
+        c.rShiftTo(1,c);
+      }
+      else if(!d.isEven()) d.subTo(m,d);
+      d.rShiftTo(1,d);
+    }
+    if(u.compareTo(v) >= 0) {
+      u.subTo(v,u);
+      if(ac) a.subTo(c,a);
+      b.subTo(d,b);
+    }
+    else {
+      v.subTo(u,v);
+      if(ac) c.subTo(a,c);
+      d.subTo(b,d);
+    }
+  }
+  if(v.compareTo(BigInteger.ONE) != 0) return BigInteger.ZERO;
+  if(d.compareTo(m) >= 0) return d.subtract(m);
+  if(d.signum() < 0) d.addTo(m,d); else return d;
+  if(d.signum() < 0) return d.add(m); else return d;
+}
+
+var lowprimes = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839,853,857,859,863,877,881,883,887,907,911,919,929,937,941,947,953,967,971,977,983,991,997];
+var lplim = (1<<26)/lowprimes[lowprimes.length-1];
+
+// (public) test primality with certainty >= 1-.5^t
+function bnIsProbablePrime(t) {
+  var i, x = this.abs();
+  if(x.t == 1 && x[0] <= lowprimes[lowprimes.length-1]) {
+    for(i = 0; i < lowprimes.length; ++i)
+      if(x[0] == lowprimes[i]) return true;
+    return false;
+  }
+  if(x.isEven()) return false;
+  i = 1;
+  while(i < lowprimes.length) {
+    var m = lowprimes[i], j = i+1;
+    while(j < lowprimes.length && m < lplim) m *= lowprimes[j++];
+    m = x.modInt(m);
+    while(i < j) if(m%lowprimes[i++] == 0) return false;
+  }
+  return x.millerRabin(t);
+}
+
+/* added by Recurity Labs */
+
+function nbits(x) {
+	var n = 1, t;
+	if ((t = x >>> 16) != 0) {
+		x = t;
+		n += 16;
+	}
+	if ((t = x >> 8) != 0) {
+		x = t;
+		n += 8;
+	}
+	if ((t = x >> 4) != 0) {
+		x = t;
+		n += 4;
+	}
+	if ((t = x >> 2) != 0) {
+		x = t;
+		n += 2;
+	}
+	if ((t = x >> 1) != 0) {
+		x = t;
+		n += 1;
+	}
+	return n;
+}
+
+function bnToMPI () {
+	var ba = this.toByteArray();
+	var size = (ba.length-1)*8+nbits(ba[0]);
+	var result = "";
+	result += String.fromCharCode((size & 0xFF00) >> 8);
+	result += String.fromCharCode(size & 0xFF);
+	result += util.bin2str(ba);
+	return result;
+}
+/* END of addition */
+
+// (protected) true if probably prime (HAC 4.24, Miller-Rabin)
+function bnpMillerRabin(t) {
+  var n1 = this.subtract(BigInteger.ONE);
+  var k = n1.getLowestSetBit();
+  if(k <= 0) return false;
+  var r = n1.shiftRight(k);
+  t = (t+1)>>1;
+  if(t > lowprimes.length) t = lowprimes.length;
+  var a = nbi();
+  var j, bases = [];
+  for(var i = 0; i < t; ++i) {
+    //Pick bases at random, instead of starting at 2
+    for (;;) {
+      j = lowprimes[Math.floor(Math.random() * lowprimes.length)];
+      if (bases.indexOf(j) == -1) break;
+    }
+    bases.push(j);
+    a.fromInt(j);
+    var y = a.modPow(r,this);
+    if(y.compareTo(BigInteger.ONE) != 0 && y.compareTo(n1) != 0) {
+      var j = 1;
+      while(j++ < k && y.compareTo(n1) != 0) {
+        y = y.modPowInt(2,this);
+        if(y.compareTo(BigInteger.ONE) == 0) return false;
+      }
+      if(y.compareTo(n1) != 0) return false;
+    }
+  }
+  return true;
+}
+
+// protected
+BigInteger.prototype.chunkSize = bnpChunkSize;
+BigInteger.prototype.toRadix = bnpToRadix;
+BigInteger.prototype.fromRadix = bnpFromRadix;
+BigInteger.prototype.fromNumber = bnpFromNumber;
+BigInteger.prototype.bitwiseTo = bnpBitwiseTo;
+BigInteger.prototype.changeBit = bnpChangeBit;
+BigInteger.prototype.addTo = bnpAddTo;
+BigInteger.prototype.dMultiply = bnpDMultiply;
+BigInteger.prototype.dAddOffset = bnpDAddOffset;
+BigInteger.prototype.multiplyLowerTo = bnpMultiplyLowerTo;
+BigInteger.prototype.multiplyUpperTo = bnpMultiplyUpperTo;
+BigInteger.prototype.modInt = bnpModInt;
+BigInteger.prototype.millerRabin = bnpMillerRabin;
+
+// public
+BigInteger.prototype.clone = bnClone;
+BigInteger.prototype.intValue = bnIntValue;
+BigInteger.prototype.byteValue = bnByteValue;
+BigInteger.prototype.shortValue = bnShortValue;
+BigInteger.prototype.signum = bnSigNum;
+BigInteger.prototype.toByteArray = bnToByteArray;
+BigInteger.prototype.equals = bnEquals;
+BigInteger.prototype.min = bnMin;
+BigInteger.prototype.max = bnMax;
+BigInteger.prototype.and = bnAnd;
+BigInteger.prototype.or = bnOr;
+BigInteger.prototype.xor = bnXor;
+BigInteger.prototype.andNot = bnAndNot;
+BigInteger.prototype.not = bnNot;
+BigInteger.prototype.shiftLeft = bnShiftLeft;
+BigInteger.prototype.shiftRight = bnShiftRight;
+BigInteger.prototype.getLowestSetBit = bnGetLowestSetBit;
+BigInteger.prototype.bitCount = bnBitCount;
+BigInteger.prototype.testBit = bnTestBit;
+BigInteger.prototype.setBit = bnSetBit;
+BigInteger.prototype.clearBit = bnClearBit;
+BigInteger.prototype.flipBit = bnFlipBit;
+BigInteger.prototype.add = bnAdd;
+BigInteger.prototype.subtract = bnSubtract;
+BigInteger.prototype.multiply = bnMultiply;
+BigInteger.prototype.divide = bnDivide;
+BigInteger.prototype.remainder = bnRemainder;
+BigInteger.prototype.divideAndRemainder = bnDivideAndRemainder;
+BigInteger.prototype.modPow = bnModPow;
+BigInteger.prototype.modInverse = bnModInverse;
+BigInteger.prototype.pow = bnPow;
+BigInteger.prototype.gcd = bnGCD;
+BigInteger.prototype.isProbablePrime = bnIsProbablePrime;
+BigInteger.prototype.toMPI = bnToMPI;
+
+// JSBN-specific extension
+BigInteger.prototype.square = bnSquare;
+/*
+ * Copyright (c) 2003-2005  Tom Wu (tjw@cs.Stanford.EDU) 
+ * All Rights Reserved.
+ *
+ * Modified by Recurity Labs GmbH 
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+ *
+ * IN NO EVENT SHALL TOM WU BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
+ * INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
+ * RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER OR NOT ADVISED OF
+ * THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF LIABILITY, ARISING OUT
+ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * In addition, the following condition applies:
+ *
+ * All redistributions must retain an intact copy of this copyright notice
+ * and disclaimer.
+ */
+
+// Basic JavaScript BN library - subset useful for RSA encryption.
+
+// Bits per digit
+var dbits;
+
+// JavaScript engine analysis
+var canary = 0xdeadbeefcafe;
+var j_lm = ((canary&0xffffff)==0xefcafe);
+
+// (public) Constructor
+function BigInteger(a,b,c) {
+  if(a != null)
+    if("number" == typeof a) this.fromNumber(a,b,c);
+    else if(b == null && "string" != typeof a) this.fromString(a,256);
+    else this.fromString(a,b);
+}
+
+// return new, unset BigInteger
+function nbi() { return new BigInteger(null); }
+
+// am: Compute w_j += (x*this_i), propagate carries,
+// c is initial carry, returns final carry.
+// c < 3*dvalue, x < 2*dvalue, this_i < dvalue
+// We need to select the fastest one that works in this environment.
+
+// am1: use a single mult and divide to get the high bits,
+// max digit bits should be 26 because
+// max internal value = 2*dvalue^2-2*dvalue (< 2^53)
+function am1(i,x,w,j,c,n) {
+  while(--n >= 0) {
+    var v = x*this[i++]+w[j]+c;
+    c = Math.floor(v/0x4000000);
+    w[j++] = v&0x3ffffff;
+  }
+  return c;
+}
+// am2 avoids a big mult-and-extract completely.
+// Max digit bits should be <= 30 because we do bitwise ops
+// on values up to 2*hdvalue^2-hdvalue-1 (< 2^31)
+function am2(i,x,w,j,c,n) {
+  var xl = x&0x7fff, xh = x>>15;
+  while(--n >= 0) {
+    var l = this[i]&0x7fff;
+    var h = this[i++]>>15;
+    var m = xh*l+h*xl;
+    l = xl*l+((m&0x7fff)<<15)+w[j]+(c&0x3fffffff);
+    c = (l>>>30)+(m>>>15)+xh*h+(c>>>30);
+    w[j++] = l&0x3fffffff;
+  }
+  return c;
+}
+// Alternately, set max digit bits to 28 since some
+// browsers slow down when dealing with 32-bit numbers.
+function am3(i,x,w,j,c,n) {
+  var xl = x&0x3fff, xh = x>>14;
+  while(--n >= 0) {
+    var l = this[i]&0x3fff;
+    var h = this[i++]>>14;
+    var m = xh*l+h*xl;
+    l = xl*l+((m&0x3fff)<<14)+w[j]+c;
+    c = (l>>28)+(m>>14)+xh*h;
+    w[j++] = l&0xfffffff;
+  }
+  return c;
+}
+if(j_lm && (navigator.appName == "Microsoft Internet Explorer")) {
+  BigInteger.prototype.am = am2;
+  dbits = 30;
+}
+else if(j_lm && (navigator.appName != "Netscape")) {
+  BigInteger.prototype.am = am1;
+  dbits = 26;
+}
+else { // Mozilla/Netscape seems to prefer am3
+  BigInteger.prototype.am = am3;
+  dbits = 28;
+}
+
+BigInteger.prototype.DB = dbits;
+BigInteger.prototype.DM = ((1<<dbits)-1);
+BigInteger.prototype.DV = (1<<dbits);
+
+var BI_FP = 52;
+BigInteger.prototype.FV = Math.pow(2,BI_FP);
+BigInteger.prototype.F1 = BI_FP-dbits;
+BigInteger.prototype.F2 = 2*dbits-BI_FP;
+
+// Digit conversions
+var BI_RM = "0123456789abcdefghijklmnopqrstuvwxyz";
+var BI_RC = new Array();
+var rr,vv;
+rr = "0".charCodeAt(0);
+for(vv = 0; vv <= 9; ++vv) BI_RC[rr++] = vv;
+rr = "a".charCodeAt(0);
+for(vv = 10; vv < 36; ++vv) BI_RC[rr++] = vv;
+rr = "A".charCodeAt(0);
+for(vv = 10; vv < 36; ++vv) BI_RC[rr++] = vv;
+
+function int2char(n) { return BI_RM.charAt(n); }
+function intAt(s,i) {
+  var c = BI_RC[s.charCodeAt(i)];
+  return (c==null)?-1:c;
+}
+
+// (protected) copy this to r
+function bnpCopyTo(r) {
+  for(var i = this.t-1; i >= 0; --i) r[i] = this[i];
+  r.t = this.t;
+  r.s = this.s;
+}
+
+// (protected) set from integer value x, -DV <= x < DV
+function bnpFromInt(x) {
+  this.t = 1;
+  this.s = (x<0)?-1:0;
+  if(x > 0) this[0] = x;
+  else if(x < -1) this[0] = x+DV;
+  else this.t = 0;
+}
+
+// return bigint initialized to value
+function nbv(i) { var r = nbi(); r.fromInt(i); return r; }
+
+// (protected) set from string and radix
+function bnpFromString(s,b) {
+  var k;
+  if(b == 16) k = 4;
+  else if(b == 8) k = 3;
+  else if(b == 256) k = 8; // byte array
+  else if(b == 2) k = 1;
+  else if(b == 32) k = 5;
+  else if(b == 4) k = 2;
+  else { this.fromRadix(s,b); return; }
+  this.t = 0;
+  this.s = 0;
+  var i = s.length, mi = false, sh = 0;
+  while(--i >= 0) {
+    var x = (k==8)?s[i]&0xff:intAt(s,i);
+    if(x < 0) {
+      if(s.charAt(i) == "-") mi = true;
+      continue;
+    }
+    mi = false;
+    if(sh == 0)
+      this[this.t++] = x;
+    else if(sh+k > this.DB) {
+      this[this.t-1] |= (x&((1<<(this.DB-sh))-1))<<sh;
+      this[this.t++] = (x>>(this.DB-sh));
+    }
+    else
+      this[this.t-1] |= x<<sh;
+    sh += k;
+    if(sh >= this.DB) sh -= this.DB;
+  }
+  if(k == 8 && (s[0]&0x80) != 0) {
+    this.s = -1;
+    if(sh > 0) this[this.t-1] |= ((1<<(this.DB-sh))-1)<<sh;
+  }
+  this.clamp();
+  if(mi) BigInteger.ZERO.subTo(this,this);
+}
+
+// (protected) clamp off excess high words
+function bnpClamp() {
+  var c = this.s&this.DM;
+  while(this.t > 0 && this[this.t-1] == c) --this.t;
+}
+
+// (public) return string representation in given radix
+function bnToString(b) {
+  if(this.s < 0) return "-"+this.negate().toString(b);
+  var k;
+  if(b == 16) k = 4;
+  else if(b == 8) k = 3;
+  else if(b == 2) k = 1;
+  else if(b == 32) k = 5;
+  else if(b == 4) k = 2;
+  else return this.toRadix(b);
+  var km = (1<<k)-1, d, m = false, r = "", i = this.t;
+  var p = this.DB-(i*this.DB)%k;
+  if(i-- > 0) {
+    if(p < this.DB && (d = this[i]>>p) > 0) { m = true; r = int2char(d); }
+    while(i >= 0) {
+      if(p < k) {
+        d = (this[i]&((1<<p)-1))<<(k-p);
+        d |= this[--i]>>(p+=this.DB-k);
+      }
+      else {
+        d = (this[i]>>(p-=k))&km;
+        if(p <= 0) { p += this.DB; --i; }
+      }
+      if(d > 0) m = true;
+      if(m) r += int2char(d);
+    }
+  }
+  return m?r:"0";
+}
+
+// (public) -this
+function bnNegate() { var r = nbi(); BigInteger.ZERO.subTo(this,r); return r; }
+
+// (public) |this|
+function bnAbs() { return (this.s<0)?this.negate():this; }
+
+// (public) return + if this > a, - if this < a, 0 if equal
+function bnCompareTo(a) {
+  var r = this.s-a.s;
+  if(r != 0) return r;
+  var i = this.t;
+  r = i-a.t;
+  if(r != 0) return r;
+  while(--i >= 0) if((r=this[i]-a[i]) != 0) return r;
+  return 0;
+}
+
+// returns bit length of the integer x
+function nbits(x) {
+  var r = 1, t;
+  if((t=x>>>16) != 0) { x = t; r += 16; }
+  if((t=x>>8) != 0) { x = t; r += 8; }
+  if((t=x>>4) != 0) { x = t; r += 4; }
+  if((t=x>>2) != 0) { x = t; r += 2; }
+  if((t=x>>1) != 0) { x = t; r += 1; }
+  return r;
+}
+
+// (public) return the number of bits in "this"
+function bnBitLength() {
+  if(this.t <= 0) return 0;
+  return this.DB*(this.t-1)+nbits(this[this.t-1]^(this.s&this.DM));
+}
+
+// (protected) r = this << n*DB
+function bnpDLShiftTo(n,r) {
+  var i;
+  for(i = this.t-1; i >= 0; --i) r[i+n] = this[i];
+  for(i = n-1; i >= 0; --i) r[i] = 0;
+  r.t = this.t+n;
+  r.s = this.s;
+}
+
+// (protected) r = this >> n*DB
+function bnpDRShiftTo(n,r) {
+  for(var i = n; i < this.t; ++i) r[i-n] = this[i];
+  r.t = Math.max(this.t-n,0);
+  r.s = this.s;
+}
+
+// (protected) r = this << n
+function bnpLShiftTo(n,r) {
+  var bs = n%this.DB;
+  var cbs = this.DB-bs;
+  var bm = (1<<cbs)-1;
+  var ds = Math.floor(n/this.DB), c = (this.s<<bs)&this.DM, i;
+  for(i = this.t-1; i >= 0; --i) {
+    r[i+ds+1] = (this[i]>>cbs)|c;
+    c = (this[i]&bm)<<bs;
+  }
+  for(i = ds-1; i >= 0; --i) r[i] = 0;
+  r[ds] = c;
+  r.t = this.t+ds+1;
+  r.s = this.s;
+  r.clamp();
+}
+
+// (protected) r = this >> n
+function bnpRShiftTo(n,r) {
+  r.s = this.s;
+  var ds = Math.floor(n/this.DB);
+  if(ds >= this.t) { r.t = 0; return; }
+  var bs = n%this.DB;
+  var cbs = this.DB-bs;
+  var bm = (1<<bs)-1;
+  r[0] = this[ds]>>bs;
+  for(var i = ds+1; i < this.t; ++i) {
+    r[i-ds-1] |= (this[i]&bm)<<cbs;
+    r[i-ds] = this[i]>>bs;
+  }
+  if(bs > 0) r[this.t-ds-1] |= (this.s&bm)<<cbs;
+  r.t = this.t-ds;
+  r.clamp();
+}
+
+// (protected) r = this - a
+function bnpSubTo(a,r) {
+  var i = 0, c = 0, m = Math.min(a.t,this.t);
+  while(i < m) {
+    c += this[i]-a[i];
+    r[i++] = c&this.DM;
+    c >>= this.DB;
+  }
+  if(a.t < this.t) {
+    c -= a.s;
+    while(i < this.t) {
+      c += this[i];
+      r[i++] = c&this.DM;
+      c >>= this.DB;
+    }
+    c += this.s;
+  }
+  else {
+    c += this.s;
+    while(i < a.t) {
+      c -= a[i];
+      r[i++] = c&this.DM;
+      c >>= this.DB;
+    }
+    c -= a.s;
+  }
+  r.s = (c<0)?-1:0;
+  if(c < -1) r[i++] = this.DV+c;
+  else if(c > 0) r[i++] = c;
+  r.t = i;
+  r.clamp();
+}
+
+// (protected) r = this * a, r != this,a (HAC 14.12)
+// "this" should be the larger one if appropriate.
+function bnpMultiplyTo(a,r) {
+  var x = this.abs(), y = a.abs();
+  var i = x.t;
+  r.t = i+y.t;
+  while(--i >= 0) r[i] = 0;
+  for(i = 0; i < y.t; ++i) r[i+x.t] = x.am(0,y[i],r,i,0,x.t);
+  r.s = 0;
+  r.clamp();
+  if(this.s != a.s) BigInteger.ZERO.subTo(r,r);
+}
+
+// (protected) r = this^2, r != this (HAC 14.16)
+function bnpSquareTo(r) {
+  var x = this.abs();
+  var i = r.t = 2*x.t;
+  while(--i >= 0) r[i] = 0;
+  for(i = 0; i < x.t-1; ++i) {
+    var c = x.am(i,x[i],r,2*i,0,1);
+    if((r[i+x.t]+=x.am(i+1,2*x[i],r,2*i+1,c,x.t-i-1)) >= x.DV) {
+      r[i+x.t] -= x.DV;
+      r[i+x.t+1] = 1;
+    }
+  }
+  if(r.t > 0) r[r.t-1] += x.am(i,x[i],r,2*i,0,1);
+  r.s = 0;
+  r.clamp();
+}
+
+// (protected) divide this by m, quotient and remainder to q, r (HAC 14.20)
+// r != q, this != m.  q or r may be null.
+function bnpDivRemTo(m,q,r) {
+  var pm = m.abs();
+  if(pm.t <= 0) return;
+  var pt = this.abs();
+  if(pt.t < pm.t) {
+    if(q != null) q.fromInt(0);
+    if(r != null) this.copyTo(r);
+    return;
+  }
+  if(r == null) r = nbi();
+  var y = nbi(), ts = this.s, ms = m.s;
+  var nsh = this.DB-nbits(pm[pm.t-1]);	// normalize modulus
+  if(nsh > 0) { pm.lShiftTo(nsh,y); pt.lShiftTo(nsh,r); }
+  else { pm.copyTo(y); pt.copyTo(r); }
+  var ys = y.t;
+  var y0 = y[ys-1];
+  if(y0 == 0) return;
+  var yt = y0*(1<<this.F1)+((ys>1)?y[ys-2]>>this.F2:0);
+  var d1 = this.FV/yt, d2 = (1<<this.F1)/yt, e = 1<<this.F2;
+  var i = r.t, j = i-ys, t = (q==null)?nbi():q;
+  y.dlShiftTo(j,t);
+  if(r.compareTo(t) >= 0) {
+    r[r.t++] = 1;
+    r.subTo(t,r);
+  }
+  BigInteger.ONE.dlShiftTo(ys,t);
+  t.subTo(y,y);	// "negative" y so we can replace sub with am later
+  while(y.t < ys) y[y.t++] = 0;
+  while(--j >= 0) {
+    // Estimate quotient digit
+    var qd = (r[--i]==y0)?this.DM:Math.floor(r[i]*d1+(r[i-1]+e)*d2);
+    if((r[i]+=y.am(0,qd,r,j,0,ys)) < qd) {	// Try it out
+      y.dlShiftTo(j,t);
+      r.subTo(t,r);
+      while(r[i] < --qd) r.subTo(t,r);
+    }
+  }
+  if(q != null) {
+    r.drShiftTo(ys,q);
+    if(ts != ms) BigInteger.ZERO.subTo(q,q);
+  }
+  r.t = ys;
+  r.clamp();
+  if(nsh > 0) r.rShiftTo(nsh,r);	// Denormalize remainder
+  if(ts < 0) BigInteger.ZERO.subTo(r,r);
+}
+
+// (public) this mod a
+function bnMod(a) {
+  var r = nbi();
+  this.abs().divRemTo(a,null,r);
+  if(this.s < 0 && r.compareTo(BigInteger.ZERO) > 0) a.subTo(r,r);
+  return r;
+}
+
+// Modular reduction using "classic" algorithm
+function Classic(m) { this.m = m; }
+function cConvert(x) {
+  if(x.s < 0 || x.compareTo(this.m) >= 0) return x.mod(this.m);
+  else return x;
+}
+function cRevert(x) { return x; }
+function cReduce(x) { x.divRemTo(this.m,null,x); }
+function cMulTo(x,y,r) { x.multiplyTo(y,r); this.reduce(r); }
+function cSqrTo(x,r) { x.squareTo(r); this.reduce(r); }
+
+Classic.prototype.convert = cConvert;
+Classic.prototype.revert = cRevert;
+Classic.prototype.reduce = cReduce;
+Classic.prototype.mulTo = cMulTo;
+Classic.prototype.sqrTo = cSqrTo;
+
+// (protected) return "-1/this % 2^DB"; useful for Mont. reduction
+// justification:
+//         xy == 1 (mod m)
+//         xy =  1+km
+//   xy(2-xy) = (1+km)(1-km)
+// x[y(2-xy)] = 1-k^2m^2
+// x[y(2-xy)] == 1 (mod m^2)
+// if y is 1/x mod m, then y(2-xy) is 1/x mod m^2
+// should reduce x and y(2-xy) by m^2 at each step to keep size bounded.
+// JS multiply "overflows" differently from C/C++, so care is needed here.
+function bnpInvDigit() {
+  if(this.t < 1) return 0;
+  var x = this[0];
+  if((x&1) == 0) return 0;
+  var y = x&3;		// y == 1/x mod 2^2
+  y = (y*(2-(x&0xf)*y))&0xf;	// y == 1/x mod 2^4
+  y = (y*(2-(x&0xff)*y))&0xff;	// y == 1/x mod 2^8
+  y = (y*(2-(((x&0xffff)*y)&0xffff)))&0xffff;	// y == 1/x mod 2^16
+  // last step - calculate inverse mod DV directly;
+  // assumes 16 < DB <= 32 and assumes ability to handle 48-bit ints
+  y = (y*(2-x*y%this.DV))%this.DV;		// y == 1/x mod 2^dbits
+  // we really want the negative inverse, and -DV < y < DV
+  return (y>0)?this.DV-y:-y;
+}
+
+// Montgomery reduction
+function Montgomery(m) {
+  this.m = m;
+  this.mp = m.invDigit();
+  this.mpl = this.mp&0x7fff;
+  this.mph = this.mp>>15;
+  this.um = (1<<(m.DB-15))-1;
+  this.mt2 = 2*m.t;
+}
+
+// xR mod m
+function montConvert(x) {
+  var r = nbi();
+  x.abs().dlShiftTo(this.m.t,r);
+  r.divRemTo(this.m,null,r);
+  if(x.s < 0 && r.compareTo(BigInteger.ZERO) > 0) this.m.subTo(r,r);
+  return r;
+}
+
+// x/R mod m
+function montRevert(x) {
+  var r = nbi();
+  x.copyTo(r);
+  this.reduce(r);
+  return r;
+}
+
+// x = x/R mod m (HAC 14.32)
+function montReduce(x) {
+  while(x.t <= this.mt2)	// pad x so am has enough room later
+    x[x.t++] = 0;
+  for(var i = 0; i < this.m.t; ++i) {
+    // faster way of calculating u0 = x[i]*mp mod DV
+    var j = x[i]&0x7fff;
+    var u0 = (j*this.mpl+(((j*this.mph+(x[i]>>15)*this.mpl)&this.um)<<15))&x.DM;
+    // use am to combine the multiply-shift-add into one call
+    j = i+this.m.t;
+    x[j] += this.m.am(0,u0,x,i,0,this.m.t);
+    // propagate carry
+    while(x[j] >= x.DV) { x[j] -= x.DV; x[++j]++; }
+  }
+  x.clamp();
+  x.drShiftTo(this.m.t,x);
+  if(x.compareTo(this.m) >= 0) x.subTo(this.m,x);
+}
+
+// r = "x^2/R mod m"; x != r
+function montSqrTo(x,r) { x.squareTo(r); this.reduce(r); }
+
+// r = "xy/R mod m"; x,y != r
+function montMulTo(x,y,r) { x.multiplyTo(y,r); this.reduce(r); }
+
+Montgomery.prototype.convert = montConvert;
+Montgomery.prototype.revert = montRevert;
+Montgomery.prototype.reduce = montReduce;
+Montgomery.prototype.mulTo = montMulTo;
+Montgomery.prototype.sqrTo = montSqrTo;
+
+// (protected) true iff this is even
+function bnpIsEven() { return ((this.t>0)?(this[0]&1):this.s) == 0; }
+
+// (protected) this^e, e < 2^32, doing sqr and mul with "r" (HAC 14.79)
+function bnpExp(e,z) {
+  if(e > 0xffffffff || e < 1) return BigInteger.ONE;
+  var r = nbi(), r2 = nbi(), g = z.convert(this), i = nbits(e)-1;
+  g.copyTo(r);
+  while(--i >= 0) {
+    z.sqrTo(r,r2);
+    if((e&(1<<i)) > 0) z.mulTo(r2,g,r);
+    else { var t = r; r = r2; r2 = t; }
+  }
+  return z.revert(r);
+}
+
+// (public) this^e % m, 0 <= e < 2^32
+function bnModPowInt(e,m) {
+  var z;
+  if(e < 256 || m.isEven()) z = new Classic(m); else z = new Montgomery(m);
+  return this.exp(e,z);
+}
+
+// protected
+BigInteger.prototype.copyTo = bnpCopyTo;
+BigInteger.prototype.fromInt = bnpFromInt;
+BigInteger.prototype.fromString = bnpFromString;
+BigInteger.prototype.clamp = bnpClamp;
+BigInteger.prototype.dlShiftTo = bnpDLShiftTo;
+BigInteger.prototype.drShiftTo = bnpDRShiftTo;
+BigInteger.prototype.lShiftTo = bnpLShiftTo;
+BigInteger.prototype.rShiftTo = bnpRShiftTo;
+BigInteger.prototype.subTo = bnpSubTo;
+BigInteger.prototype.multiplyTo = bnpMultiplyTo;
+BigInteger.prototype.squareTo = bnpSquareTo;
+BigInteger.prototype.divRemTo = bnpDivRemTo;
+BigInteger.prototype.invDigit = bnpInvDigit;
+BigInteger.prototype.isEven = bnpIsEven;
+BigInteger.prototype.exp = bnpExp;
+
+// public
+BigInteger.prototype.toString = bnToString;
+BigInteger.prototype.negate = bnNegate;
+BigInteger.prototype.abs = bnAbs;
+BigInteger.prototype.compareTo = bnCompareTo;
+BigInteger.prototype.bitLength = bnBitLength;
+BigInteger.prototype.mod = bnMod;
+BigInteger.prototype.modPowInt = bnModPowInt;
+
+// "constants"
+BigInteger.ZERO = nbv(0);
+BigInteger.ONE = nbv(1);
+
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+// RSA implementation
+
+function SecureRandom(){
+    function nextBytes(byteArray){
+        for(var n = 0; n < byteArray.length;n++){
+            byteArray[n] = openpgp_crypto_getSecureRandomOctet();
+        }
+    }
+    this.nextBytes = nextBytes;
+}
+
+function RSA() {
+	/**
+	 * This function uses jsbn Big Num library to decrypt RSA
+	 * @param m
+	 *            message
+	 * @param d
+	 *            RSA d as BigInteger
+	 * @param p
+	 *            RSA p as BigInteger
+	 * @param q
+	 *            RSA q as BigInteger
+	 * @param u
+	 *            RSA u as BigInteger
+	 * @return {BigInteger} The decrypted value of the message
+	 */
+	function decrypt(m, d, p, q, u) {
+		var xp = m.mod(p).modPow(d.mod(p.subtract(BigInteger.ONE)), p);
+		var xq = m.mod(q).modPow(d.mod(q.subtract(BigInteger.ONE)), q);
+		util.print_debug("rsa.js decrypt\nxpn:"+util.hexstrdump(xp.toMPI())+"\nxqn:"+util.hexstrdump(xq.toMPI()));
+
+		var t = xq.subtract(xp);
+		if (t[0] == 0) {
+			t = xp.subtract(xq);
+			t = t.multiply(u).mod(q);
+			t = q.subtract(t);
+		} else {
+			t = t.multiply(u).mod(q);
+		}
+		return t.multiply(p).add(xp);
+	}
+	
+	/**
+	 * encrypt message
+	 * @param m message as BigInteger
+	 * @param e public MPI part as BigInteger
+	 * @param n public MPI part as BigInteger
+	 * @return BigInteger
+	 */
+	function encrypt(m,e,n) {
+		return m.modPowInt(e, n);
+	}
+	
+	/* Sign and Verify */
+	function sign(m,d,n) {
+		return m.modPow(d, n);
+	}
+		
+	function verify(x,e,n) {
+		return x.modPowInt(e, n);
+	}
+	
+	// "empty" RSA key constructor
+    function keyObject() {
+        this.n = null;
+        this.e = 0;
+        this.ee = null;
+        this.d = null;
+        this.p = null;
+        this.q = null;
+        this.dmp1 = null;
+        this.dmq1 = null;
+        this.u = null;
+    }
+	
+	// Generate a new random private key B bits long, using public expt E
+    function generate(B,E) {
+        var key = new keyObject();
+        var rng = new SecureRandom();
+        var qs = B>>1;
+        key.e = parseInt(E,16);
+        key.ee = new BigInteger(E,16);
+        for(;;) {
+            for(;;) {
+                key.p = new BigInteger(B-qs,1,rng);
+                if(key.p.subtract(BigInteger.ONE).gcd(key.ee).compareTo(BigInteger.ONE) == 0 && key.p.isProbablePrime(10)) break;
+            }
+            for(;;) {
+                key.q = new BigInteger(qs,1,rng);
+                if(key.q.subtract(BigInteger.ONE).gcd(key.ee).compareTo(BigInteger.ONE) == 0 && key.q.isProbablePrime(10)) break;
+            }
+            if(key.p.compareTo(key.q) <= 0) {
+                var t = key.p;
+                key.p = key.q;
+                key.q = t;
+            }
+            var p1 = key.p.subtract(BigInteger.ONE);
+            var q1 = key.q.subtract(BigInteger.ONE);
+            var phi = p1.multiply(q1);
+            if(phi.gcd(key.ee).compareTo(BigInteger.ONE) == 0) {
+                key.n = key.p.multiply(key.q);
+                key.d = key.ee.modInverse(phi);
+                key.dmp1 = key.d.mod(p1);
+                key.dmq1 = key.d.mod(q1);
+                key.u = key.p.modInverse(key.q);
+                break;
+            }
+        }
+        return key;
+    }
+		
+	this.encrypt = encrypt;
+	this.decrypt = decrypt;
+	this.verify = verify;
+	this.sign = sign;
+	this.generate = generate;
+	this.keyObject = keyObject;
+}
+/**
+ * A fast MD5 JavaScript implementation
+ * Copyright (c) 2012 Joseph Myers
+ * http://www.myersdaily.org/joseph/javascript/md5-text.html
+ *
+ * Permission to use, copy, modify, and distribute this software
+ * and its documentation for any purposes and without
+ * fee is hereby granted provided that this copyright notice
+ * appears in all copies.
+ *
+ * Of course, this soft is provided "as is" without express or implied
+ * warranty of any kind.
+ */
+
+function MD5(entree) {
+	var hex = md5(entree);
+	var bin = util.hex2bin(hex);
+	return bin;
+}
+
+function md5cycle(x, k) {
+var a = x[0], b = x[1], c = x[2], d = x[3];
+
+a = ff(a, b, c, d, k[0], 7, -680876936);
+d = ff(d, a, b, c, k[1], 12, -389564586);
+c = ff(c, d, a, b, k[2], 17,  606105819);
+b = ff(b, c, d, a, k[3], 22, -1044525330);
+a = ff(a, b, c, d, k[4], 7, -176418897);
+d = ff(d, a, b, c, k[5], 12,  1200080426);
+c = ff(c, d, a, b, k[6], 17, -1473231341);
+b = ff(b, c, d, a, k[7], 22, -45705983);
+a = ff(a, b, c, d, k[8], 7,  1770035416);
+d = ff(d, a, b, c, k[9], 12, -1958414417);
+c = ff(c, d, a, b, k[10], 17, -42063);
+b = ff(b, c, d, a, k[11], 22, -1990404162);
+a = ff(a, b, c, d, k[12], 7,  1804603682);
+d = ff(d, a, b, c, k[13], 12, -40341101);
+c = ff(c, d, a, b, k[14], 17, -1502002290);
+b = ff(b, c, d, a, k[15], 22,  1236535329);
+
+a = gg(a, b, c, d, k[1], 5, -165796510);
+d = gg(d, a, b, c, k[6], 9, -1069501632);
+c = gg(c, d, a, b, k[11], 14,  643717713);
+b = gg(b, c, d, a, k[0], 20, -373897302);
+a = gg(a, b, c, d, k[5], 5, -701558691);
+d = gg(d, a, b, c, k[10], 9,  38016083);
+c = gg(c, d, a, b, k[15], 14, -660478335);
+b = gg(b, c, d, a, k[4], 20, -405537848);
+a = gg(a, b, c, d, k[9], 5,  568446438);
+d = gg(d, a, b, c, k[14], 9, -1019803690);
+c = gg(c, d, a, b, k[3], 14, -187363961);
+b = gg(b, c, d, a, k[8], 20,  1163531501);
+a = gg(a, b, c, d, k[13], 5, -1444681467);
+d = gg(d, a, b, c, k[2], 9, -51403784);
+c = gg(c, d, a, b, k[7], 14,  1735328473);
+b = gg(b, c, d, a, k[12], 20, -1926607734);
+
+a = hh(a, b, c, d, k[5], 4, -378558);
+d = hh(d, a, b, c, k[8], 11, -2022574463);
+c = hh(c, d, a, b, k[11], 16,  1839030562);
+b = hh(b, c, d, a, k[14], 23, -35309556);
+a = hh(a, b, c, d, k[1], 4, -1530992060);
+d = hh(d, a, b, c, k[4], 11,  1272893353);
+c = hh(c, d, a, b, k[7], 16, -155497632);
+b = hh(b, c, d, a, k[10], 23, -1094730640);
+a = hh(a, b, c, d, k[13], 4,  681279174);
+d = hh(d, a, b, c, k[0], 11, -358537222);
+c = hh(c, d, a, b, k[3], 16, -722521979);
+b = hh(b, c, d, a, k[6], 23,  76029189);
+a = hh(a, b, c, d, k[9], 4, -640364487);
+d = hh(d, a, b, c, k[12], 11, -421815835);
+c = hh(c, d, a, b, k[15], 16,  530742520);
+b = hh(b, c, d, a, k[2], 23, -995338651);
+
+a = ii(a, b, c, d, k[0], 6, -198630844);
+d = ii(d, a, b, c, k[7], 10,  1126891415);
+c = ii(c, d, a, b, k[14], 15, -1416354905);
+b = ii(b, c, d, a, k[5], 21, -57434055);
+a = ii(a, b, c, d, k[12], 6,  1700485571);
+d = ii(d, a, b, c, k[3], 10, -1894986606);
+c = ii(c, d, a, b, k[10], 15, -1051523);
+b = ii(b, c, d, a, k[1], 21, -2054922799);
+a = ii(a, b, c, d, k[8], 6,  1873313359);
+d = ii(d, a, b, c, k[15], 10, -30611744);
+c = ii(c, d, a, b, k[6], 15, -1560198380);
+b = ii(b, c, d, a, k[13], 21,  1309151649);
+a = ii(a, b, c, d, k[4], 6, -145523070);
+d = ii(d, a, b, c, k[11], 10, -1120210379);
+c = ii(c, d, a, b, k[2], 15,  718787259);
+b = ii(b, c, d, a, k[9], 21, -343485551);
+
+x[0] = add32(a, x[0]);
+x[1] = add32(b, x[1]);
+x[2] = add32(c, x[2]);
+x[3] = add32(d, x[3]);
+
+}
+
+function cmn(q, a, b, x, s, t) {
+a = add32(add32(a, q), add32(x, t));
+return add32((a << s) | (a >>> (32 - s)), b);
+}
+
+function ff(a, b, c, d, x, s, t) {
+return cmn((b & c) | ((~b) & d), a, b, x, s, t);
+}
+
+function gg(a, b, c, d, x, s, t) {
+return cmn((b & d) | (c & (~d)), a, b, x, s, t);
+}
+
+function hh(a, b, c, d, x, s, t) {
+return cmn(b ^ c ^ d, a, b, x, s, t);
+}
+
+function ii(a, b, c, d, x, s, t) {
+return cmn(c ^ (b | (~d)), a, b, x, s, t);
+}
+
+function md51(s) {
+txt = '';
+var n = s.length,
+state = [1732584193, -271733879, -1732584194, 271733878], i;
+for (i=64; i<=s.length; i+=64) {
+md5cycle(state, md5blk(s.substring(i-64, i)));
+}
+s = s.substring(i-64);
+var tail = [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
+for (i=0; i<s.length; i++)
+tail[i>>2] |= s.charCodeAt(i) << ((i%4) << 3);
+tail[i>>2] |= 0x80 << ((i%4) << 3);
+if (i > 55) {
+md5cycle(state, tail);
+for (i=0; i<16; i++) tail[i] = 0;
+}
+tail[14] = n*8;
+md5cycle(state, tail);
+return state;
+}
+
+/* there needs to be support for Unicode here,
+ * unless we pretend that we can redefine the MD-5
+ * algorithm for multi-byte characters (perhaps
+ * by adding every four 16-bit characters and
+ * shortening the sum to 32 bits). Otherwise
+ * I suggest performing MD-5 as if every character
+ * was two bytes--e.g., 0040 0025 = @%--but then
+ * how will an ordinary MD-5 sum be matched?
+ * There is no way to standardize text to something
+ * like UTF-8 before transformation; speed cost is
+ * utterly prohibitive. The JavaScript standard
+ * itself needs to look at this: it should start
+ * providing access to strings as preformed UTF-8
+ * 8-bit unsigned value arrays.
+ */
+function md5blk(s) { /* I figured global was faster.   */
+var md5blks = [], i; /* Andy King said do it this way. */
+for (i=0; i<64; i+=4) {
+md5blks[i>>2] = s.charCodeAt(i)
++ (s.charCodeAt(i+1) << 8)
++ (s.charCodeAt(i+2) << 16)
++ (s.charCodeAt(i+3) << 24);
+}
+return md5blks;
+}
+
+var hex_chr = '0123456789abcdef'.split('');
+
+function rhex(n)
+{
+var s='', j=0;
+for(; j<4; j++)
+s += hex_chr[(n >> (j * 8 + 4)) & 0x0F]
++ hex_chr[(n >> (j * 8)) & 0x0F];
+return s;
+}
+
+function hex(x) {
+for (var i=0; i<x.length; i++)
+x[i] = rhex(x[i]);
+return x.join('');
+}
+
+function md5(s) {
+return hex(md51(s));
+}
+
+/* this function is much faster,
+so if possible we use it. Some IEs
+are the only ones I know of that
+need the idiotic second function,
+generated by an if clause.  */
+
+function add32(a, b) {
+return (a + b) & 0xFFFFFFFF;
+}
+
+if (md5('hello') != '5d41402abc4b2a76b9719d911017c592') {
+function add32(x, y) {
+var lsw = (x & 0xFFFF) + (y & 0xFFFF),
+msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+return (msw << 16) | (lsw & 0xFFFF);
+}
+}
+/*
+ * CryptoMX Tools
+ * Copyright (C) 2004 - 2006 Derek Buitenhuis
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+/* Modified by Recurity Labs GmbH
+ */
+
+var RMDsize   = 160;
+var X = new Array();
+
+function ROL(x, n)
+{
+  return new Number ((x << n) | ( x >>> (32 - n)));
+}
+
+function F(x, y, z)
+{
+  return new Number(x ^ y ^ z);
+}
+
+function G(x, y, z)
+{
+  return new Number((x & y) | (~x & z));
+}
+
+function H(x, y, z)
+{
+  return new Number((x | ~y) ^ z);
+}
+
+function I(x, y, z)
+{
+  return new Number((x & z) | (y & ~z));
+}
+
+function J(x, y, z)
+{
+  return new Number(x ^ (y | ~z));
+}
+
+function mixOneRound(a, b, c, d, e, x, s, roundNumber)
+{
+  switch (roundNumber)
+  {
+    case 0 : a += F(b, c, d) + x + 0x00000000; break;
+    case 1 : a += G(b, c, d) + x + 0x5a827999; break;
+    case 2 : a += H(b, c, d) + x + 0x6ed9eba1; break;
+    case 3 : a += I(b, c, d) + x + 0x8f1bbcdc; break;
+    case 4 : a += J(b, c, d) + x + 0xa953fd4e; break;
+    case 5 : a += J(b, c, d) + x + 0x50a28be6; break;
+    case 6 : a += I(b, c, d) + x + 0x5c4dd124; break;
+    case 7 : a += H(b, c, d) + x + 0x6d703ef3; break;
+    case 8 : a += G(b, c, d) + x + 0x7a6d76e9; break;
+    case 9 : a += F(b, c, d) + x + 0x00000000; break;
+    
+    default : document.write("Bogus round number"); break;
+  }  
+  
+  a = ROL(a, s) + e;
+  c = ROL(c, 10);
+
+  a &= 0xffffffff;
+  b &= 0xffffffff;
+  c &= 0xffffffff;
+  d &= 0xffffffff;
+  e &= 0xffffffff;
+
+  var retBlock = new Array();
+  retBlock[0] = a;
+  retBlock[1] = b;
+  retBlock[2] = c;
+  retBlock[3] = d;
+  retBlock[4] = e;
+  retBlock[5] = x;
+  retBlock[6] = s;
+
+  return retBlock;
+}
+
+function MDinit (MDbuf)
+{
+  MDbuf[0] = 0x67452301;
+  MDbuf[1] = 0xefcdab89;
+  MDbuf[2] = 0x98badcfe;
+  MDbuf[3] = 0x10325476;
+  MDbuf[4] = 0xc3d2e1f0;
+}
+
+var ROLs = [
+  [11, 14, 15, 12,  5,  8,  7,  9, 11, 13, 14, 15,  6,  7,  9,  8],
+  [ 7,  6,  8, 13, 11,  9,  7, 15,  7, 12, 15,  9, 11,  7, 13, 12],
+  [11, 13,  6,  7, 14,  9, 13, 15, 14,  8, 13,  6,  5, 12,  7,  5],
+  [11, 12, 14, 15, 14, 15,  9,  8,  9, 14,  5,  6,  8,  6,  5, 12],
+  [ 9, 15,  5, 11,  6,  8, 13, 12,  5, 12, 13, 14, 11,  8,  5,  6],
+  [ 8,  9,  9, 11, 13, 15, 15,  5,  7,  7,  8, 11, 14, 14, 12,  6],
+  [ 9, 13, 15,  7, 12,  8,  9, 11,  7,  7, 12,  7,  6, 15, 13, 11],
+  [ 9,  7, 15, 11,  8,  6,  6, 14, 12, 13,  5, 14, 13, 13,  7,  5],
+  [15,  5,  8, 11, 14, 14,  6, 14,  6,  9, 12,  9, 12,  5, 15,  8],
+  [ 8,  5, 12,  9, 12,  5, 14,  6,  8, 13,  6,  5, 15, 13, 11, 11]
+];
+
+var indexes = [
+  [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15],
+  [ 7,  4, 13,  1, 10,  6, 15,  3, 12,  0,  9,  5,  2, 14, 11,  8],
+  [ 3, 10, 14,  4,  9, 15,  8,  1,  2,  7,  0,  6, 13, 11,  5, 12],
+  [ 1,  9, 11, 10,  0,  8, 12,  4, 13,  3,  7, 15, 14,  5,  6,  2],
+  [ 4,  0,  5,  9,  7, 12,  2, 10, 14,  1,  3,  8, 11,  6, 15, 13],
+  [ 5, 14,  7,  0,  9,  2, 11,  4, 13,  6, 15,  8,  1, 10,  3, 12],
+  [ 6, 11,  3,  7,  0, 13,  5, 10, 14, 15,  8, 12,  4,  9,  1,  2],
+  [15,  5,  1,  3,  7, 14,  6,  9, 11,  8, 12,  2, 10,  0,  4, 13],
+  [ 8,  6,  4,  1,  3, 11, 15,  0,  5, 12,  2, 13,  9,  7, 10, 14],
+  [12, 15, 10,  4,  1,  5,  8,  7,  6,  2, 13, 14,  0,  3,  9, 11]
+];
+
+function compress (MDbuf, X)
+{
+  blockA = new Array();
+  blockB = new Array();
+
+  var retBlock;
+
+  for (var i=0; i < 5; i++)
+  {
+    blockA[i] = new Number(MDbuf[i]);
+    blockB[i] = new Number(MDbuf[i]);
+  }
+
+  var step = 0;
+  for (var j = 0; j < 5; j++)
+  {
+    for (var i = 0; i < 16; i++)
+    {
+      retBlock = mixOneRound(
+        blockA[(step+0) % 5],
+        blockA[(step+1) % 5],   
+        blockA[(step+2) % 5],   
+        blockA[(step+3) % 5],   
+        blockA[(step+4) % 5],  
+        X[indexes[j][i]], 
+        ROLs[j][i],
+        j
+      );
+
+      blockA[(step+0) % 5] = retBlock[0];
+      blockA[(step+1) % 5] = retBlock[1];
+      blockA[(step+2) % 5] = retBlock[2];
+      blockA[(step+3) % 5] = retBlock[3];
+      blockA[(step+4) % 5] = retBlock[4];
+
+      step += 4;
+    }
+  }
+
+  step = 0;
+  for (var j = 5; j < 10; j++)
+  {
+    for (var i = 0; i < 16; i++)
+    {  
+      retBlock = mixOneRound(
+        blockB[(step+0) % 5], 
+        blockB[(step+1) % 5], 
+        blockB[(step+2) % 5], 
+        blockB[(step+3) % 5], 
+        blockB[(step+4) % 5],  
+        X[indexes[j][i]], 
+        ROLs[j][i],
+        j
+      );
+
+      blockB[(step+0) % 5] = retBlock[0];
+      blockB[(step+1) % 5] = retBlock[1];
+      blockB[(step+2) % 5] = retBlock[2];
+      blockB[(step+3) % 5] = retBlock[3];
+      blockB[(step+4) % 5] = retBlock[4];
+
+      step += 4;
+    }
+  }
+
+  blockB[3] += blockA[2] + MDbuf[1];
+  MDbuf[1]  = MDbuf[2] + blockA[3] + blockB[4];
+  MDbuf[2]  = MDbuf[3] + blockA[4] + blockB[0];
+  MDbuf[3]  = MDbuf[4] + blockA[0] + blockB[1];
+  MDbuf[4]  = MDbuf[0] + blockA[1] + blockB[2];
+  MDbuf[0]  = blockB[3];
+}
+
+function zeroX(X)
+{
+  for (var i = 0; i < 16; i++) { X[i] = 0; }
+}
+
+function MDfinish (MDbuf, strptr, lswlen, mswlen)
+{
+  var X = new Array(16);
+  zeroX(X);
+
+  var j = 0;
+  for (var i=0; i < (lswlen & 63); i++)
+  {
+    X[i >>> 2] ^= (strptr.charCodeAt(j++) & 255) << (8 * (i & 3));
+  }
+
+  X[(lswlen >>> 2) & 15] ^= 1 << (8 * (lswlen & 3) + 7);
+
+  if ((lswlen & 63) > 55)
+  {
+    compress(MDbuf, X);
+    var X = new Array(16);
+    zeroX(X);
+  }
+
+  X[14] = lswlen << 3;
+  X[15] = (lswlen >>> 29) | (mswlen << 3);
+
+  compress(MDbuf, X);
+}
+
+function BYTES_TO_DWORD(fourChars)
+{
+  var tmp  = (fourChars.charCodeAt(3) & 255) << 24;
+  tmp   |= (fourChars.charCodeAt(2) & 255) << 16;
+  tmp   |= (fourChars.charCodeAt(1) & 255) << 8;
+  tmp   |= (fourChars.charCodeAt(0) & 255);  
+
+  return tmp;
+}
+
+function RMD(message)
+{
+  var MDbuf   = new Array(RMDsize / 32);
+  var hashcode   = new Array(RMDsize / 8);
+  var length;  
+  var nbytes;
+
+  MDinit(MDbuf);
+  length = message.length;
+
+  var X = new Array(16);
+  zeroX(X);
+
+  var j=0;
+  for (var nbytes=length; nbytes > 63; nbytes -= 64)
+  {
+    for (var i=0; i < 16; i++)
+    {
+      X[i] = BYTES_TO_DWORD(message.substr(j, 4));
+      j += 4;
+    }
+    compress(MDbuf, X);
+  }
+
+  MDfinish(MDbuf, message.substr(j), length, 0);
+
+  for (var i=0; i < RMDsize / 8; i += 4)
+  {
+    hashcode[i]   =  MDbuf[i >>> 2]   & 255;
+    hashcode[i+1] = (MDbuf[i >>> 2] >>> 8)   & 255;
+    hashcode[i+2] = (MDbuf[i >>> 2] >>> 16) & 255;
+    hashcode[i+3] = (MDbuf[i >>> 2] >>> 24) & 255;
+  }
+
+  return hashcode;
+}
+
+
+function RMDstring(message)
+{
+  var hashcode = RMD(message);
+  var retString = "";
+
+  for (var i=0; i < RMDsize/8; i++)
+  {
+    retString += String.fromCharCode(hashcode[i]);
+  }  
+
+  return retString;  
+}/* A JavaScript implementation of the SHA family of hashes, as defined in FIPS 
+ * PUB 180-2 as well as the corresponding HMAC implementation as defined in
+ * FIPS PUB 198a
+ *
+ * Version 1.3 Copyright Brian Turek 2008-2010
+ * Distributed under the BSD License
+ * See http://jssha.sourceforge.net/ for more information
+ *
+ * Several functions taken from Paul Johnson
+ */
+
+/* Modified by Recurity Labs GmbH
+ * 
+ * This code has been slightly modified direct string output:
+ * - bin2bstr has been added
+ * - following wrappers of this library have been added:
+ *   - str_sha1
+ *   - str_sha256
+ *   - str_sha224
+ *   - str_sha384
+ *   - str_sha512
+ */
+
+var jsSHA = (function () {
+	
+	/*
+	 * Configurable variables. Defaults typically work
+	 */
+	/* Number of Bits Per character (8 for ASCII, 16 for Unicode) */
+	var charSize = 8, 
+	/* base-64 pad character. "=" for strict RFC compliance */
+	b64pad = "", 
+	/* hex output format. 0 - lowercase; 1 - uppercase */
+	hexCase = 0, 
+
+	/*
+	 * Int_64 is a object for 2 32-bit numbers emulating a 64-bit number
+	 *
+	 * @constructor
+	 * @param {Number} msint_32 The most significant 32-bits of a 64-bit number
+	 * @param {Number} lsint_32 The least significant 32-bits of a 64-bit number
+	 */
+	Int_64 = function (msint_32, lsint_32)
+	{
+		this.highOrder = msint_32;
+		this.lowOrder = lsint_32;
+	},
+
+	/*
+	 * Convert a string to an array of big-endian words
+	 * If charSize is ASCII, characters >255 have their hi-byte silently
+	 * ignored.
+	 *
+	 * @param {String} str String to be converted to binary representation
+	 * @return Integer array representation of the parameter
+	 */
+	str2binb = function (str)
+	{
+		var bin = [], mask = (1 << charSize) - 1,
+			length = str.length * charSize, i;
+
+		for (i = 0; i < length; i += charSize)
+		{
+			bin[i >> 5] |= (str.charCodeAt(i / charSize) & mask) <<
+				(32 - charSize - (i % 32));
+		}
+
+		return bin;
+	},
+
+	/*
+	 * Convert a hex string to an array of big-endian words
+	 *
+	 * @param {String} str String to be converted to binary representation
+	 * @return Integer array representation of the parameter
+	 */
+	hex2binb = function (str)
+	{
+		var bin = [], length = str.length, i, num;
+
+		for (i = 0; i < length; i += 2)
+		{
+			num = parseInt(str.substr(i, 2), 16);
+			if (!isNaN(num))
+			{
+				bin[i >> 3] |= num << (24 - (4 * (i % 8)));
+			}
+			else
+			{
+				return "INVALID HEX STRING";
+			}
+		}
+
+		return bin;
+	},
+
+	/*
+	 * Convert an array of big-endian words to a hex string.
+	 *
+	 * @private
+	 * @param {Array} binarray Array of integers to be converted to hexidecimal
+	 *	 representation
+	 * @return Hexidecimal representation of the parameter in String form
+	 */
+	binb2hex = function (binarray)
+	{
+		var hex_tab = (hexCase) ? "0123456789ABCDEF" : "0123456789abcdef",
+			str = "", length = binarray.length * 4, i, srcByte;
+
+		for (i = 0; i < length; i += 1)
+		{
+			srcByte = binarray[i >> 2] >> ((3 - (i % 4)) * 8);
+			str += hex_tab.charAt((srcByte >> 4) & 0xF) +
+				hex_tab.charAt(srcByte & 0xF);
+		}
+
+		return str;
+	},
+
+	/*
+	 * Convert an array of big-endian words to a base-64 string
+	 *
+	 * @private
+	 * @param {Array} binarray Array of integers to be converted to base-64
+	 *	 representation
+	 * @return Base-64 encoded representation of the parameter in String form
+	 */
+	binb2b64 = function (binarray)
+	{
+		var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
+			"0123456789+/", str = "", length = binarray.length * 4, i, j,
+			triplet;
+
+		for (i = 0; i < length; i += 3)
+		{
+			triplet = (((binarray[i >> 2] >> 8 * (3 - i % 4)) & 0xFF) << 16) |
+				(((binarray[i + 1 >> 2] >> 8 * (3 - (i + 1) % 4)) & 0xFF) << 8) |
+				((binarray[i + 2 >> 2] >> 8 * (3 - (i + 2) % 4)) & 0xFF);
+			for (j = 0; j < 4; j += 1)
+			{
+				if (i * 8 + j * 6 <= binarray.length * 32)
+				{
+					str += tab.charAt((triplet >> 6 * (3 - j)) & 0x3F);
+				}
+				else
+				{
+					str += b64pad;
+				}
+			}
+		}
+		return str;
+	},
+
+	/*
+	 * Convert an array of big-endian words to a string
+	 */
+	binb2str = function (bin)
+	{
+	  var str = "";
+	  var mask = (1 << 8) - 1;
+	  for(var i = 0; i < bin.length * 32; i += 8)
+	    str += String.fromCharCode((bin[i>>5] >>> (24 - i%32)) & mask);
+	  return str;
+	},
+	/*
+	 * The 32-bit implementation of circular rotate left
+	 *
+	 * @private
+	 * @param {Number} x The 32-bit integer argument
+	 * @param {Number} n The number of bits to shift
+	 * @return The x shifted circularly by n bits
+	 */
+	rotl_32 = function (x, n)
+	{
+		return (x << n) | (x >>> (32 - n));
+	},
+
+	/*
+	 * The 32-bit implementation of circular rotate right
+	 *
+	 * @private
+	 * @param {Number} x The 32-bit integer argument
+	 * @param {Number} n The number of bits to shift
+	 * @return The x shifted circularly by n bits
+	 */
+	rotr_32 = function (x, n)
+	{
+		return (x >>> n) | (x << (32 - n));
+	},
+
+	/*
+	 * The 64-bit implementation of circular rotate right
+	 *
+	 * @private
+	 * @param {Int_64} x The 64-bit integer argument
+	 * @param {Number} n The number of bits to shift
+	 * @return The x shifted circularly by n bits
+	 */
+	rotr_64 = function (x, n)
+	{
+		if (n <= 32)
+		{
+			return new Int_64(
+					(x.highOrder >>> n) | (x.lowOrder << (32 - n)),
+					(x.lowOrder >>> n) | (x.highOrder << (32 - n))
+				);
+		}
+		else
+		{
+			return new Int_64(
+					(x.lowOrder >>> n) | (x.highOrder << (32 - n)),
+					(x.highOrder >>> n) | (x.lowOrder << (32 - n))
+				);
+		}
+	},
+
+	/*
+	 * The 32-bit implementation of shift right
+	 *
+	 * @private
+	 * @param {Number} x The 32-bit integer argument
+	 * @param {Number} n The number of bits to shift
+	 * @return The x shifted by n bits
+	 */
+	shr_32 = function (x, n)
+	{
+		return x >>> n;
+	},
+
+	/*
+	 * The 64-bit implementation of shift right
+	 *
+	 * @private
+	 * @param {Int_64} x The 64-bit integer argument
+	 * @param {Number} n The number of bits to shift
+	 * @return The x shifted by n bits
+	 */
+	shr_64 = function (x, n)
+	{
+		if (n <= 32)
+		{
+			return new Int_64(
+					x.highOrder >>> n,
+					x.lowOrder >>> n | (x.highOrder << (32 - n))
+				);
+		}
+		else
+		{
+			return new Int_64(
+					0,
+					x.highOrder << (32 - n)
+				);
+		}
+	},
+
+	/*
+	 * The 32-bit implementation of the NIST specified Parity function
+	 *
+	 * @private
+	 * @param {Number} x The first 32-bit integer argument
+	 * @param {Number} y The second 32-bit integer argument
+	 * @param {Number} z The third 32-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	parity_32 = function (x, y, z)
+	{
+		return x ^ y ^ z;
+	},
+
+	/*
+	 * The 32-bit implementation of the NIST specified Ch function
+	 *
+	 * @private
+	 * @param {Number} x The first 32-bit integer argument
+	 * @param {Number} y The second 32-bit integer argument
+	 * @param {Number} z The third 32-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	ch_32 = function (x, y, z)
+	{
+		return (x & y) ^ (~x & z);
+	},
+
+	/*
+	 * The 64-bit implementation of the NIST specified Ch function
+	 *
+	 * @private
+	 * @param {Int_64} x The first 64-bit integer argument
+	 * @param {Int_64} y The second 64-bit integer argument
+	 * @param {Int_64} z The third 64-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	ch_64 = function (x, y, z)
+	{
+		return new Int_64(
+				(x.highOrder & y.highOrder) ^ (~x.highOrder & z.highOrder),
+				(x.lowOrder & y.lowOrder) ^ (~x.lowOrder & z.lowOrder)
+			);
+	},
+
+	/*
+	 * The 32-bit implementation of the NIST specified Maj function
+	 *
+	 * @private
+	 * @param {Number} x The first 32-bit integer argument
+	 * @param {Number} y The second 32-bit integer argument
+	 * @param {Number} z The third 32-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	maj_32 = function (x, y, z)
+	{
+		return (x & y) ^ (x & z) ^ (y & z);
+	},
+
+	/*
+	 * The 64-bit implementation of the NIST specified Maj function
+	 *
+	 * @private
+	 * @param {Int_64} x The first 64-bit integer argument
+	 * @param {Int_64} y The second 64-bit integer argument
+	 * @param {Int_64} z The third 64-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	maj_64 = function (x, y, z)
+	{
+		return new Int_64(
+				(x.highOrder & y.highOrder) ^
+				(x.highOrder & z.highOrder) ^
+				(y.highOrder & z.highOrder),
+				(x.lowOrder & y.lowOrder) ^
+				(x.lowOrder & z.lowOrder) ^
+				(y.lowOrder & z.lowOrder)
+			);
+	},
+
+	/*
+	 * The 32-bit implementation of the NIST specified Sigma0 function
+	 *
+	 * @private
+	 * @param {Number} x The 32-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	sigma0_32 = function (x)
+	{
+		return rotr_32(x, 2) ^ rotr_32(x, 13) ^ rotr_32(x, 22);
+	},
+
+	/*
+	 * The 64-bit implementation of the NIST specified Sigma0 function
+	 *
+	 * @private
+	 * @param {Int_64} x The 64-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	sigma0_64 = function (x)
+	{
+		var rotr28 = rotr_64(x, 28), rotr34 = rotr_64(x, 34),
+			rotr39 = rotr_64(x, 39);
+
+		return new Int_64(
+				rotr28.highOrder ^ rotr34.highOrder ^ rotr39.highOrder,
+				rotr28.lowOrder ^ rotr34.lowOrder ^ rotr39.lowOrder);
+	},
+
+	/*
+	 * The 32-bit implementation of the NIST specified Sigma1 function
+	 *
+	 * @private
+	 * @param {Number} x The 32-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	sigma1_32 = function (x)
+	{
+		return rotr_32(x, 6) ^ rotr_32(x, 11) ^ rotr_32(x, 25);
+	},
+
+	/*
+	 * The 64-bit implementation of the NIST specified Sigma1 function
+	 *
+	 * @private
+	 * @param {Int_64} x The 64-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	sigma1_64 = function (x)
+	{
+		var rotr14 = rotr_64(x, 14), rotr18 = rotr_64(x, 18),
+			rotr41 = rotr_64(x, 41);
+
+		return new Int_64(
+				rotr14.highOrder ^ rotr18.highOrder ^ rotr41.highOrder,
+				rotr14.lowOrder ^ rotr18.lowOrder ^ rotr41.lowOrder);
+	},
+
+	/*
+	 * The 32-bit implementation of the NIST specified Gamma0 function
+	 *
+	 * @private
+	 * @param {Number} x The 32-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	gamma0_32 = function (x)
+	{
+		return rotr_32(x, 7) ^ rotr_32(x, 18) ^ shr_32(x, 3);
+	},
+
+	/*
+	 * The 64-bit implementation of the NIST specified Gamma0 function
+	 *
+	 * @private
+	 * @param {Int_64} x The 64-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	gamma0_64 = function (x)
+	{
+		var rotr1 = rotr_64(x, 1), rotr8 = rotr_64(x, 8), shr7 = shr_64(x, 7);
+
+		return new Int_64(
+				rotr1.highOrder ^ rotr8.highOrder ^ shr7.highOrder,
+				rotr1.lowOrder ^ rotr8.lowOrder ^ shr7.lowOrder
+			);
+	},
+
+	/*
+	 * The 32-bit implementation of the NIST specified Gamma1 function
+	 *
+	 * @private
+	 * @param {Number} x The 32-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	gamma1_32 = function (x)
+	{
+		return rotr_32(x, 17) ^ rotr_32(x, 19) ^ shr_32(x, 10);
+	},
+
+	/*
+	 * The 64-bit implementation of the NIST specified Gamma1 function
+	 *
+	 * @private
+	 * @param {Int_64} x The 64-bit integer argument
+	 * @return The NIST specified output of the function
+	 */
+	gamma1_64 = function (x)
+	{
+		var rotr19 = rotr_64(x, 19), rotr61 = rotr_64(x, 61),
+			shr6 = shr_64(x, 6);
+
+		return new Int_64(
+				rotr19.highOrder ^ rotr61.highOrder ^ shr6.highOrder,
+				rotr19.lowOrder ^ rotr61.lowOrder ^ shr6.lowOrder
+			);
+	},
+
+	/*
+	 * Add two 32-bit integers, wrapping at 2^32. This uses 16-bit operations
+	 * internally to work around bugs in some JS interpreters.
+	 *
+	 * @private
+	 * @param {Number} x The first 32-bit integer argument to be added
+	 * @param {Number} y The second 32-bit integer argument to be added
+	 * @return The sum of x + y
+	 */
+	safeAdd_32_2 = function (x, y)
+	{
+		var lsw = (x & 0xFFFF) + (y & 0xFFFF),
+			msw = (x >>> 16) + (y >>> 16) + (lsw >>> 16);
+
+		return ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+	},
+
+	/*
+	 * Add four 32-bit integers, wrapping at 2^32. This uses 16-bit operations
+	 * internally to work around bugs in some JS interpreters.
+	 *
+	 * @private
+	 * @param {Number} a The first 32-bit integer argument to be added
+	 * @param {Number} b The second 32-bit integer argument to be added
+	 * @param {Number} c The third 32-bit integer argument to be added
+	 * @param {Number} d The fourth 32-bit integer argument to be added
+	 * @return The sum of a + b + c + d
+	 */
+	safeAdd_32_4 = function (a, b, c, d)
+	{
+		var lsw = (a & 0xFFFF) + (b & 0xFFFF) + (c & 0xFFFF) + (d & 0xFFFF),
+			msw = (a >>> 16) + (b >>> 16) + (c >>> 16) + (d >>> 16) +
+				(lsw >>> 16);
+
+		return ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+	},
+
+	/*
+	 * Add five 32-bit integers, wrapping at 2^32. This uses 16-bit operations
+	 * internally to work around bugs in some JS interpreters.
+	 *
+	 * @private
+	 * @param {Number} a The first 32-bit integer argument to be added
+	 * @param {Number} b The second 32-bit integer argument to be added
+	 * @param {Number} c The third 32-bit integer argument to be added
+	 * @param {Number} d The fourth 32-bit integer argument to be added
+	 * @param {Number} e The fifth 32-bit integer argument to be added
+	 * @return The sum of a + b + c + d + e
+	 */
+	safeAdd_32_5 = function (a, b, c, d, e)
+	{
+		var lsw = (a & 0xFFFF) + (b & 0xFFFF) + (c & 0xFFFF) + (d & 0xFFFF) +
+				(e & 0xFFFF),
+			msw = (a >>> 16) + (b >>> 16) + (c >>> 16) + (d >>> 16) +
+				(e >>> 16) + (lsw >>> 16);
+
+		return ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+	},
+
+	/*
+	 * Add two 64-bit integers, wrapping at 2^64. This uses 16-bit operations
+	 * internally to work around bugs in some JS interpreters.
+	 *
+	 * @private
+	 * @param {Int_64} x The first 64-bit integer argument to be added
+	 * @param {Int_64} y The second 64-bit integer argument to be added
+	 * @return The sum of x + y
+	 */
+	safeAdd_64_2 = function (x, y)
+	{
+		var lsw, msw, lowOrder, highOrder;
+
+		lsw = (x.lowOrder & 0xFFFF) + (y.lowOrder & 0xFFFF);
+		msw = (x.lowOrder >>> 16) + (y.lowOrder >>> 16) + (lsw >>> 16);
+		lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+		lsw = (x.highOrder & 0xFFFF) + (y.highOrder & 0xFFFF) + (msw >>> 16);
+		msw = (x.highOrder >>> 16) + (y.highOrder >>> 16) + (lsw >>> 16);
+		highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+		return new Int_64(highOrder, lowOrder);
+	},
+
+	/*
+	 * Add four 64-bit integers, wrapping at 2^64. This uses 16-bit operations
+	 * internally to work around bugs in some JS interpreters.
+	 *
+	 * @private
+	 * @param {Int_64} a The first 64-bit integer argument to be added
+	 * @param {Int_64} b The second 64-bit integer argument to be added
+	 * @param {Int_64} c The third 64-bit integer argument to be added
+	 * @param {Int_64} d The fouth 64-bit integer argument to be added
+	 * @return The sum of a + b + c + d
+	 */
+	safeAdd_64_4 = function (a, b, c, d)
+	{
+		var lsw, msw, lowOrder, highOrder;
+
+		lsw = (a.lowOrder & 0xFFFF) + (b.lowOrder & 0xFFFF) +
+			(c.lowOrder & 0xFFFF) + (d.lowOrder & 0xFFFF);
+		msw = (a.lowOrder >>> 16) + (b.lowOrder >>> 16) +
+			(c.lowOrder >>> 16) + (d.lowOrder >>> 16) + (lsw >>> 16);
+		lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+		lsw = (a.highOrder & 0xFFFF) + (b.highOrder & 0xFFFF) +
+			(c.highOrder & 0xFFFF) + (d.highOrder & 0xFFFF) + (msw >>> 16);
+		msw = (a.highOrder >>> 16) + (b.highOrder >>> 16) +
+			(c.highOrder >>> 16) + (d.highOrder >>> 16) + (lsw >>> 16);
+		highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+		return new Int_64(highOrder, lowOrder);
+	},
+
+	/*
+	 * Add five 64-bit integers, wrapping at 2^64. This uses 16-bit operations
+	 * internally to work around bugs in some JS interpreters.
+	 *
+	 * @private
+	 * @param {Int_64} a The first 64-bit integer argument to be added
+	 * @param {Int_64} b The second 64-bit integer argument to be added
+	 * @param {Int_64} c The third 64-bit integer argument to be added
+	 * @param {Int_64} d The fouth 64-bit integer argument to be added
+	 * @param {Int_64} e The fouth 64-bit integer argument to be added
+	 * @return The sum of a + b + c + d + e
+	 */
+	safeAdd_64_5 = function (a, b, c, d, e)
+	{
+		var lsw, msw, lowOrder, highOrder;
+
+		lsw = (a.lowOrder & 0xFFFF) + (b.lowOrder & 0xFFFF) +
+			(c.lowOrder & 0xFFFF) + (d.lowOrder & 0xFFFF) +
+			(e.lowOrder & 0xFFFF);
+		msw = (a.lowOrder >>> 16) + (b.lowOrder >>> 16) +
+			(c.lowOrder >>> 16) + (d.lowOrder >>> 16) + (e.lowOrder >>> 16) +
+			(lsw >>> 16);
+		lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+		lsw = (a.highOrder & 0xFFFF) + (b.highOrder & 0xFFFF) +
+			(c.highOrder & 0xFFFF) + (d.highOrder & 0xFFFF) +
+			(e.highOrder & 0xFFFF) + (msw >>> 16);
+		msw = (a.highOrder >>> 16) + (b.highOrder >>> 16) +
+			(c.highOrder >>> 16) + (d.highOrder >>> 16) +
+			(e.highOrder >>> 16) + (lsw >>> 16);
+		highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+		return new Int_64(highOrder, lowOrder);
+	},
+
+	/*
+	 * Calculates the SHA-1 hash of the string set at instantiation
+	 *
+	 * @private
+	 * @param {Array} message The binary array representation of the string to
+	 *	 hash
+	 * @param {Number} messageLen The number of bits in the message
+	 * @return The array of integers representing the SHA-1 hash of message
+	 */
+	coreSHA1 = function (message, messageLen)
+	{
+		var W = [], a, b, c, d, e, T, ch = ch_32, parity = parity_32,
+			maj = maj_32, rotl = rotl_32, safeAdd_2 = safeAdd_32_2, i, t,
+			safeAdd_5 = safeAdd_32_5, appendedMessageLength,
+			H = [
+				0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0
+			],
+			K = [
+				0x5a827999, 0x5a827999, 0x5a827999, 0x5a827999,
+				0x5a827999, 0x5a827999, 0x5a827999, 0x5a827999,
+				0x5a827999, 0x5a827999, 0x5a827999, 0x5a827999,
+				0x5a827999, 0x5a827999, 0x5a827999, 0x5a827999,
+				0x5a827999, 0x5a827999, 0x5a827999, 0x5a827999,
+				0x6ed9eba1, 0x6ed9eba1, 0x6ed9eba1, 0x6ed9eba1,
+				0x6ed9eba1, 0x6ed9eba1, 0x6ed9eba1, 0x6ed9eba1,
+				0x6ed9eba1, 0x6ed9eba1, 0x6ed9eba1, 0x6ed9eba1,
+				0x6ed9eba1, 0x6ed9eba1, 0x6ed9eba1, 0x6ed9eba1,
+				0x6ed9eba1, 0x6ed9eba1, 0x6ed9eba1, 0x6ed9eba1,
+				0x8f1bbcdc, 0x8f1bbcdc, 0x8f1bbcdc, 0x8f1bbcdc,
+				0x8f1bbcdc, 0x8f1bbcdc, 0x8f1bbcdc, 0x8f1bbcdc,
+				0x8f1bbcdc, 0x8f1bbcdc, 0x8f1bbcdc, 0x8f1bbcdc,
+				0x8f1bbcdc, 0x8f1bbcdc, 0x8f1bbcdc, 0x8f1bbcdc,
+				0x8f1bbcdc, 0x8f1bbcdc, 0x8f1bbcdc, 0x8f1bbcdc,
+				0xca62c1d6, 0xca62c1d6, 0xca62c1d6, 0xca62c1d6,
+				0xca62c1d6, 0xca62c1d6, 0xca62c1d6, 0xca62c1d6,
+				0xca62c1d6, 0xca62c1d6, 0xca62c1d6, 0xca62c1d6,
+				0xca62c1d6, 0xca62c1d6, 0xca62c1d6, 0xca62c1d6,
+				0xca62c1d6, 0xca62c1d6, 0xca62c1d6, 0xca62c1d6
+			];
+
+		/* Append '1' at the end of the binary string */
+		message[messageLen >> 5] |= 0x80 << (24 - (messageLen % 32));
+		/* Append length of binary string in the position such that the new
+		length is a multiple of 512.  Logic does not work for even multiples
+		of 512 but there can never be even multiples of 512 */
+		message[(((messageLen + 65) >> 9) << 4) + 15] = messageLen;
+
+		appendedMessageLength = message.length;
+
+		for (i = 0; i < appendedMessageLength; i += 16)
+		{
+			a = H[0];
+			b = H[1];
+			c = H[2];
+			d = H[3];
+			e = H[4];
+
+			for (t = 0; t < 80; t += 1)
+			{
+				if (t < 16)
+				{
+					W[t] = message[t + i];
+				}
+				else
+				{
+					W[t] = rotl(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);
+				}
+
+				if (t < 20)
+				{
+					T = safeAdd_5(rotl(a, 5), ch(b, c, d), e, K[t], W[t]);
+				}
+				else if (t < 40)
+				{
+					T = safeAdd_5(rotl(a, 5), parity(b, c, d), e, K[t], W[t]);
+				}
+				else if (t < 60)
+				{
+					T = safeAdd_5(rotl(a, 5), maj(b, c, d), e, K[t], W[t]);
+				} else {
+					T = safeAdd_5(rotl(a, 5), parity(b, c, d), e, K[t], W[t]);
+				}
+
+				e = d;
+				d = c;
+				c = rotl(b, 30);
+				b = a;
+				a = T;
+			}
+
+			H[0] = safeAdd_2(a, H[0]);
+			H[1] = safeAdd_2(b, H[1]);
+			H[2] = safeAdd_2(c, H[2]);
+			H[3] = safeAdd_2(d, H[3]);
+			H[4] = safeAdd_2(e, H[4]);
+		}
+
+		return H;
+	},
+
+	/*
+	 * Calculates the desired SHA-2 hash of the string set at instantiation
+	 *
+	 * @private
+	 * @param {Array} The binary array representation of the string to hash
+	 * @param {Number} The number of bits in message
+	 * @param {String} variant The desired SHA-2 variant
+	 * @return The array of integers representing the SHA-2 hash of message
+	 */
+	coreSHA2 = function (message, messageLen, variant)
+	{
+		var a, b, c, d, e, f, g, h, T1, T2, H, numRounds, lengthPosition, i, t,
+			binaryStringInc, binaryStringMult, safeAdd_2, safeAdd_4, safeAdd_5,
+			gamma0, gamma1, sigma0, sigma1, ch, maj, Int, K, W = [],
+			appendedMessageLength;
+
+		/* Set up the various function handles and variable for the specific 
+		 * variant */
+		if (variant === "SHA-224" || variant === "SHA-256")
+		{
+			/* 32-bit variant */
+			numRounds = 64;
+			lengthPosition = (((messageLen + 65) >> 9) << 4) + 15;
+			binaryStringInc = 16;
+			binaryStringMult = 1;
+			Int = Number;
+			safeAdd_2 = safeAdd_32_2;
+			safeAdd_4 = safeAdd_32_4;
+			safeAdd_5 = safeAdd_32_5;
+			gamma0 = gamma0_32;
+			gamma1 = gamma1_32;
+			sigma0 = sigma0_32;
+			sigma1 = sigma1_32;
+			maj = maj_32;
+			ch = ch_32;
+			K = [
+					0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5,
+					0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5,
+					0xD807AA98, 0x12835B01, 0x243185BE, 0x550C7DC3,
+					0x72BE5D74, 0x80DEB1FE, 0x9BDC06A7, 0xC19BF174,
+					0xE49B69C1, 0xEFBE4786, 0x0FC19DC6, 0x240CA1CC,
+					0x2DE92C6F, 0x4A7484AA, 0x5CB0A9DC, 0x76F988DA,
+					0x983E5152, 0xA831C66D, 0xB00327C8, 0xBF597FC7,
+					0xC6E00BF3, 0xD5A79147, 0x06CA6351, 0x14292967,
+					0x27B70A85, 0x2E1B2138, 0x4D2C6DFC, 0x53380D13,
+					0x650A7354, 0x766A0ABB, 0x81C2C92E, 0x92722C85,
+					0xA2BFE8A1, 0xA81A664B, 0xC24B8B70, 0xC76C51A3,
+					0xD192E819, 0xD6990624, 0xF40E3585, 0x106AA070,
+					0x19A4C116, 0x1E376C08, 0x2748774C, 0x34B0BCB5,
+					0x391C0CB3, 0x4ED8AA4A, 0x5B9CCA4F, 0x682E6FF3,
+					0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208,
+					0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2
+				];
+
+			if (variant === "SHA-224")
+			{
+				H = [
+						0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
+						0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4
+					];
+			}
+			else
+			{
+				H = [
+						0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+						0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19
+					];
+			}
+		}
+		else if (variant === "SHA-384" || variant === "SHA-512")
+		{
+			/* 64-bit variant */
+			numRounds = 80;
+			lengthPosition = (((messageLen + 128) >> 10) << 5) + 31;
+			binaryStringInc = 32;
+			binaryStringMult = 2;
+			Int = Int_64;
+			safeAdd_2 = safeAdd_64_2;
+			safeAdd_4 = safeAdd_64_4;
+			safeAdd_5 = safeAdd_64_5;
+			gamma0 = gamma0_64;
+			gamma1 = gamma1_64;
+			sigma0 = sigma0_64;
+			sigma1 = sigma1_64;
+			maj = maj_64;
+			ch = ch_64;
+
+			K = [
+				new Int(0x428a2f98, 0xd728ae22), new Int(0x71374491, 0x23ef65cd),
+				new Int(0xb5c0fbcf, 0xec4d3b2f), new Int(0xe9b5dba5, 0x8189dbbc),
+				new Int(0x3956c25b, 0xf348b538), new Int(0x59f111f1, 0xb605d019),
+				new Int(0x923f82a4, 0xaf194f9b), new Int(0xab1c5ed5, 0xda6d8118),
+				new Int(0xd807aa98, 0xa3030242), new Int(0x12835b01, 0x45706fbe),
+				new Int(0x243185be, 0x4ee4b28c), new Int(0x550c7dc3, 0xd5ffb4e2),
+				new Int(0x72be5d74, 0xf27b896f), new Int(0x80deb1fe, 0x3b1696b1),
+				new Int(0x9bdc06a7, 0x25c71235), new Int(0xc19bf174, 0xcf692694),
+				new Int(0xe49b69c1, 0x9ef14ad2), new Int(0xefbe4786, 0x384f25e3),
+				new Int(0x0fc19dc6, 0x8b8cd5b5), new Int(0x240ca1cc, 0x77ac9c65),
+				new Int(0x2de92c6f, 0x592b0275), new Int(0x4a7484aa, 0x6ea6e483),
+				new Int(0x5cb0a9dc, 0xbd41fbd4), new Int(0x76f988da, 0x831153b5),
+				new Int(0x983e5152, 0xee66dfab), new Int(0xa831c66d, 0x2db43210),
+				new Int(0xb00327c8, 0x98fb213f), new Int(0xbf597fc7, 0xbeef0ee4),
+				new Int(0xc6e00bf3, 0x3da88fc2), new Int(0xd5a79147, 0x930aa725),
+				new Int(0x06ca6351, 0xe003826f), new Int(0x14292967, 0x0a0e6e70),
+				new Int(0x27b70a85, 0x46d22ffc), new Int(0x2e1b2138, 0x5c26c926),
+				new Int(0x4d2c6dfc, 0x5ac42aed), new Int(0x53380d13, 0x9d95b3df),
+				new Int(0x650a7354, 0x8baf63de), new Int(0x766a0abb, 0x3c77b2a8),
+				new Int(0x81c2c92e, 0x47edaee6), new Int(0x92722c85, 0x1482353b),
+				new Int(0xa2bfe8a1, 0x4cf10364), new Int(0xa81a664b, 0xbc423001),
+				new Int(0xc24b8b70, 0xd0f89791), new Int(0xc76c51a3, 0x0654be30),
+				new Int(0xd192e819, 0xd6ef5218), new Int(0xd6990624, 0x5565a910),
+				new Int(0xf40e3585, 0x5771202a), new Int(0x106aa070, 0x32bbd1b8),
+				new Int(0x19a4c116, 0xb8d2d0c8), new Int(0x1e376c08, 0x5141ab53),
+				new Int(0x2748774c, 0xdf8eeb99), new Int(0x34b0bcb5, 0xe19b48a8),
+				new Int(0x391c0cb3, 0xc5c95a63), new Int(0x4ed8aa4a, 0xe3418acb),
+				new Int(0x5b9cca4f, 0x7763e373), new Int(0x682e6ff3, 0xd6b2b8a3),
+				new Int(0x748f82ee, 0x5defb2fc), new Int(0x78a5636f, 0x43172f60),
+				new Int(0x84c87814, 0xa1f0ab72), new Int(0x8cc70208, 0x1a6439ec),
+				new Int(0x90befffa, 0x23631e28), new Int(0xa4506ceb, 0xde82bde9),
+				new Int(0xbef9a3f7, 0xb2c67915), new Int(0xc67178f2, 0xe372532b),
+				new Int(0xca273ece, 0xea26619c), new Int(0xd186b8c7, 0x21c0c207),
+				new Int(0xeada7dd6, 0xcde0eb1e), new Int(0xf57d4f7f, 0xee6ed178),
+				new Int(0x06f067aa, 0x72176fba), new Int(0x0a637dc5, 0xa2c898a6),
+				new Int(0x113f9804, 0xbef90dae), new Int(0x1b710b35, 0x131c471b),
+				new Int(0x28db77f5, 0x23047d84), new Int(0x32caab7b, 0x40c72493),
+				new Int(0x3c9ebe0a, 0x15c9bebc), new Int(0x431d67c4, 0x9c100d4c),
+				new Int(0x4cc5d4be, 0xcb3e42b6), new Int(0x597f299c, 0xfc657e2a),
+				new Int(0x5fcb6fab, 0x3ad6faec), new Int(0x6c44198c, 0x4a475817)
+			];
+
+			if (variant === "SHA-384")
+			{
+				H = [
+					new Int(0xcbbb9d5d, 0xc1059ed8), new Int(0x0629a292a, 0x367cd507),
+					new Int(0x9159015a, 0x3070dd17), new Int(0x0152fecd8, 0xf70e5939),
+					new Int(0x67332667, 0xffc00b31), new Int(0x98eb44a87, 0x68581511),
+					new Int(0xdb0c2e0d, 0x64f98fa7), new Int(0x047b5481d, 0xbefa4fa4)
+				];
+			}
+			else
+			{
+				H = [
+					new Int(0x6a09e667, 0xf3bcc908), new Int(0xbb67ae85, 0x84caa73b),
+					new Int(0x3c6ef372, 0xfe94f82b), new Int(0xa54ff53a, 0x5f1d36f1),
+					new Int(0x510e527f, 0xade682d1), new Int(0x9b05688c, 0x2b3e6c1f),
+					new Int(0x1f83d9ab, 0xfb41bd6b), new Int(0x5be0cd19, 0x137e2179)
+				];
+			}
+		}
+
+		/* Append '1' at the end of the binary string */
+		message[messageLen >> 5] |= 0x80 << (24 - messageLen % 32);
+		/* Append length of binary string in the position such that the new
+		 * length is correct */
+		message[lengthPosition] = messageLen;
+
+		appendedMessageLength = message.length;
+
+		for (i = 0; i < appendedMessageLength; i += binaryStringInc)
+		{
+			a = H[0];
+			b = H[1];
+			c = H[2];
+			d = H[3];
+			e = H[4];
+			f = H[5];
+			g = H[6];
+			h = H[7];
+
+			for (t = 0; t < numRounds; t += 1)
+			{
+				if (t < 16)
+				{
+					/* Bit of a hack - for 32-bit, the second term is ignored */
+					W[t] = new Int(message[t * binaryStringMult + i],
+							message[t * binaryStringMult + i + 1]);
+				}
+				else
+				{
+					W[t] = safeAdd_4(
+							gamma1(W[t - 2]), W[t - 7],
+							gamma0(W[t - 15]), W[t - 16]
+						);
+				}
+
+				T1 = safeAdd_5(h, sigma1(e), ch(e, f, g), K[t], W[t]);
+				T2 = safeAdd_2(sigma0(a), maj(a, b, c));
+				h = g;
+				g = f;
+				f = e;
+				e = safeAdd_2(d, T1);
+				d = c;
+				c = b;
+				b = a;
+				a = safeAdd_2(T1, T2);
+			}
+
+			H[0] = safeAdd_2(a, H[0]);
+			H[1] = safeAdd_2(b, H[1]);
+			H[2] = safeAdd_2(c, H[2]);
+			H[3] = safeAdd_2(d, H[3]);
+			H[4] = safeAdd_2(e, H[4]);
+			H[5] = safeAdd_2(f, H[5]);
+			H[6] = safeAdd_2(g, H[6]);
+			H[7] = safeAdd_2(h, H[7]);
+		}
+
+		switch (variant)
+		{
+		case "SHA-224":
+			return	[
+				H[0], H[1], H[2], H[3],
+				H[4], H[5], H[6]
+			];
+		case "SHA-256":
+			return H;
+		case "SHA-384":
+			return [
+				H[0].highOrder, H[0].lowOrder,
+				H[1].highOrder, H[1].lowOrder,
+				H[2].highOrder, H[2].lowOrder,
+				H[3].highOrder, H[3].lowOrder,
+				H[4].highOrder, H[4].lowOrder,
+				H[5].highOrder, H[5].lowOrder
+			];
+		case "SHA-512":
+			return [
+				H[0].highOrder, H[0].lowOrder,
+				H[1].highOrder, H[1].lowOrder,
+				H[2].highOrder, H[2].lowOrder,
+				H[3].highOrder, H[3].lowOrder,
+				H[4].highOrder, H[4].lowOrder,
+				H[5].highOrder, H[5].lowOrder,
+				H[6].highOrder, H[6].lowOrder,
+				H[7].highOrder, H[7].lowOrder
+			];
+		default:
+			/* This should never be reached */
+			return []; 
+		}
+	},
+
+	/*
+	 * jsSHA is the workhorse of the library.  Instantiate it with the string to
+	 * be hashed as the parameter
+	 *
+	 * @constructor
+	 * @param {String} srcString The string to be hashed
+	 * @param {String} inputFormat The format of srcString, ASCII or HEX
+	 */
+	jsSHA = function (srcString, inputFormat)
+	{
+
+		this.sha1 = null;
+		this.sha224 = null;
+		this.sha256 = null;
+		this.sha384 = null;
+		this.sha512 = null;
+
+		this.strBinLen = null;
+		this.strToHash = null;
+
+		/* Convert the input string into the correct type */
+		if ("HEX" === inputFormat)
+		{
+			if (0 !== (srcString.length % 2))
+			{
+				return "TEXT MUST BE IN BYTE INCREMENTS";
+			}
+			this.strBinLen = srcString.length * 4;
+			this.strToHash = hex2binb(srcString);
+		}
+		else if (("ASCII" === inputFormat) ||
+			 ('undefined' === typeof(inputFormat)))
+		{
+			this.strBinLen = srcString.length * charSize;
+			this.strToHash = str2binb(srcString);
+		}
+		else
+		{
+			return "UNKNOWN TEXT INPUT TYPE";
+		}
+	};
+
+	jsSHA.prototype = {
+		/*
+		 * Returns the desired SHA hash of the string specified at instantiation
+		 * using the specified parameters
+		 *
+		 * @param {String} variant The desired SHA variant (SHA-1, SHA-224,
+		 *	 SHA-256, SHA-384, or SHA-512)
+		 * @param {String} format The desired output formatting (B64 or HEX)
+		 * @return The string representation of the hash in the format specified
+		 */
+		getHash : function (variant, format)
+		{
+			var formatFunc = null, message = this.strToHash.slice();
+
+			switch (format)
+			{
+			case "HEX":
+				formatFunc = binb2hex;
+				break;
+			case "B64":
+				formatFunc = binb2b64;
+				break;
+			case "ASCII":
+				formatFunc = binb2str;
+				break;
+			default:
+				return "FORMAT NOT RECOGNIZED";
+			}
+
+			switch (variant)
+			{
+			case "SHA-1":
+				if (null === this.sha1)
+				{
+					this.sha1 = coreSHA1(message, this.strBinLen);
+				}
+				return formatFunc(this.sha1);
+			case "SHA-224":
+				if (null === this.sha224)
+				{
+					this.sha224 = coreSHA2(message, this.strBinLen, variant);
+				}
+				return formatFunc(this.sha224);
+			case "SHA-256":
+				if (null === this.sha256)
+				{
+					this.sha256 = coreSHA2(message, this.strBinLen, variant);
+				}
+				return formatFunc(this.sha256);
+			case "SHA-384":
+				if (null === this.sha384)
+				{
+					this.sha384 = coreSHA2(message, this.strBinLen, variant);
+				}
+				return formatFunc(this.sha384);
+			case "SHA-512":
+				if (null === this.sha512)
+				{
+					this.sha512 = coreSHA2(message, this.strBinLen, variant);
+				}
+				return formatFunc(this.sha512);
+			default:
+				return "HASH NOT RECOGNIZED";
+			}
+		},
+
+		/*
+		 * Returns the desired HMAC of the string specified at instantiation
+		 * using the key and variant param.
+		 *
+		 * @param {String} key The key used to calculate the HMAC
+		 * @param {String} inputFormat The format of key, ASCII or HEX
+		 * @param {String} variant The desired SHA variant (SHA-1, SHA-224,
+		 *	 SHA-256, SHA-384, or SHA-512)
+		 * @param {String} outputFormat The desired output formatting
+		 *	 (B64 or HEX)
+		 * @return The string representation of the hash in the format specified
+		 */
+		getHMAC : function (key, inputFormat, variant, outputFormat)
+		{
+			var formatFunc, keyToUse, blockByteSize, blockBitSize, i,
+				retVal, lastArrayIndex, keyBinLen, hashBitSize,
+				keyWithIPad = [], keyWithOPad = [];
+
+			/* Validate the output format selection */
+			switch (outputFormat)
+			{
+			case "HEX":
+				formatFunc = binb2hex;
+				break;
+			case "B64":
+				formatFunc = binb2b64;
+				break;
+			case "ASCII":
+				formatFunc = binb2str;
+				break;
+			default:
+				return "FORMAT NOT RECOGNIZED";
+			}
+
+			/* Validate the hash variant selection and set needed variables */
+			switch (variant)
+			{
+			case "SHA-1":
+				blockByteSize = 64;
+				hashBitSize = 160;
+				break;
+			case "SHA-224":
+				blockByteSize = 64;
+				hashBitSize = 224;
+				break;
+			case "SHA-256":
+				blockByteSize = 64;
+				hashBitSize = 256;
+				break;
+			case "SHA-384":
+				blockByteSize = 128;
+				hashBitSize = 384;
+				break;
+			case "SHA-512":
+				blockByteSize = 128;
+				hashBitSize = 512;
+				break;
+			default:
+				return "HASH NOT RECOGNIZED";
+			}
+
+			/* Validate input format selection */
+			if ("HEX" === inputFormat)
+			{
+				/* Nibbles must come in pairs */
+				if (0 !== (key.length % 2))
+				{
+					return "KEY MUST BE IN BYTE INCREMENTS";
+				}
+				keyToUse = hex2binb(key);
+				keyBinLen = key.length * 4;
+			}
+			else if ("ASCII" === inputFormat)
+			{
+				keyToUse = str2binb(key);
+				keyBinLen = key.length * charSize;
+			}
+			else
+			{
+				return "UNKNOWN KEY INPUT TYPE";
+			}
+
+			/* These are used multiple times, calculate and store them */
+			blockBitSize = blockByteSize * 8;
+			lastArrayIndex = (blockByteSize / 4) - 1;
+
+			/* Figure out what to do with the key based on its size relative to
+			 * the hash's block size */
+			if (blockByteSize < (keyBinLen / 8))
+			{
+				if ("SHA-1" === variant)
+				{
+					keyToUse = coreSHA1(keyToUse, keyBinLen);
+				}
+				else
+				{
+					keyToUse = coreSHA2(keyToUse, keyBinLen, variant);
+				}
+				/* For all variants, the block size is bigger than the output
+				 * size so there will never be a useful byte at the end of the
+				 * string */
+				keyToUse[lastArrayIndex] &= 0xFFFFFF00;
+			}
+			else if (blockByteSize > (keyBinLen / 8))
+			{
+				/* If the blockByteSize is greater than the key length, there
+				 * will always be at LEAST one "useless" byte at the end of the
+				 * string */
+				keyToUse[lastArrayIndex] &= 0xFFFFFF00;
+			}
+
+			/* Create ipad and opad */
+			for (i = 0; i <= lastArrayIndex; i += 1)
+			{
+				keyWithIPad[i] = keyToUse[i] ^ 0x36363636;
+				keyWithOPad[i] = keyToUse[i] ^ 0x5C5C5C5C;
+			}
+
+			/* Calculate the HMAC */
+			if ("SHA-1" === variant)
+			{
+				retVal = coreSHA1(
+							keyWithIPad.concat(this.strToHash),
+							blockBitSize + this.strBinLen);
+				retVal = coreSHA1(
+							keyWithOPad.concat(retVal),
+							blockBitSize + hashBitSize);
+			}
+			else
+			{
+				retVal = coreSHA2(
+							keyWithIPad.concat(this.strToHash),
+							blockBitSize + this.strBinLen, variant);
+				retVal = coreSHA2(
+							keyWithOPad.concat(retVal),
+							blockBitSize + hashBitSize, variant);
+			}
+
+			return (formatFunc(retVal));
+		}
+	};
+
+	return jsSHA;
+}());
+
+function str_sha1(str) {
+	var shaObj = new jsSHA(str, "ASCII");
+	return shaObj.getHash("SHA-1", "ASCII");
+}
+
+function str_sha224(str) {
+	var shaObj = new jsSHA(str, "ASCII");
+	return shaObj.getHash("SHA-224", "ASCII");
+}
+
+function str_sha256(str) {
+	var shaObj = new jsSHA(str, "ASCII");
+	return shaObj.getHash("SHA-256", "ASCII");
+}
+
+
+function str_sha384(str) {
+	var shaObj = new jsSHA(str, "ASCII");
+	return shaObj.getHash("SHA-384", "ASCII");
+
+}
+
+function str_sha512(str) {
+	var shaObj = new jsSHA(str, "ASCII");
+	return shaObj.getHash("SHA-512", "ASCII");
+}
+// Modified by Recurity Labs GmbH 
+
+// modified version of http://www.hanewin.net/encrypt/PGdecode.js:
+
+/* OpenPGP encryption using RSA/AES
+ * Copyright 2005-2006 Herbert Hanewinkel, www.haneWIN.de
+ * version 2.0, check www.haneWIN.de for the latest version
+
+ * This software is provided as-is, without express or implied warranty.  
+ * Permission to use, copy, modify, distribute or sell this software, with or
+ * without fee, for any purpose and by any individual or organization, is hereby
+ * granted, provided that the above copyright notice and this paragraph appear 
+ * in all copies. Distribution as a part of an application or binary must
+ * include the above copyright notice in the documentation and/or other
+ * materials provided with the application or distribution.
+ */
+
+/**
+ * An array of bytes, that is integers with values from 0 to 255
+ * @typedef {(Array|Uint8Array)} openpgp_byte_array
+ */
+
+/**
+ * Block cipher function
+ * @callback openpgp_cipher_block_fn
+ * @param {openpgp_byte_array} block A block to perform operations on
+ * @param {openpgp_byte_array} key to use in encryption/decryption
+ * @return {openpgp_byte_array} Encrypted/decrypted block
+ */
+
+
+// --------------------------------------
+/**
+ * This function encrypts a given with the specified prefixrandom 
+ * using the specified blockcipher to encrypt a message
+ * @param {String} prefixrandom random bytes of block_size length provided 
+ *  as a string to be used in prefixing the data
+ * @param {openpgp_cipher_block_fn} blockcipherfn the algorithm encrypt function to encrypt
+ *  data in one block_size encryption. 
+ * @param {Integer} block_size the block size in bytes of the algorithm used
+ * @param {String} plaintext data to be encrypted provided as a string
+ * @param {openpgp_byte_array} key key to be used to encrypt the data. This will be passed to the 
+ *  blockcipherfn
+ * @param {Boolean} resync a boolean value specifying if a resync of the 
+ *  IV should be used or not. The encrypteddatapacket uses the 
+ *  "old" style with a resync. Encryption within an 
+ *  encryptedintegrityprotecteddata packet is not resyncing the IV.
+ * @return {String} a string with the encrypted data
+ */
+function openpgp_cfb_encrypt(prefixrandom, blockcipherencryptfn, plaintext, block_size, key, resync) {
+	var FR = new Array(block_size);
+	var FRE = new Array(block_size);
+
+	prefixrandom = prefixrandom + prefixrandom.charAt(block_size-2) +prefixrandom.charAt(block_size-1);
+	util.print_debug("prefixrandom:"+util.hexstrdump(prefixrandom));
+	var ciphertext = "";
+	// 1.  The feedback register (FR) is set to the IV, which is all zeros.
+	for (var i = 0; i < block_size; i++) FR[i] = 0;
+	
+	// 2.  FR is encrypted to produce FRE (FR Encrypted).  This is the
+    //     encryption of an all-zero value.
+	FRE = blockcipherencryptfn(FR, key);
+	// 3.  FRE is xored with the first BS octets of random data prefixed to
+    //     the plaintext to produce C[1] through C[BS], the first BS octets
+    //     of ciphertext.
+	for (var i = 0; i < block_size; i++) ciphertext += String.fromCharCode(FRE[i] ^ prefixrandom.charCodeAt(i));
+	
+	// 4.  FR is loaded with C[1] through C[BS].
+	for (var i = 0; i < block_size; i++) FR[i] = ciphertext.charCodeAt(i);
+	
+	// 5.  FR is encrypted to produce FRE, the encryption of the first BS
+    // 	   octets of ciphertext.
+	FRE = blockcipherencryptfn(FR, key);
+
+	// 6.  The left two octets of FRE get xored with the next two octets of
+	//     data that were prefixed to the plaintext.  This produces C[BS+1]
+	//     and C[BS+2], the next two octets of ciphertext.
+	ciphertext += String.fromCharCode(FRE[0] ^ prefixrandom.charCodeAt(block_size));
+	ciphertext += String.fromCharCode(FRE[1] ^ prefixrandom.charCodeAt(block_size+1));
+
+	if (resync) {
+		// 7.  (The resync step) FR is loaded with C3-C10.
+		for (var i = 0; i < block_size; i++) FR[i] = ciphertext.charCodeAt(i+2);
+	} else {
+		for (var i = 0; i < block_size; i++) FR[i] = ciphertext.charCodeAt(i);
+	}
+	// 8.  FR is encrypted to produce FRE.
+	FRE = blockcipherencryptfn(FR, key);
+	
+	if (resync) {
+		// 9.  FRE is xored with the first 8 octets of the given plaintext, now
+	    //	   that we have finished encrypting the 10 octets of prefixed data.
+	    // 	   This produces C11-C18, the next 8 octets of ciphertext.
+		for (var i = 0; i < block_size; i++)
+			ciphertext += String.fromCharCode(FRE[i] ^ plaintext.charCodeAt(i));
+		for(n=block_size+2; n < plaintext.length; n+=block_size) {
+			// 10. FR is loaded with C11-C18
+			for (var i = 0; i < block_size; i++) FR[i] = ciphertext.charCodeAt(n+i);
+		
+			// 11. FR is encrypted to produce FRE.
+			FRE = blockcipherencryptfn(FR, key);
+		
+			// 12. FRE is xored with the next 8 octets of plaintext, to produce the
+			// next 8 octets of ciphertext.  These are loaded into FR and the
+			// process is repeated until the plaintext is used up.
+			for (var i = 0; i < block_size; i++) ciphertext += String.fromCharCode(FRE[i] ^ plaintext.charCodeAt((n-2)+i));
+		}
+	}
+	else {
+		plaintext = "  "+plaintext;
+		// 9.  FRE is xored with the first 8 octets of the given plaintext, now
+	    //	   that we have finished encrypting the 10 octets of prefixed data.
+	    // 	   This produces C11-C18, the next 8 octets of ciphertext.
+		for (var i = 2; i < block_size; i++) ciphertext += String.fromCharCode(FRE[i] ^ plaintext.charCodeAt(i));
+		var tempCiphertext = ciphertext.substring(0,2*block_size).split('');
+		var tempCiphertextString = ciphertext.substring(block_size);
+		for(n=block_size; n<plaintext.length; n+=block_size) {
+			// 10. FR is loaded with C11-C18
+			for (var i = 0; i < block_size; i++) FR[i] = tempCiphertextString.charCodeAt(i);
+			tempCiphertextString='';
+			
+			// 11. FR is encrypted to produce FRE.
+			FRE = blockcipherencryptfn(FR, key);
+			
+			// 12. FRE is xored with the next 8 octets of plaintext, to produce the
+			//     next 8 octets of ciphertext.  These are loaded into FR and the
+			//     process is repeated until the plaintext is used up.
+			for (var i = 0; i < block_size; i++){ tempCiphertext.push(String.fromCharCode(FRE[i] ^ plaintext.charCodeAt(n+i)));
+			tempCiphertextString += String.fromCharCode(FRE[i] ^ plaintext.charCodeAt(n+i));
+			}
+		}
+		ciphertext = tempCiphertext.join('');
+		
+	}
+	return ciphertext;
+}
+
+/**
+ * Decrypts the prefixed data for the Modification Detection Code (MDC) computation
+ * @param {openpgp_block_cipher_fn} blockcipherencryptfn Cipher function to use
+ * @param {Integer} block_size Blocksize of the algorithm
+ * @param {openpgp_byte_array} key The key for encryption
+ * @param {String} ciphertext The encrypted data
+ * @return {String} plaintext Data of D(ciphertext) with blocksize length +2
+ */
+function openpgp_cfb_mdc(blockcipherencryptfn, block_size, key, ciphertext) {
+	var iblock = new Array(block_size);
+	var ablock = new Array(block_size);
+	var i;
+
+	// initialisation vector
+	for(i=0; i < block_size; i++) iblock[i] = 0;
+
+	iblock = blockcipherencryptfn(iblock, key);
+	for(i = 0; i < block_size; i++)
+	{
+		ablock[i] = ciphertext.charCodeAt(i);
+		iblock[i] ^= ablock[i];
+	}
+
+	ablock = blockcipherencryptfn(ablock, key);
+
+	return util.bin2str(iblock)+
+		String.fromCharCode(ablock[0]^ciphertext.charCodeAt(block_size))+
+		String.fromCharCode(ablock[1]^ciphertext.charCodeAt(block_size+1));
+}
+/**
+ * This function decrypts a given plaintext using the specified
+ * blockcipher to decrypt a message
+ * @param {openpgp_cipher_block_fn} blockcipherfn The algorithm _encrypt_ function to encrypt
+ *  data in one block_size encryption.
+ * @param {Integer} block_size the block size in bytes of the algorithm used
+ * @param {String} plaintext ciphertext to be decrypted provided as a string
+ * @param {openpgp_byte_array} key key to be used to decrypt the ciphertext. This will be passed to the 
+ *  blockcipherfn
+ * @param {Boolean} resync a boolean value specifying if a resync of the 
+ *  IV should be used or not. The encrypteddatapacket uses the 
+ *  "old" style with a resync. Decryption within an 
+ *  encryptedintegrityprotecteddata packet is not resyncing the IV.
+ * @return {String} a string with the plaintext data
+ */
+
+function openpgp_cfb_decrypt(blockcipherencryptfn, block_size, key, ciphertext, resync)
+{
+	util.print_debug("resync:"+resync);
+	var iblock = new Array(block_size);
+	var ablock = new Array(block_size);
+	var i, n = '';
+	var text = [];
+
+	// initialisation vector
+	for(i=0; i < block_size; i++) iblock[i] = 0;
+
+	iblock = blockcipherencryptfn(iblock, key);
+	for(i = 0; i < block_size; i++)
+	{
+		ablock[i] = ciphertext.charCodeAt(i);
+		iblock[i] ^= ablock[i];
+	}
+
+	ablock = blockcipherencryptfn(ablock, key);
+
+	util.print_debug("openpgp_cfb_decrypt:\niblock:"+util.hexidump(iblock)+"\nablock:"+util.hexidump(ablock)+"\n");
+	util.print_debug((ablock[0]^ciphertext.charCodeAt(block_size)).toString(16)+(ablock[1]^ciphertext.charCodeAt(block_size+1)).toString(16));
+	
+	// test check octets
+	if(iblock[block_size-2]!=(ablock[0]^ciphertext.charCodeAt(block_size))
+	|| iblock[block_size-1]!=(ablock[1]^ciphertext.charCodeAt(block_size+1)))
+	{
+		util.print_eror("error duding decryption. Symmectric encrypted data not valid.");
+		return text.join('');
+	}
+	
+	/*  RFC4880: Tag 18 and Resync:
+	 *  [...] Unlike the Symmetrically Encrypted Data Packet, no
+   	 *  special CFB resynchronization is done after encrypting this prefix
+     *  data.  See "OpenPGP CFB Mode" below for more details.
+
+	 */
+	
+	if (resync) {
+	    for(i=0; i<block_size; i++) iblock[i] = ciphertext.charCodeAt(i+2);
+		for(n=block_size+2; n<ciphertext.length; n+=block_size)
+		{
+			ablock = blockcipherencryptfn(iblock, key);
+
+			for(i = 0; i<block_size && i+n < ciphertext.length; i++)
+			{
+				iblock[i] = ciphertext.charCodeAt(n+i);
+				text.push(String.fromCharCode(ablock[i]^iblock[i])); 
+			}
+		}
+	} else {
+		for(i=0; i<block_size; i++) iblock[i] = ciphertext.charCodeAt(i);
+		for(n=block_size; n<ciphertext.length; n+=block_size)
+		{
+			ablock = blockcipherencryptfn(iblock, key);
+			for(i = 0; i<block_size && i+n < ciphertext.length; i++)
+			{
+				iblock[i] = ciphertext.charCodeAt(n+i);
+				text.push(String.fromCharCode(ablock[i]^iblock[i])); 
+			}
+		}
+		
+	}
+	
+	return text.join('');
+}
+
+
+function normal_cfb_encrypt(blockcipherencryptfn, block_size, key, plaintext, iv) {
+	var blocki ="";
+	var blockc = "";
+	var pos = 0;
+	var cyphertext = [];
+	var tempBlock = [];
+	blockc = iv.substring(0,block_size);
+	while (plaintext.length > block_size*pos) {
+		var encblock = blockcipherencryptfn(blockc, key);
+		blocki = plaintext.substring((pos*block_size),(pos*block_size)+block_size);
+		for (var i=0; i < blocki.length; i++)
+		    tempBlock.push(String.fromCharCode(blocki.charCodeAt(i) ^ encblock[i]));
+		blockc = tempBlock.join('');
+		tempBlock = [];
+		cyphertext.push(blockc);
+		pos++;
+	}
+	return cyphertext.join('');
+}
+
+function normal_cfb_decrypt(blockcipherencryptfn, block_size, key, ciphertext, iv) { 
+	var blockp ="";
+	var pos = 0;
+	var plaintext = [];
+	var offset = 0;
+	if (iv == null)
+		for (var i = 0; i < block_size; i++) blockp += String.fromCharCode(0);
+	else
+		blockp = iv.substring(0,block_size);
+	while (ciphertext.length > (block_size*pos)) {
+		var decblock = blockcipherencryptfn(blockp, key);
+		blockp = ciphertext.substring((pos*(block_size))+offset,(pos*(block_size))+(block_size)+offset);
+		for (var i=0; i < blockp.length; i++) {
+			plaintext.push(String.fromCharCode(blockp.charCodeAt(i) ^ decblock[i]));
+		}
+		pos++;
+	}
+	
+	return plaintext.join('');
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
+
+// The GPG4Browsers crypto interface
+
+/**
+ * Encrypts data using the specified public key multiprecision integers 
+ * and the specified algorithm.
+ * @param {Integer} algo Algorithm to be used (See RFC4880 9.1)
+ * @param {openpgp_type_mpi[]} publicMPIs Algorithm dependent multiprecision integers
+ * @param {openpgp_type_mpi} data Data to be encrypted as MPI
+ * @return {(openpgp_type_mpi|openpgp_type_mpi[])} if RSA an openpgp_type_mpi; 
+ * if elgamal encryption an array of two openpgp_type_mpi is returned; otherwise null
+ */
+function openpgp_crypto_asymetricEncrypt(algo, publicMPIs, data) {
+	switch(algo) {
+	case 1: // RSA (Encrypt or Sign) [HAC]
+	case 2: // RSA Encrypt-Only [HAC]
+	case 3: // RSA Sign-Only [HAC]
+		var rsa = new RSA();
+		var n = publicMPIs[0].toBigInteger();
+		var e = publicMPIs[1].toBigInteger();
+		var m = data.toBigInteger();
+		return rsa.encrypt(m,e,n).toMPI();
+	case 16: // Elgamal (Encrypt-Only) [ELGAMAL] [HAC]
+		var elgamal = new Elgamal();
+		var p = publicMPIs[0].toBigInteger();
+		var g = publicMPIs[1].toBigInteger();
+		var y = publicMPIs[2].toBigInteger();
+		var m = data.toBigInteger();
+		return elgamal.encrypt(m,g,p,y);
+	default:
+		return null;
+	}
+}
+
+/**
+ * Decrypts data using the specified public key multiprecision integers of the private key,
+ * the specified secretMPIs of the private key and the specified algorithm.
+ * @param {Integer} algo Algorithm to be used (See RFC4880 9.1)
+ * @param {openpgp_type_mpi[]} publicMPIs Algorithm dependent multiprecision integers 
+ * of the public key part of the private key
+ * @param {openpgp_type_mpi[]} secretMPIs Algorithm dependent multiprecision integers 
+ * of the private key used
+ * @param {openpgp_type_mpi} data Data to be encrypted as MPI
+ * @return {BigInteger} returns a big integer containing the decrypted data; otherwise null
+ */
+
+function openpgp_crypto_asymetricDecrypt(algo, publicMPIs, secretMPIs, dataMPIs) {
+	switch(algo) {
+	case 1: // RSA (Encrypt or Sign) [HAC]  
+	case 2: // RSA Encrypt-Only [HAC]
+	case 3: // RSA Sign-Only [HAC]
+		var rsa = new RSA();
+		var d = secretMPIs[0].toBigInteger();
+		var p = secretMPIs[1].toBigInteger();
+		var q = secretMPIs[2].toBigInteger();
+		var u = secretMPIs[3].toBigInteger();
+		var m = dataMPIs[0].toBigInteger();
+		return rsa.decrypt(m, d, p, q, u);
+	case 16: // Elgamal (Encrypt-Only) [ELGAMAL] [HAC]
+		var elgamal = new Elgamal();
+		var x = secretMPIs[0].toBigInteger();
+		var c1 = dataMPIs[0].toBigInteger();
+		var c2 = dataMPIs[1].toBigInteger();
+		var p = publicMPIs[0].toBigInteger();
+		return elgamal.decrypt(c1,c2,p,x);
+	default:
+		return null;
+	}
+	
+}
+
+/**
+ * generate random byte prefix as string for the specified algorithm
+ * @param {Integer} algo Algorithm to use (see RFC4880 9.2)
+ * @return {String} Random bytes with length equal to the block
+ * size of the cipher
+ */
+function openpgp_crypto_getPrefixRandom(algo) {
+	switch(algo) {
+	case 2:
+	case 3:
+	case 4:
+		return openpgp_crypto_getRandomBytes(8);
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+		return openpgp_crypto_getRandomBytes(16);
+	default:
+		return null;
+	}
+}
+
+/**
+ * retrieve the MDC prefixed bytes by decrypting them
+ * @param {Integer} algo Algorithm to use (see RFC4880 9.2)
+ * @param {String} key Key as string. length is depending on the algorithm used
+ * @param {String} data Encrypted data where the prefix is decrypted from
+ * @return {String} Plain text data of the prefixed data
+ */
+function openpgp_crypto_MDCSystemBytes(algo, key, data) {
+	util.print_debug_hexstr_dump("openpgp_crypto_symmetricDecrypt:\nencrypteddata:",data);
+	switch(algo) {
+	case 0: // Plaintext or unencrypted data
+		return data;
+	case 2: // TripleDES (DES-EDE, [SCHNEIER] [HAC] - 168 bit key derived from 192)
+		return openpgp_cfb_mdc(desede, 8, key, data, openpgp_cfb);
+	case 3: // CAST5 (128 bit key, as per [RFC2144])
+		return openpgp_cfb_mdc(cast5_encrypt, 8, key, data);
+	case 4: // Blowfish (128 bit key, 16 rounds) [BLOWFISH]
+		return openpgp_cfb_mdc(BFencrypt, 8, key, data);
+	case 7: // AES with 128-bit key [AES]
+	case 8: // AES with 192-bit key
+	case 9: // AES with 256-bit key
+		return openpgp_cfb_mdc(AESencrypt, 16, keyExpansion(key), data);
+	case 10: 
+		return openpgp_cfb_mdc(TFencrypt, 16, key, data);
+	case 1: // IDEA [IDEA]
+		util.print_error(""+ (algo == 1 ? "IDEA Algorithm not implemented" : "Twofish Algorithm not implemented"));
+		return null;
+	default:
+	}
+	return null;
+}
+/**
+ * Generating a session key for the specified symmetric algorithm
+ * @param {Integer} algo Algorithm to use (see RFC4880 9.2)
+ * @return {String} Random bytes as a string to be used as a key
+ */
+function openpgp_crypto_generateSessionKey(algo) {
+	switch (algo) {
+	case 2: // TripleDES (DES-EDE, [SCHNEIER] [HAC] - 168 bit key derived from 192)
+	case 8: // AES with 192-bit key
+		return openpgp_crypto_getRandomBytes(24); 
+	case 3: // CAST5 (128 bit key, as per [RFC2144])
+	case 4: // Blowfish (128 bit key, 16 rounds) [BLOWFISH]
+	case 7: // AES with 128-bit key [AES]
+		util.print_debug("length = 16:\n"+util.hexstrdump(openpgp_crypto_getRandomBytes(16)));
+		return openpgp_crypto_getRandomBytes(16);
+	case 9: // AES with 256-bit key
+	case 10:// Twofish with 256-bit key [TWOFISH]
+		return openpgp_crypto_getRandomBytes(32);
+	}
+	return null;
+}
+
+/**
+ * 
+ * @param {Integer} algo public Key algorithm
+ * @param {Integer} hash_algo Hash algorithm
+ * @param {openpgp_type_mpi[]} msg_MPIs Signature multiprecision integers
+ * @param {openpgp_type_mpi[]} publickey_MPIs Public key multiprecision integers 
+ * @param {String} data Data on where the signature was computed on.
+ * @return {Boolean} true if signature (sig_data was equal to data over hash)
+ */
+function openpgp_crypto_verifySignature(algo, hash_algo, msg_MPIs, publickey_MPIs, data) {
+	var calc_hash = openpgp_crypto_hashData(hash_algo, data);
+	switch(algo) {
+	case 1: // RSA (Encrypt or Sign) [HAC]  
+	case 2: // RSA Encrypt-Only [HAC]
+	case 3: // RSA Sign-Only [HAC]
+		var rsa = new RSA();
+		var n = publickey_MPIs[0].toBigInteger();
+		var e = publickey_MPIs[1].toBigInteger();
+		var x = msg_MPIs[0].toBigInteger();
+		var dopublic = rsa.verify(x,e,n);
+		var hash  = openpgp_encoding_emsa_pkcs1_decode(hash_algo,dopublic.toMPI().substring(2));
+		if (hash == -1) {
+			util.print_error("PKCS1 padding in message or key incorrect. Aborting...");
+			return false;
+		}
+		util.print_debug('hash: '+util.hexdump(hash));
+		util.print_debug('calc_hash: '+util.hexdump(calc_hash));
+		return hash == calc_hash;
+		
+	case 16: // Elgamal (Encrypt-Only) [ELGAMAL] [HAC]
+		util.print_error("signing with Elgamal is not defined in the OpenPGP standard.");
+		return null;
+	case 17: // DSA (Digital Signature Algorithm) [FIPS186] [HAC]
+		var dsa = new DSA();
+		var s1 = msg_MPIs[0].toBigInteger();
+		var s2 = msg_MPIs[1].toBigInteger();
+		var p = publickey_MPIs[0].toBigInteger();
+		var q = publickey_MPIs[1].toBigInteger();
+		var g = publickey_MPIs[2].toBigInteger();
+		var y = publickey_MPIs[3].toBigInteger();
+		var m = data;
+		var dopublic = dsa.verify(hash_algo,s1,s2,m,p,q,g,y);
+		return dopublic.compareTo(s1) == 0;
+	default:
+		return null;
+	}
+	
+}
+   
+/**
+ * Create a signature on data using the specified algorithm
+ * @param {Integer} hash_algo hash Algorithm to use (See RFC4880 9.4)
+ * @param {Integer} algo Asymmetric cipher algorithm to use (See RFC4880 9.1)
+ * @param {openpgp_type_mpi[]} publicMPIs Public key multiprecision integers 
+ * of the private key 
+ * @param {openpgp_type_mpi[]} secretMPIs Private key multiprecision 
+ * integers which is used to sign the data
+ * @param {String} data Data to be signed
+ * @return {(String|openpgp_type_mpi)}
+ */
+function openpgp_crypto_signData(hash_algo, algo, publicMPIs, secretMPIs, data) {
+	
+	switch(algo) {
+	case 1: // RSA (Encrypt or Sign) [HAC]  
+	case 2: // RSA Encrypt-Only [HAC]
+	case 3: // RSA Sign-Only [HAC]
+		var rsa = new RSA();
+		var d = secretMPIs[0].toBigInteger();
+		var n = publicMPIs[0].toBigInteger();
+		var m = openpgp_encoding_emsa_pkcs1_encode(hash_algo, data,publicMPIs[0].mpiByteLength);
+		util.print_debug("signing using RSA");
+		return rsa.sign(m, d, n).toMPI();
+	case 17: // DSA (Digital Signature Algorithm) [FIPS186] [HAC]
+		var dsa = new DSA();
+		util.print_debug("DSA Sign: q size in Bytes:"+publicMPIs[1].getByteLength());
+		var p = publicMPIs[0].toBigInteger();
+		var q = publicMPIs[1].toBigInteger();
+		var g = publicMPIs[2].toBigInteger();
+		var y = publicMPIs[3].toBigInteger();
+		var x = secretMPIs[0].toBigInteger();
+		var m = data;
+		var result = dsa.sign(hash_algo,m, g, p, q, x);
+		util.print_debug("signing using DSA\n result:"+util.hexstrdump(result[0])+"|"+util.hexstrdump(result[1]));
+		return result[0]+result[1];
+	case 16: // Elgamal (Encrypt-Only) [ELGAMAL] [HAC]
+			util.print_debug("signing with Elgamal is not defined in the OpenPGP standard.");
+			return null;
+	default:
+		return null;
+	}	
+}
+
+/**
+ * Create a hash on the specified data using the specified algorithm
+ * @param {Integer} algo Hash algorithm type (see RFC4880 9.4)
+ * @param {String} data Data to be hashed
+ * @return {String} hash value
+ */
+function openpgp_crypto_hashData(algo, data) {
+	var hash = null;
+	switch(algo) {
+	case 1: // - MD5 [HAC]
+		hash = MD5(data);
+		break;
+	case 2: // - SHA-1 [FIPS180]
+		hash = str_sha1(data);
+		break;
+	case 3: // - RIPE-MD/160 [HAC]
+		hash = RMDstring(data);
+		break;
+	case 8: // - SHA256 [FIPS180]
+		hash = str_sha256(data);
+		break;
+	case 9: // - SHA384 [FIPS180]
+		hash = str_sha384(data);
+		break;
+	case 10:// - SHA512 [FIPS180]
+		hash = str_sha512(data);
+		break;
+	case 11:// - SHA224 [FIPS180]
+		hash = str_sha224(data);
+	default:
+		break;
+	}
+	return hash;
+}
+
+/**
+ * Returns the hash size in bytes of the specified hash algorithm type
+ * @param {Integer} algo Hash algorithm type (See RFC4880 9.4)
+ * @return {Integer} Size in bytes of the resulting hash
+ */
+function openpgp_crypto_getHashByteLength(algo) {
+	var hash = null;
+	switch(algo) {
+	case 1: // - MD5 [HAC]
+		return 16;
+	case 2: // - SHA-1 [FIPS180]
+	case 3: // - RIPE-MD/160 [HAC]
+		return 20;
+	case 8: // - SHA256 [FIPS180]
+		return 32;
+	case 9: // - SHA384 [FIPS180]
+		return 48
+	case 10:// - SHA512 [FIPS180]
+		return 64;
+	case 11:// - SHA224 [FIPS180]
+		return 28;
+	}
+	return null;
+}
+
+/**
+ * Retrieve secure random byte string of the specified length
+ * @param {Integer} length Length in bytes to generate
+ * @return {String} Random byte string
+ */
+function openpgp_crypto_getRandomBytes(length) {
+	var result = '';
+	for (var i = 0; i < length; i++) {
+		result += String.fromCharCode(openpgp_crypto_getSecureRandomOctet());
+	}
+	return result;
+}
+
+/**
+ * Return a pseudo-random number in the specified range
+ * @param {Integer} from Min of the random number
+ * @param {Integer} to Max of the random number (max 32bit)
+ * @return {Integer} A pseudo random number
+ */
+function openpgp_crypto_getPseudoRandom(from, to) {
+	return Math.round(Math.random()*(to-from))+from;
+}
+
+/**
+ * Return a secure random number in the specified range
+ * @param {Integer} from Min of the random number
+ * @param {Integer} to Max of the random number (max 32bit)
+ * @return {Integer} A secure random number
+ */
+function openpgp_crypto_getSecureRandom(from, to) {
+	var buf = new Uint32Array(1);
+	window.crypto.getRandomValues(buf);
+	var bits = ((to-from)).toString(2).length;
+	while ((buf[0] & (Math.pow(2, bits) -1)) > (to-from))
+		window.crypto.getRandomValues(buf);
+	return from+(Math.abs(buf[0] & (Math.pow(2, bits) -1)));
+}
+
+function openpgp_crypto_getSecureRandomOctet() {
+	var buf = new Uint32Array(1);
+	window.crypto.getRandomValues(buf);
+	return buf[0] & 0xFF;
+}
+
+/**
+ * Create a secure random big integer of bits length
+ * @param {Integer} bits Bit length of the MPI to create
+ * @return {BigInteger} Resulting big integer
+ */
+function openpgp_crypto_getRandomBigInteger(bits) {
+	if (bits < 0)
+	   return null;
+	var numBytes = Math.floor((bits+7)/8);
+
+	var randomBits = openpgp_crypto_getRandomBytes(numBytes);
+	if (bits % 8 > 0) {
+		
+		randomBits = String.fromCharCode(
+						(Math.pow(2,bits % 8)-1) &
+						randomBits.charCodeAt(0)) +
+			randomBits.substring(1);
+	}
+	return new openpgp_type_mpi().create(randomBits).toBigInteger();
+}
+
+function openpgp_crypto_getRandomBigIntegerInRange(min, max) {
+	if (max.compareTo(min) <= 0)
+		return;
+	var range = max.subtract(min);
+	var r = openpgp_crypto_getRandomBigInteger(range.bitLength());
+	while (r > range) {
+		r = openpgp_crypto_getRandomBigInteger(range.bitLength());
+	}
+	return min.add(r);
+}
+
+
+//This is a test method to ensure that encryption/decryption with a given 1024bit RSAKey object functions as intended
+function openpgp_crypto_testRSA(key){
+    var rsa = new RSA();
+	var mpi = new openpgp_type_mpi();
+	mpi.create(openpgp_encoding_eme_pkcs1_encode('ABABABAB', 128));
+	var msg = rsa.encrypt(mpi.toBigInteger(),key.ee,key.n);
+	var result = rsa.decrypt(msg, key.d, key.p, key.q, key.u);
+}
+
+/**
+ * @typedef {Object} openpgp_keypair
+ * @property {openpgp_packet_keymaterial} privateKey 
+ * @property {openpgp_packet_keymaterial} publicKey
+ */
+
+/**
+ * Calls the necessary crypto functions to generate a keypair. 
+ * Called directly by openpgp.js
+ * @param {Integer} keyType Follows OpenPGP algorithm convention.
+ * @param {Integer} numBits Number of bits to make the key to be generated
+ * @return {openpgp_keypair}
+ */
+function openpgp_crypto_generateKeyPair(keyType, numBits, passphrase, s2kHash, symmetricEncryptionAlgorithm){
+	var privKeyPacket;
+	var publicKeyPacket;
+	var d = new Date();
+	d = d.getTime()/1000;
+	var timePacket = String.fromCharCode(Math.floor(d/0x1000000%0x100)) + String.fromCharCode(Math.floor(d/0x10000%0x100)) + String.fromCharCode(Math.floor(d/0x100%0x100)) + String.fromCharCode(Math.floor(d%0x100));
+	switch(keyType){
+	case 1:
+	    var rsa = new RSA();
+	    var key = rsa.generate(numBits,"10001");
+	    privKeyPacket = new openpgp_packet_keymaterial().write_private_key(keyType, key, passphrase, s2kHash, symmetricEncryptionAlgorithm, timePacket);
+	    publicKeyPacket =  new openpgp_packet_keymaterial().write_public_key(keyType, key, timePacket);
+	    break;
+	default:
+		util.print_error("Unknown keytype "+keyType)
+	}
+	return {privateKey: privKeyPacket, publicKey: publicKeyPacket};
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
+
+// The GPG4Browsers symmetric crypto interface
+
+/**
+ * Symmetrically encrypts data using prefixedrandom, a key with length 
+ * depending on the algorithm in openpgp_cfb mode with or without resync
+ * (MDC style)
+ * @param {String} prefixrandom Secure random bytes as string in 
+ * length equal to the block size of the algorithm used (use 
+ * openpgp_crypto_getPrefixRandom(algo) to retrieve that string
+ * @param {Integer} algo Algorithm to use (see RFC4880 9.2)
+ * @param {String} key Key as string. length is depending on the algorithm used
+ * @param {String} data Data to encrypt
+ * @param {Boolean} openpgp_cfb
+ * @return {String} Encrypted data
+ */
+function openpgp_crypto_symmetricEncrypt(prefixrandom, algo, key, data, openpgp_cfb) {
+	switch(algo) {
+		case 0: // Plaintext or unencrypted data
+			return data; // blockcipherencryptfn, plaintext, block_size, key
+		case 2: // TripleDES (DES-EDE, [SCHNEIER] [HAC] - 168 bit key derived from 192)
+			return openpgp_cfb_encrypt(prefixrandom, desede, data,8,key, openpgp_cfb).substring(0, data.length + 10);
+		case 3: // CAST5 (128 bit key, as per [RFC2144])
+			return openpgp_cfb_encrypt(prefixrandom, cast5_encrypt, data,8,key, openpgp_cfb).substring(0, data.length + 10);
+		case 4: // Blowfish (128 bit key, 16 rounds) [BLOWFISH]
+			return openpgp_cfb_encrypt(prefixrandom, BFencrypt, data,8,key, openpgp_cfb).substring(0, data.length + 10);
+		case 7: // AES with 128-bit key [AES]
+		case 8: // AES with 192-bit key
+		case 9: // AES with 256-bit key
+			return openpgp_cfb_encrypt(prefixrandom, AESencrypt, data, 16, keyExpansion(key), openpgp_cfb).substring(0, data.length + 18);
+		case 10: // Twofish with 256-bit key [TWOFISH]
+			return openpgp_cfb_encrypt(prefixrandom, TFencrypt, data,16, key, openpgp_cfb).substring(0, data.length + 18);
+		case 1: // IDEA [IDEA]
+			util.print_error("IDEA Algorithm not implemented");
+			return null;
+		default:
+			return null;
+	}
+}
+
+/**
+ * Symmetrically decrypts data using a key with length depending on the
+ * algorithm in openpgp_cfb mode with or without resync (MDC style)
+ * @param {Integer} algo Algorithm to use (see RFC4880 9.2)
+ * @param {String} key Key as string. length is depending on the algorithm used
+ * @param {String} data Data to be decrypted
+ * @param {Boolean} openpgp_cfb If true use the resync (for encrypteddata); 
+ * otherwise use without the resync (for MDC encrypted data)
+ * @return {String} Plaintext data
+ */
+function openpgp_crypto_symmetricDecrypt(algo, key, data, openpgp_cfb) {
+	util.print_debug_hexstr_dump("openpgp_crypto_symmetricDecrypt:\nalgo:"+algo+"\nencrypteddata:",data);
+	var n = 0;
+	if (!openpgp_cfb)
+		n = 2;
+	switch(algo) {
+	case 0: // Plaintext or unencrypted data
+		return data;
+	case 2: // TripleDES (DES-EDE, [SCHNEIER] [HAC] - 168 bit key derived from 192)
+		return openpgp_cfb_decrypt(desede, 8, key, data, openpgp_cfb).substring(n, (data.length+n)-10);
+	case 3: // CAST5 (128 bit key, as per [RFC2144])
+		return openpgp_cfb_decrypt(cast5_encrypt, 8, key, data, openpgp_cfb).substring(n, (data.length+n)-10);
+	case 4: // Blowfish (128 bit key, 16 rounds) [BLOWFISH]
+		return openpgp_cfb_decrypt(BFencrypt, 8, key, data, openpgp_cfb).substring(n, (data.length+n)-10);
+	case 7: // AES with 128-bit key [AES]
+	case 8: // AES with 192-bit key
+	case 9: // AES with 256-bit key
+		return openpgp_cfb_decrypt(AESencrypt, 16, keyExpansion(key), data, openpgp_cfb).substring(n, (data.length+n)-18);
+	case 10: // Twofish with 256-bit key [TWOFISH]
+		var result = openpgp_cfb_decrypt(TFencrypt, 16, key, data, openpgp_cfb).substring(n, (data.length+n)-18);
+		return result;
+	case 1: // IDEA [IDEA]
+		util.print_error(""+ (algo == 1 ? "IDEA Algorithm not implemented" : "Twofish Algorithm not implemented"));
+		return null;
+	default:
+	}
+	return null;
+}
+
+/* Rijndael (AES) Encryption
+ * Copyright 2005 Herbert Hanewinkel, www.haneWIN.de
+ * version 1.1, check www.haneWIN.de for the latest version
+
+ * This software is provided as-is, without express or implied warranty.  
+ * Permission to use, copy, modify, distribute or sell this software, with or
+ * without fee, for any purpose and by any individual or organization, is hereby
+ * granted, provided that the above copyright notice and this paragraph appear 
+ * in all copies. Distribution as a part of an application or binary must
+ * include the above copyright notice in the documentation and/or other
+ * materials provided with the application or distribution.
+ */
+
+// The round constants used in subkey expansion
+var Rcon = [ 
+0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 
+0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 
+0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91 ];
+
+// Precomputed lookup table for the SBox
+var S = [
+ 99, 124, 119, 123, 242, 107, 111, 197,  48,   1, 103,  43, 254, 215, 171, 
+118, 202, 130, 201, 125, 250,  89,  71, 240, 173, 212, 162, 175, 156, 164, 
+114, 192, 183, 253, 147,  38,  54,  63, 247, 204,  52, 165, 229, 241, 113, 
+216,  49,  21,   4, 199,  35, 195,  24, 150,   5, 154,   7,  18, 128, 226, 
+235,  39, 178, 117,   9, 131,  44,  26,  27, 110,  90, 160,  82,  59, 214, 
+179,  41, 227,  47, 132,  83, 209,   0, 237,  32, 252, 177,  91, 106, 203, 
+190,  57,  74,  76,  88, 207, 208, 239, 170, 251,  67,  77,  51, 133,  69, 
+249,   2, 127,  80,  60, 159, 168,  81, 163,  64, 143, 146, 157,  56, 245, 
+188, 182, 218,  33,  16, 255, 243, 210, 205,  12,  19, 236,  95, 151,  68,  
+23,  196, 167, 126,  61, 100,  93,  25, 115,  96, 129,  79, 220,  34,  42, 
+144, 136,  70, 238, 184,  20, 222,  94,  11, 219, 224,  50,  58,  10,  73,
+  6,  36,  92, 194, 211, 172,  98, 145, 149, 228, 121, 231, 200,  55, 109, 
+141, 213,  78, 169, 108,  86, 244, 234, 101, 122, 174,   8, 186, 120,  37,  
+ 46,  28, 166, 180, 198, 232, 221, 116,  31,  75, 189, 139, 138, 112,  62, 
+181, 102,  72,   3, 246,  14,  97,  53,  87, 185, 134, 193,  29, 158, 225,
+248, 152,  17, 105, 217, 142, 148, 155,  30, 135, 233, 206,  85,  40, 223,
+140, 161, 137,  13, 191, 230,  66, 104,  65, 153,  45,  15, 176,  84, 187,  
+ 22 ];
+
+var T1 = [
+0xa56363c6, 0x847c7cf8, 0x997777ee, 0x8d7b7bf6,
+0x0df2f2ff, 0xbd6b6bd6, 0xb16f6fde, 0x54c5c591,
+0x50303060, 0x03010102, 0xa96767ce, 0x7d2b2b56,
+0x19fefee7, 0x62d7d7b5, 0xe6abab4d, 0x9a7676ec,
+0x45caca8f, 0x9d82821f, 0x40c9c989, 0x877d7dfa,
+0x15fafaef, 0xeb5959b2, 0xc947478e, 0x0bf0f0fb,
+0xecadad41, 0x67d4d4b3, 0xfda2a25f, 0xeaafaf45,
+0xbf9c9c23, 0xf7a4a453, 0x967272e4, 0x5bc0c09b,
+0xc2b7b775, 0x1cfdfde1, 0xae93933d, 0x6a26264c,
+0x5a36366c, 0x413f3f7e, 0x02f7f7f5, 0x4fcccc83,
+0x5c343468, 0xf4a5a551, 0x34e5e5d1, 0x08f1f1f9,
+0x937171e2, 0x73d8d8ab, 0x53313162, 0x3f15152a,
+0x0c040408, 0x52c7c795, 0x65232346, 0x5ec3c39d,
+0x28181830, 0xa1969637, 0x0f05050a, 0xb59a9a2f,
+0x0907070e, 0x36121224, 0x9b80801b, 0x3de2e2df,
+0x26ebebcd, 0x6927274e, 0xcdb2b27f, 0x9f7575ea,
+0x1b090912, 0x9e83831d, 0x742c2c58, 0x2e1a1a34,
+0x2d1b1b36, 0xb26e6edc, 0xee5a5ab4, 0xfba0a05b,
+0xf65252a4, 0x4d3b3b76, 0x61d6d6b7, 0xceb3b37d,
+0x7b292952, 0x3ee3e3dd, 0x712f2f5e, 0x97848413,
+0xf55353a6, 0x68d1d1b9, 0x00000000, 0x2cededc1,
+0x60202040, 0x1ffcfce3, 0xc8b1b179, 0xed5b5bb6,
+0xbe6a6ad4, 0x46cbcb8d, 0xd9bebe67, 0x4b393972,
+0xde4a4a94, 0xd44c4c98, 0xe85858b0, 0x4acfcf85,
+0x6bd0d0bb, 0x2aefefc5, 0xe5aaaa4f, 0x16fbfbed,
+0xc5434386, 0xd74d4d9a, 0x55333366, 0x94858511,
+0xcf45458a, 0x10f9f9e9, 0x06020204, 0x817f7ffe,
+0xf05050a0, 0x443c3c78, 0xba9f9f25, 0xe3a8a84b,
+0xf35151a2, 0xfea3a35d, 0xc0404080, 0x8a8f8f05,
+0xad92923f, 0xbc9d9d21, 0x48383870, 0x04f5f5f1,
+0xdfbcbc63, 0xc1b6b677, 0x75dadaaf, 0x63212142,
+0x30101020, 0x1affffe5, 0x0ef3f3fd, 0x6dd2d2bf,
+0x4ccdcd81, 0x140c0c18, 0x35131326, 0x2fececc3,
+0xe15f5fbe, 0xa2979735, 0xcc444488, 0x3917172e,
+0x57c4c493, 0xf2a7a755, 0x827e7efc, 0x473d3d7a,
+0xac6464c8, 0xe75d5dba, 0x2b191932, 0x957373e6,
+0xa06060c0, 0x98818119, 0xd14f4f9e, 0x7fdcdca3,
+0x66222244, 0x7e2a2a54, 0xab90903b, 0x8388880b,
+0xca46468c, 0x29eeeec7, 0xd3b8b86b, 0x3c141428,
+0x79dedea7, 0xe25e5ebc, 0x1d0b0b16, 0x76dbdbad,
+0x3be0e0db, 0x56323264, 0x4e3a3a74, 0x1e0a0a14,
+0xdb494992, 0x0a06060c, 0x6c242448, 0xe45c5cb8,
+0x5dc2c29f, 0x6ed3d3bd, 0xefacac43, 0xa66262c4,
+0xa8919139, 0xa4959531, 0x37e4e4d3, 0x8b7979f2,
+0x32e7e7d5, 0x43c8c88b, 0x5937376e, 0xb76d6dda,
+0x8c8d8d01, 0x64d5d5b1, 0xd24e4e9c, 0xe0a9a949,
+0xb46c6cd8, 0xfa5656ac, 0x07f4f4f3, 0x25eaeacf,
+0xaf6565ca, 0x8e7a7af4, 0xe9aeae47, 0x18080810,
+0xd5baba6f, 0x887878f0, 0x6f25254a, 0x722e2e5c,
+0x241c1c38, 0xf1a6a657, 0xc7b4b473, 0x51c6c697,
+0x23e8e8cb, 0x7cdddda1, 0x9c7474e8, 0x211f1f3e,
+0xdd4b4b96, 0xdcbdbd61, 0x868b8b0d, 0x858a8a0f,
+0x907070e0, 0x423e3e7c, 0xc4b5b571, 0xaa6666cc,
+0xd8484890, 0x05030306, 0x01f6f6f7, 0x120e0e1c,
+0xa36161c2, 0x5f35356a, 0xf95757ae, 0xd0b9b969,
+0x91868617, 0x58c1c199, 0x271d1d3a, 0xb99e9e27,
+0x38e1e1d9, 0x13f8f8eb, 0xb398982b, 0x33111122,
+0xbb6969d2, 0x70d9d9a9, 0x898e8e07, 0xa7949433,
+0xb69b9b2d, 0x221e1e3c, 0x92878715, 0x20e9e9c9,
+0x49cece87, 0xff5555aa, 0x78282850, 0x7adfdfa5,
+0x8f8c8c03, 0xf8a1a159, 0x80898909, 0x170d0d1a,
+0xdabfbf65, 0x31e6e6d7, 0xc6424284, 0xb86868d0,
+0xc3414182, 0xb0999929, 0x772d2d5a, 0x110f0f1e,
+0xcbb0b07b, 0xfc5454a8, 0xd6bbbb6d, 0x3a16162c ];
+
+var T2 = [
+0x6363c6a5, 0x7c7cf884, 0x7777ee99, 0x7b7bf68d,
+0xf2f2ff0d, 0x6b6bd6bd, 0x6f6fdeb1, 0xc5c59154,
+0x30306050, 0x01010203, 0x6767cea9, 0x2b2b567d,
+0xfefee719, 0xd7d7b562, 0xabab4de6, 0x7676ec9a,
+0xcaca8f45, 0x82821f9d, 0xc9c98940, 0x7d7dfa87,
+0xfafaef15, 0x5959b2eb, 0x47478ec9, 0xf0f0fb0b,
+0xadad41ec, 0xd4d4b367, 0xa2a25ffd, 0xafaf45ea,
+0x9c9c23bf, 0xa4a453f7, 0x7272e496, 0xc0c09b5b,
+0xb7b775c2, 0xfdfde11c, 0x93933dae, 0x26264c6a,
+0x36366c5a, 0x3f3f7e41, 0xf7f7f502, 0xcccc834f,
+0x3434685c, 0xa5a551f4, 0xe5e5d134, 0xf1f1f908,
+0x7171e293, 0xd8d8ab73, 0x31316253, 0x15152a3f,
+0x0404080c, 0xc7c79552, 0x23234665, 0xc3c39d5e,
+0x18183028, 0x969637a1, 0x05050a0f, 0x9a9a2fb5,
+0x07070e09, 0x12122436, 0x80801b9b, 0xe2e2df3d,
+0xebebcd26, 0x27274e69, 0xb2b27fcd, 0x7575ea9f,
+0x0909121b, 0x83831d9e, 0x2c2c5874, 0x1a1a342e,
+0x1b1b362d, 0x6e6edcb2, 0x5a5ab4ee, 0xa0a05bfb,
+0x5252a4f6, 0x3b3b764d, 0xd6d6b761, 0xb3b37dce,
+0x2929527b, 0xe3e3dd3e, 0x2f2f5e71, 0x84841397,
+0x5353a6f5, 0xd1d1b968, 0x00000000, 0xededc12c,
+0x20204060, 0xfcfce31f, 0xb1b179c8, 0x5b5bb6ed,
+0x6a6ad4be, 0xcbcb8d46, 0xbebe67d9, 0x3939724b,
+0x4a4a94de, 0x4c4c98d4, 0x5858b0e8, 0xcfcf854a,
+0xd0d0bb6b, 0xefefc52a, 0xaaaa4fe5, 0xfbfbed16,
+0x434386c5, 0x4d4d9ad7, 0x33336655, 0x85851194,
+0x45458acf, 0xf9f9e910, 0x02020406, 0x7f7ffe81,
+0x5050a0f0, 0x3c3c7844, 0x9f9f25ba, 0xa8a84be3,
+0x5151a2f3, 0xa3a35dfe, 0x404080c0, 0x8f8f058a,
+0x92923fad, 0x9d9d21bc, 0x38387048, 0xf5f5f104,
+0xbcbc63df, 0xb6b677c1, 0xdadaaf75, 0x21214263,
+0x10102030, 0xffffe51a, 0xf3f3fd0e, 0xd2d2bf6d,
+0xcdcd814c, 0x0c0c1814, 0x13132635, 0xececc32f,
+0x5f5fbee1, 0x979735a2, 0x444488cc, 0x17172e39,
+0xc4c49357, 0xa7a755f2, 0x7e7efc82, 0x3d3d7a47,
+0x6464c8ac, 0x5d5dbae7, 0x1919322b, 0x7373e695,
+0x6060c0a0, 0x81811998, 0x4f4f9ed1, 0xdcdca37f,
+0x22224466, 0x2a2a547e, 0x90903bab, 0x88880b83,
+0x46468cca, 0xeeeec729, 0xb8b86bd3, 0x1414283c,
+0xdedea779, 0x5e5ebce2, 0x0b0b161d, 0xdbdbad76,
+0xe0e0db3b, 0x32326456, 0x3a3a744e, 0x0a0a141e,
+0x494992db, 0x06060c0a, 0x2424486c, 0x5c5cb8e4,
+0xc2c29f5d, 0xd3d3bd6e, 0xacac43ef, 0x6262c4a6,
+0x919139a8, 0x959531a4, 0xe4e4d337, 0x7979f28b,
+0xe7e7d532, 0xc8c88b43, 0x37376e59, 0x6d6ddab7,
+0x8d8d018c, 0xd5d5b164, 0x4e4e9cd2, 0xa9a949e0,
+0x6c6cd8b4, 0x5656acfa, 0xf4f4f307, 0xeaeacf25,
+0x6565caaf, 0x7a7af48e, 0xaeae47e9, 0x08081018,
+0xbaba6fd5, 0x7878f088, 0x25254a6f, 0x2e2e5c72,
+0x1c1c3824, 0xa6a657f1, 0xb4b473c7, 0xc6c69751,
+0xe8e8cb23, 0xdddda17c, 0x7474e89c, 0x1f1f3e21,
+0x4b4b96dd, 0xbdbd61dc, 0x8b8b0d86, 0x8a8a0f85,
+0x7070e090, 0x3e3e7c42, 0xb5b571c4, 0x6666ccaa,
+0x484890d8, 0x03030605, 0xf6f6f701, 0x0e0e1c12,
+0x6161c2a3, 0x35356a5f, 0x5757aef9, 0xb9b969d0,
+0x86861791, 0xc1c19958, 0x1d1d3a27, 0x9e9e27b9,
+0xe1e1d938, 0xf8f8eb13, 0x98982bb3, 0x11112233,
+0x6969d2bb, 0xd9d9a970, 0x8e8e0789, 0x949433a7,
+0x9b9b2db6, 0x1e1e3c22, 0x87871592, 0xe9e9c920,
+0xcece8749, 0x5555aaff, 0x28285078, 0xdfdfa57a,
+0x8c8c038f, 0xa1a159f8, 0x89890980, 0x0d0d1a17,
+0xbfbf65da, 0xe6e6d731, 0x424284c6, 0x6868d0b8,
+0x414182c3, 0x999929b0, 0x2d2d5a77, 0x0f0f1e11,
+0xb0b07bcb, 0x5454a8fc, 0xbbbb6dd6, 0x16162c3a ];
+
+var T3 = [
+0x63c6a563, 0x7cf8847c, 0x77ee9977, 0x7bf68d7b,
+0xf2ff0df2, 0x6bd6bd6b, 0x6fdeb16f, 0xc59154c5,
+0x30605030, 0x01020301, 0x67cea967, 0x2b567d2b,
+0xfee719fe, 0xd7b562d7, 0xab4de6ab, 0x76ec9a76,
+0xca8f45ca, 0x821f9d82, 0xc98940c9, 0x7dfa877d,
+0xfaef15fa, 0x59b2eb59, 0x478ec947, 0xf0fb0bf0,
+0xad41ecad, 0xd4b367d4, 0xa25ffda2, 0xaf45eaaf,
+0x9c23bf9c, 0xa453f7a4, 0x72e49672, 0xc09b5bc0,
+0xb775c2b7, 0xfde11cfd, 0x933dae93, 0x264c6a26,
+0x366c5a36, 0x3f7e413f, 0xf7f502f7, 0xcc834fcc,
+0x34685c34, 0xa551f4a5, 0xe5d134e5, 0xf1f908f1,
+0x71e29371, 0xd8ab73d8, 0x31625331, 0x152a3f15,
+0x04080c04, 0xc79552c7, 0x23466523, 0xc39d5ec3,
+0x18302818, 0x9637a196, 0x050a0f05, 0x9a2fb59a,
+0x070e0907, 0x12243612, 0x801b9b80, 0xe2df3de2,
+0xebcd26eb, 0x274e6927, 0xb27fcdb2, 0x75ea9f75,
+0x09121b09, 0x831d9e83, 0x2c58742c, 0x1a342e1a,
+0x1b362d1b, 0x6edcb26e, 0x5ab4ee5a, 0xa05bfba0,
+0x52a4f652, 0x3b764d3b, 0xd6b761d6, 0xb37dceb3,
+0x29527b29, 0xe3dd3ee3, 0x2f5e712f, 0x84139784,
+0x53a6f553, 0xd1b968d1, 0x00000000, 0xedc12ced,
+0x20406020, 0xfce31ffc, 0xb179c8b1, 0x5bb6ed5b,
+0x6ad4be6a, 0xcb8d46cb, 0xbe67d9be, 0x39724b39,
+0x4a94de4a, 0x4c98d44c, 0x58b0e858, 0xcf854acf,
+0xd0bb6bd0, 0xefc52aef, 0xaa4fe5aa, 0xfbed16fb,
+0x4386c543, 0x4d9ad74d, 0x33665533, 0x85119485,
+0x458acf45, 0xf9e910f9, 0x02040602, 0x7ffe817f,
+0x50a0f050, 0x3c78443c, 0x9f25ba9f, 0xa84be3a8,
+0x51a2f351, 0xa35dfea3, 0x4080c040, 0x8f058a8f,
+0x923fad92, 0x9d21bc9d, 0x38704838, 0xf5f104f5,
+0xbc63dfbc, 0xb677c1b6, 0xdaaf75da, 0x21426321,
+0x10203010, 0xffe51aff, 0xf3fd0ef3, 0xd2bf6dd2,
+0xcd814ccd, 0x0c18140c, 0x13263513, 0xecc32fec,
+0x5fbee15f, 0x9735a297, 0x4488cc44, 0x172e3917,
+0xc49357c4, 0xa755f2a7, 0x7efc827e, 0x3d7a473d,
+0x64c8ac64, 0x5dbae75d, 0x19322b19, 0x73e69573,
+0x60c0a060, 0x81199881, 0x4f9ed14f, 0xdca37fdc,
+0x22446622, 0x2a547e2a, 0x903bab90, 0x880b8388,
+0x468cca46, 0xeec729ee, 0xb86bd3b8, 0x14283c14,
+0xdea779de, 0x5ebce25e, 0x0b161d0b, 0xdbad76db,
+0xe0db3be0, 0x32645632, 0x3a744e3a, 0x0a141e0a,
+0x4992db49, 0x060c0a06, 0x24486c24, 0x5cb8e45c,
+0xc29f5dc2, 0xd3bd6ed3, 0xac43efac, 0x62c4a662,
+0x9139a891, 0x9531a495, 0xe4d337e4, 0x79f28b79,
+0xe7d532e7, 0xc88b43c8, 0x376e5937, 0x6ddab76d,
+0x8d018c8d, 0xd5b164d5, 0x4e9cd24e, 0xa949e0a9,
+0x6cd8b46c, 0x56acfa56, 0xf4f307f4, 0xeacf25ea,
+0x65caaf65, 0x7af48e7a, 0xae47e9ae, 0x08101808,
+0xba6fd5ba, 0x78f08878, 0x254a6f25, 0x2e5c722e,
+0x1c38241c, 0xa657f1a6, 0xb473c7b4, 0xc69751c6,
+0xe8cb23e8, 0xdda17cdd, 0x74e89c74, 0x1f3e211f,
+0x4b96dd4b, 0xbd61dcbd, 0x8b0d868b, 0x8a0f858a,
+0x70e09070, 0x3e7c423e, 0xb571c4b5, 0x66ccaa66,
+0x4890d848, 0x03060503, 0xf6f701f6, 0x0e1c120e,
+0x61c2a361, 0x356a5f35, 0x57aef957, 0xb969d0b9,
+0x86179186, 0xc19958c1, 0x1d3a271d, 0x9e27b99e,
+0xe1d938e1, 0xf8eb13f8, 0x982bb398, 0x11223311,
+0x69d2bb69, 0xd9a970d9, 0x8e07898e, 0x9433a794,
+0x9b2db69b, 0x1e3c221e, 0x87159287, 0xe9c920e9,
+0xce8749ce, 0x55aaff55, 0x28507828, 0xdfa57adf,
+0x8c038f8c, 0xa159f8a1, 0x89098089, 0x0d1a170d,
+0xbf65dabf, 0xe6d731e6, 0x4284c642, 0x68d0b868,
+0x4182c341, 0x9929b099, 0x2d5a772d, 0x0f1e110f,
+0xb07bcbb0, 0x54a8fc54, 0xbb6dd6bb, 0x162c3a16 ];
+
+var T4 = [
+0xc6a56363, 0xf8847c7c, 0xee997777, 0xf68d7b7b,
+0xff0df2f2, 0xd6bd6b6b, 0xdeb16f6f, 0x9154c5c5,
+0x60503030, 0x02030101, 0xcea96767, 0x567d2b2b,
+0xe719fefe, 0xb562d7d7, 0x4de6abab, 0xec9a7676,
+0x8f45caca, 0x1f9d8282, 0x8940c9c9, 0xfa877d7d,
+0xef15fafa, 0xb2eb5959, 0x8ec94747, 0xfb0bf0f0,
+0x41ecadad, 0xb367d4d4, 0x5ffda2a2, 0x45eaafaf,
+0x23bf9c9c, 0x53f7a4a4, 0xe4967272, 0x9b5bc0c0,
+0x75c2b7b7, 0xe11cfdfd, 0x3dae9393, 0x4c6a2626,
+0x6c5a3636, 0x7e413f3f, 0xf502f7f7, 0x834fcccc,
+0x685c3434, 0x51f4a5a5, 0xd134e5e5, 0xf908f1f1,
+0xe2937171, 0xab73d8d8, 0x62533131, 0x2a3f1515,
+0x080c0404, 0x9552c7c7, 0x46652323, 0x9d5ec3c3,
+0x30281818, 0x37a19696, 0x0a0f0505, 0x2fb59a9a,
+0x0e090707, 0x24361212, 0x1b9b8080, 0xdf3de2e2,
+0xcd26ebeb, 0x4e692727, 0x7fcdb2b2, 0xea9f7575,
+0x121b0909, 0x1d9e8383, 0x58742c2c, 0x342e1a1a,
+0x362d1b1b, 0xdcb26e6e, 0xb4ee5a5a, 0x5bfba0a0,
+0xa4f65252, 0x764d3b3b, 0xb761d6d6, 0x7dceb3b3,
+0x527b2929, 0xdd3ee3e3, 0x5e712f2f, 0x13978484,
+0xa6f55353, 0xb968d1d1, 0x00000000, 0xc12ceded,
+0x40602020, 0xe31ffcfc, 0x79c8b1b1, 0xb6ed5b5b,
+0xd4be6a6a, 0x8d46cbcb, 0x67d9bebe, 0x724b3939,
+0x94de4a4a, 0x98d44c4c, 0xb0e85858, 0x854acfcf,
+0xbb6bd0d0, 0xc52aefef, 0x4fe5aaaa, 0xed16fbfb,
+0x86c54343, 0x9ad74d4d, 0x66553333, 0x11948585,
+0x8acf4545, 0xe910f9f9, 0x04060202, 0xfe817f7f,
+0xa0f05050, 0x78443c3c, 0x25ba9f9f, 0x4be3a8a8,
+0xa2f35151, 0x5dfea3a3, 0x80c04040, 0x058a8f8f,
+0x3fad9292, 0x21bc9d9d, 0x70483838, 0xf104f5f5,
+0x63dfbcbc, 0x77c1b6b6, 0xaf75dada, 0x42632121,
+0x20301010, 0xe51affff, 0xfd0ef3f3, 0xbf6dd2d2,
+0x814ccdcd, 0x18140c0c, 0x26351313, 0xc32fecec,
+0xbee15f5f, 0x35a29797, 0x88cc4444, 0x2e391717,
+0x9357c4c4, 0x55f2a7a7, 0xfc827e7e, 0x7a473d3d,
+0xc8ac6464, 0xbae75d5d, 0x322b1919, 0xe6957373,
+0xc0a06060, 0x19988181, 0x9ed14f4f, 0xa37fdcdc,
+0x44662222, 0x547e2a2a, 0x3bab9090, 0x0b838888,
+0x8cca4646, 0xc729eeee, 0x6bd3b8b8, 0x283c1414,
+0xa779dede, 0xbce25e5e, 0x161d0b0b, 0xad76dbdb,
+0xdb3be0e0, 0x64563232, 0x744e3a3a, 0x141e0a0a,
+0x92db4949, 0x0c0a0606, 0x486c2424, 0xb8e45c5c,
+0x9f5dc2c2, 0xbd6ed3d3, 0x43efacac, 0xc4a66262,
+0x39a89191, 0x31a49595, 0xd337e4e4, 0xf28b7979,
+0xd532e7e7, 0x8b43c8c8, 0x6e593737, 0xdab76d6d,
+0x018c8d8d, 0xb164d5d5, 0x9cd24e4e, 0x49e0a9a9,
+0xd8b46c6c, 0xacfa5656, 0xf307f4f4, 0xcf25eaea,
+0xcaaf6565, 0xf48e7a7a, 0x47e9aeae, 0x10180808,
+0x6fd5baba, 0xf0887878, 0x4a6f2525, 0x5c722e2e,
+0x38241c1c, 0x57f1a6a6, 0x73c7b4b4, 0x9751c6c6,
+0xcb23e8e8, 0xa17cdddd, 0xe89c7474, 0x3e211f1f,
+0x96dd4b4b, 0x61dcbdbd, 0x0d868b8b, 0x0f858a8a,
+0xe0907070, 0x7c423e3e, 0x71c4b5b5, 0xccaa6666,
+0x90d84848, 0x06050303, 0xf701f6f6, 0x1c120e0e,
+0xc2a36161, 0x6a5f3535, 0xaef95757, 0x69d0b9b9,
+0x17918686, 0x9958c1c1, 0x3a271d1d, 0x27b99e9e,
+0xd938e1e1, 0xeb13f8f8, 0x2bb39898, 0x22331111,
+0xd2bb6969, 0xa970d9d9, 0x07898e8e, 0x33a79494,
+0x2db69b9b, 0x3c221e1e, 0x15928787, 0xc920e9e9,
+0x8749cece, 0xaaff5555, 0x50782828, 0xa57adfdf,
+0x038f8c8c, 0x59f8a1a1, 0x09808989, 0x1a170d0d,
+0x65dabfbf, 0xd731e6e6, 0x84c64242, 0xd0b86868,
+0x82c34141, 0x29b09999, 0x5a772d2d, 0x1e110f0f,
+0x7bcbb0b0, 0xa8fc5454, 0x6dd6bbbb, 0x2c3a1616 ];
+
+function B0(x) { return (x&255); }
+function B1(x) { return ((x>>8)&255); }
+function B2(x) { return ((x>>16)&255); }
+function B3(x) { return ((x>>24)&255); }
+
+function F1(x0, x1, x2, x3)
+{
+  return B1(T1[x0&255]) | (B1(T1[(x1>>8)&255])<<8)
+      | (B1(T1[(x2>>16)&255])<<16) | (B1(T1[x3>>>24])<<24);
+}
+
+function packBytes(octets)
+{
+  var i, j;
+  var len=octets.length;
+  var b=new Array(len/4);
+
+  if (!octets || len % 4) return;
+
+  for (i=0, j=0; j<len; j+= 4)
+     b[i++] = octets[j] | (octets[j+1]<<8) | (octets[j+2]<<16) | (octets[j+3]<<24);
+
+  return b;  
+}
+
+function unpackBytes(packed)
+{
+  var j;
+  var i=0, l = packed.length;
+  var r = new Array(l*4);
+
+  for (j=0; j<l; j++)
+  {
+    r[i++] = B0(packed[j]);
+    r[i++] = B1(packed[j]);
+    r[i++] = B2(packed[j]);
+    r[i++] = B3(packed[j]);
+  }
+  return r;
+}
+
+// ------------------------------------------------
+
+var maxkc=8;
+var maxrk=14;
+
+function keyExpansion(key)
+{
+  var kc, i, j, r, t;
+  var rounds;
+  var keySched=new Array(maxrk+1);
+  var keylen=key.length;
+  var k=new Array(maxkc);
+  var tk=new Array(maxkc);
+  var rconpointer=0;
+
+  if(keylen==16)
+  {
+   rounds=10;
+   kc=4;
+  }
+  else if(keylen==24)
+  {
+   rounds=12;
+   kc=6;
+  }
+  else if(keylen==32)
+  {
+   rounds=14;
+   kc=8;
+  }
+  else
+  {
+	util.print_error('aes.js: Invalid key-length for AES key:'+keylen);
+   return;
+  }
+
+  for(i=0; i<maxrk+1; i++) keySched[i]=new Array(4);
+
+  for(i=0,j=0; j<keylen; j++,i+=4)
+    k[j] = key.charCodeAt(i) | (key.charCodeAt(i+1)<<8)
+                     | (key.charCodeAt(i+2)<<16) | (key.charCodeAt(i+3)<<24);
+
+  for(j=kc-1; j>=0; j--) tk[j] = k[j];
+
+  r=0;
+  t=0;
+  for(j=0; (j<kc)&&(r<rounds+1); )
+  {
+    for(; (j<kc)&&(t<4); j++,t++)
+    {
+      keySched[r][t]=tk[j];
+    }
+    if(t==4)
+    {
+      r++;
+      t=0;
+    }
+  }
+
+  while(r<rounds+1)
+  {
+    var temp = tk[kc-1];
+
+    tk[0] ^= S[B1(temp)] | (S[B2(temp)]<<8) | (S[B3(temp)]<<16) | (S[B0(temp)]<<24);
+    tk[0] ^= Rcon[rconpointer++];
+
+    if(kc != 8)
+    {
+      for(j=1; j<kc; j++) tk[j] ^= tk[j-1];
+    }
+    else
+    {
+      for(j=1; j<kc/2; j++) tk[j] ^= tk[j-1];
+ 
+      temp = tk[kc/2-1];
+      tk[kc/2] ^= S[B0(temp)] | (S[B1(temp)]<<8) | (S[B2(temp)]<<16) | (S[B3(temp)]<<24);
+
+      for(j=kc/2+1; j<kc; j++) tk[j] ^= tk[j-1];
+    }
+
+    for(j=0; (j<kc)&&(r<rounds+1); )
+    {
+      for(; (j<kc)&&(t<4); j++,t++)
+      {
+        keySched[r][t]=tk[j];
+      }
+      if(t==4)
+      {
+        r++;
+        t=0;
+      }
+    }
+  }
+  this.rounds = rounds;
+  this.rk = keySched;
+  return this;
+}
+
+function AESencrypt(block, ctx)
+{
+  var r;
+  var t0,t1,t2,t3;
+
+  var b = packBytes(block);
+  var rounds = ctx.rounds;
+  var b0 = b[0];
+  var b1 = b[1];
+  var b2 = b[2];
+  var b3 = b[3];
+
+  for(r=0; r<rounds-1; r++)
+  {
+    t0 = b0 ^ ctx.rk[r][0];
+    t1 = b1 ^ ctx.rk[r][1];
+    t2 = b2 ^ ctx.rk[r][2];
+    t3 = b3 ^ ctx.rk[r][3];
+
+    b0 = T1[t0&255] ^ T2[(t1>>8)&255] ^ T3[(t2>>16)&255] ^ T4[t3>>>24];
+    b1 = T1[t1&255] ^ T2[(t2>>8)&255] ^ T3[(t3>>16)&255] ^ T4[t0>>>24];
+    b2 = T1[t2&255] ^ T2[(t3>>8)&255] ^ T3[(t0>>16)&255] ^ T4[t1>>>24];
+    b3 = T1[t3&255] ^ T2[(t0>>8)&255] ^ T3[(t1>>16)&255] ^ T4[t2>>>24];
+  }
+
+  // last round is special
+  r = rounds-1;
+
+  t0 = b0 ^ ctx.rk[r][0];
+  t1 = b1 ^ ctx.rk[r][1];
+  t2 = b2 ^ ctx.rk[r][2];
+  t3 = b3 ^ ctx.rk[r][3];
+
+  b[0] = F1(t0, t1, t2, t3) ^ ctx.rk[rounds][0];
+  b[1] = F1(t1, t2, t3, t0) ^ ctx.rk[rounds][1];
+  b[2] = F1(t2, t3, t0, t1) ^ ctx.rk[rounds][2];
+  b[3] = F1(t3, t0, t1, t2) ^ ctx.rk[rounds][3];
+
+  return unpackBytes(b);
+}
+/* Modified by Recurity Labs GmbH 
+ * 
+ * Originally written by nklein software (nklein.com)
+ */
+
+/* 
+ * Javascript implementation based on Bruce Schneier's reference implementation.
+ *
+ *
+ * The constructor doesn't do much of anything.  It's just here
+ * so we can start defining properties and methods and such.
+ */
+function Blowfish() {
+};
+
+/*
+ * Declare the block size so that protocols know what size
+ * Initialization Vector (IV) they will need.
+ */
+Blowfish.prototype.BLOCKSIZE = 8;
+
+/*
+ * These are the default SBOXES.
+ */
+Blowfish.prototype.SBOXES = [
+    [
+	0xd1310ba6, 0x98dfb5ac, 0x2ffd72db, 0xd01adfb7, 0xb8e1afed, 0x6a267e96,
+	0xba7c9045, 0xf12c7f99, 0x24a19947, 0xb3916cf7, 0x0801f2e2, 0x858efc16,
+	0x636920d8, 0x71574e69, 0xa458fea3, 0xf4933d7e, 0x0d95748f, 0x728eb658,
+	0x718bcd58, 0x82154aee, 0x7b54a41d, 0xc25a59b5, 0x9c30d539, 0x2af26013,
+	0xc5d1b023, 0x286085f0, 0xca417918, 0xb8db38ef, 0x8e79dcb0, 0x603a180e,
+	0x6c9e0e8b, 0xb01e8a3e, 0xd71577c1, 0xbd314b27, 0x78af2fda, 0x55605c60,
+	0xe65525f3, 0xaa55ab94, 0x57489862, 0x63e81440, 0x55ca396a, 0x2aab10b6,
+	0xb4cc5c34, 0x1141e8ce, 0xa15486af, 0x7c72e993, 0xb3ee1411, 0x636fbc2a,
+	0x2ba9c55d, 0x741831f6, 0xce5c3e16, 0x9b87931e, 0xafd6ba33, 0x6c24cf5c,
+	0x7a325381, 0x28958677, 0x3b8f4898, 0x6b4bb9af, 0xc4bfe81b, 0x66282193,
+	0x61d809cc, 0xfb21a991, 0x487cac60, 0x5dec8032, 0xef845d5d, 0xe98575b1,
+	0xdc262302, 0xeb651b88, 0x23893e81, 0xd396acc5, 0x0f6d6ff3, 0x83f44239,
+	0x2e0b4482, 0xa4842004, 0x69c8f04a, 0x9e1f9b5e, 0x21c66842, 0xf6e96c9a,
+	0x670c9c61, 0xabd388f0, 0x6a51a0d2, 0xd8542f68, 0x960fa728, 0xab5133a3,
+	0x6eef0b6c, 0x137a3be4, 0xba3bf050, 0x7efb2a98, 0xa1f1651d, 0x39af0176,
+	0x66ca593e, 0x82430e88, 0x8cee8619, 0x456f9fb4, 0x7d84a5c3, 0x3b8b5ebe,
+	0xe06f75d8, 0x85c12073, 0x401a449f, 0x56c16aa6, 0x4ed3aa62, 0x363f7706,
+	0x1bfedf72, 0x429b023d, 0x37d0d724, 0xd00a1248, 0xdb0fead3, 0x49f1c09b,
+	0x075372c9, 0x80991b7b, 0x25d479d8, 0xf6e8def7, 0xe3fe501a, 0xb6794c3b,
+	0x976ce0bd, 0x04c006ba, 0xc1a94fb6, 0x409f60c4, 0x5e5c9ec2, 0x196a2463,
+	0x68fb6faf, 0x3e6c53b5, 0x1339b2eb, 0x3b52ec6f, 0x6dfc511f, 0x9b30952c,
+	0xcc814544, 0xaf5ebd09, 0xbee3d004, 0xde334afd, 0x660f2807, 0x192e4bb3,
+	0xc0cba857, 0x45c8740f, 0xd20b5f39, 0xb9d3fbdb, 0x5579c0bd, 0x1a60320a,
+	0xd6a100c6, 0x402c7279, 0x679f25fe, 0xfb1fa3cc, 0x8ea5e9f8, 0xdb3222f8,
+	0x3c7516df, 0xfd616b15, 0x2f501ec8, 0xad0552ab, 0x323db5fa, 0xfd238760,
+	0x53317b48, 0x3e00df82, 0x9e5c57bb, 0xca6f8ca0, 0x1a87562e, 0xdf1769db,
+	0xd542a8f6, 0x287effc3, 0xac6732c6, 0x8c4f5573, 0x695b27b0, 0xbbca58c8,
+	0xe1ffa35d, 0xb8f011a0, 0x10fa3d98, 0xfd2183b8, 0x4afcb56c, 0x2dd1d35b,
+	0x9a53e479, 0xb6f84565, 0xd28e49bc, 0x4bfb9790, 0xe1ddf2da, 0xa4cb7e33,
+	0x62fb1341, 0xcee4c6e8, 0xef20cada, 0x36774c01, 0xd07e9efe, 0x2bf11fb4,
+	0x95dbda4d, 0xae909198, 0xeaad8e71, 0x6b93d5a0, 0xd08ed1d0, 0xafc725e0,
+	0x8e3c5b2f, 0x8e7594b7, 0x8ff6e2fb, 0xf2122b64, 0x8888b812, 0x900df01c,
+	0x4fad5ea0, 0x688fc31c, 0xd1cff191, 0xb3a8c1ad, 0x2f2f2218, 0xbe0e1777,
+	0xea752dfe, 0x8b021fa1, 0xe5a0cc0f, 0xb56f74e8, 0x18acf3d6, 0xce89e299,
+	0xb4a84fe0, 0xfd13e0b7, 0x7cc43b81, 0xd2ada8d9, 0x165fa266, 0x80957705,
+	0x93cc7314, 0x211a1477, 0xe6ad2065, 0x77b5fa86, 0xc75442f5, 0xfb9d35cf,
+	0xebcdaf0c, 0x7b3e89a0, 0xd6411bd3, 0xae1e7e49, 0x00250e2d, 0x2071b35e,
+	0x226800bb, 0x57b8e0af, 0x2464369b, 0xf009b91e, 0x5563911d, 0x59dfa6aa,
+	0x78c14389, 0xd95a537f, 0x207d5ba2, 0x02e5b9c5, 0x83260376, 0x6295cfa9,
+	0x11c81968, 0x4e734a41, 0xb3472dca, 0x7b14a94a, 0x1b510052, 0x9a532915,
+	0xd60f573f, 0xbc9bc6e4, 0x2b60a476, 0x81e67400, 0x08ba6fb5, 0x571be91f,
+	0xf296ec6b, 0x2a0dd915, 0xb6636521, 0xe7b9f9b6, 0xff34052e, 0xc5855664,
+	0x53b02d5d, 0xa99f8fa1, 0x08ba4799, 0x6e85076a
+    ], [
+	0x4b7a70e9, 0xb5b32944, 0xdb75092e, 0xc4192623, 0xad6ea6b0, 0x49a7df7d,
+	0x9cee60b8, 0x8fedb266, 0xecaa8c71, 0x699a17ff, 0x5664526c, 0xc2b19ee1,
+	0x193602a5, 0x75094c29, 0xa0591340, 0xe4183a3e, 0x3f54989a, 0x5b429d65,
+	0x6b8fe4d6, 0x99f73fd6, 0xa1d29c07, 0xefe830f5, 0x4d2d38e6, 0xf0255dc1,
+	0x4cdd2086, 0x8470eb26, 0x6382e9c6, 0x021ecc5e, 0x09686b3f, 0x3ebaefc9,
+	0x3c971814, 0x6b6a70a1, 0x687f3584, 0x52a0e286, 0xb79c5305, 0xaa500737,
+	0x3e07841c, 0x7fdeae5c, 0x8e7d44ec, 0x5716f2b8, 0xb03ada37, 0xf0500c0d,
+	0xf01c1f04, 0x0200b3ff, 0xae0cf51a, 0x3cb574b2, 0x25837a58, 0xdc0921bd,
+	0xd19113f9, 0x7ca92ff6, 0x94324773, 0x22f54701, 0x3ae5e581, 0x37c2dadc,
+	0xc8b57634, 0x9af3dda7, 0xa9446146, 0x0fd0030e, 0xecc8c73e, 0xa4751e41,
+	0xe238cd99, 0x3bea0e2f, 0x3280bba1, 0x183eb331, 0x4e548b38, 0x4f6db908,
+	0x6f420d03, 0xf60a04bf, 0x2cb81290, 0x24977c79, 0x5679b072, 0xbcaf89af,
+	0xde9a771f, 0xd9930810, 0xb38bae12, 0xdccf3f2e, 0x5512721f, 0x2e6b7124,
+	0x501adde6, 0x9f84cd87, 0x7a584718, 0x7408da17, 0xbc9f9abc, 0xe94b7d8c,
+	0xec7aec3a, 0xdb851dfa, 0x63094366, 0xc464c3d2, 0xef1c1847, 0x3215d908,
+	0xdd433b37, 0x24c2ba16, 0x12a14d43, 0x2a65c451, 0x50940002, 0x133ae4dd,
+	0x71dff89e, 0x10314e55, 0x81ac77d6, 0x5f11199b, 0x043556f1, 0xd7a3c76b,
+	0x3c11183b, 0x5924a509, 0xf28fe6ed, 0x97f1fbfa, 0x9ebabf2c, 0x1e153c6e,
+	0x86e34570, 0xeae96fb1, 0x860e5e0a, 0x5a3e2ab3, 0x771fe71c, 0x4e3d06fa,
+	0x2965dcb9, 0x99e71d0f, 0x803e89d6, 0x5266c825, 0x2e4cc978, 0x9c10b36a,
+	0xc6150eba, 0x94e2ea78, 0xa5fc3c53, 0x1e0a2df4, 0xf2f74ea7, 0x361d2b3d,
+	0x1939260f, 0x19c27960, 0x5223a708, 0xf71312b6, 0xebadfe6e, 0xeac31f66,
+	0xe3bc4595, 0xa67bc883, 0xb17f37d1, 0x018cff28, 0xc332ddef, 0xbe6c5aa5,
+	0x65582185, 0x68ab9802, 0xeecea50f, 0xdb2f953b, 0x2aef7dad, 0x5b6e2f84,
+	0x1521b628, 0x29076170, 0xecdd4775, 0x619f1510, 0x13cca830, 0xeb61bd96,
+	0x0334fe1e, 0xaa0363cf, 0xb5735c90, 0x4c70a239, 0xd59e9e0b, 0xcbaade14,
+	0xeecc86bc, 0x60622ca7, 0x9cab5cab, 0xb2f3846e, 0x648b1eaf, 0x19bdf0ca,
+	0xa02369b9, 0x655abb50, 0x40685a32, 0x3c2ab4b3, 0x319ee9d5, 0xc021b8f7,
+	0x9b540b19, 0x875fa099, 0x95f7997e, 0x623d7da8, 0xf837889a, 0x97e32d77,
+	0x11ed935f, 0x16681281, 0x0e358829, 0xc7e61fd6, 0x96dedfa1, 0x7858ba99,
+	0x57f584a5, 0x1b227263, 0x9b83c3ff, 0x1ac24696, 0xcdb30aeb, 0x532e3054,
+	0x8fd948e4, 0x6dbc3128, 0x58ebf2ef, 0x34c6ffea, 0xfe28ed61, 0xee7c3c73,
+	0x5d4a14d9, 0xe864b7e3, 0x42105d14, 0x203e13e0, 0x45eee2b6, 0xa3aaabea,
+	0xdb6c4f15, 0xfacb4fd0, 0xc742f442, 0xef6abbb5, 0x654f3b1d, 0x41cd2105,
+	0xd81e799e, 0x86854dc7, 0xe44b476a, 0x3d816250, 0xcf62a1f2, 0x5b8d2646,
+	0xfc8883a0, 0xc1c7b6a3, 0x7f1524c3, 0x69cb7492, 0x47848a0b, 0x5692b285,
+	0x095bbf00, 0xad19489d, 0x1462b174, 0x23820e00, 0x58428d2a, 0x0c55f5ea,
+	0x1dadf43e, 0x233f7061, 0x3372f092, 0x8d937e41, 0xd65fecf1, 0x6c223bdb,
+	0x7cde3759, 0xcbee7460, 0x4085f2a7, 0xce77326e, 0xa6078084, 0x19f8509e,
+	0xe8efd855, 0x61d99735, 0xa969a7aa, 0xc50c06c2, 0x5a04abfc, 0x800bcadc,
+	0x9e447a2e, 0xc3453484, 0xfdd56705, 0x0e1e9ec9, 0xdb73dbd3, 0x105588cd,
+	0x675fda79, 0xe3674340, 0xc5c43465, 0x713e38d8, 0x3d28f89e, 0xf16dff20,
+	0x153e21e7, 0x8fb03d4a, 0xe6e39f2b, 0xdb83adf7
+    ], [
+	0xe93d5a68, 0x948140f7, 0xf64c261c, 0x94692934, 0x411520f7, 0x7602d4f7,
+	0xbcf46b2e, 0xd4a20068, 0xd4082471, 0x3320f46a, 0x43b7d4b7, 0x500061af,
+	0x1e39f62e, 0x97244546, 0x14214f74, 0xbf8b8840, 0x4d95fc1d, 0x96b591af,
+	0x70f4ddd3, 0x66a02f45, 0xbfbc09ec, 0x03bd9785, 0x7fac6dd0, 0x31cb8504,
+	0x96eb27b3, 0x55fd3941, 0xda2547e6, 0xabca0a9a, 0x28507825, 0x530429f4,
+	0x0a2c86da, 0xe9b66dfb, 0x68dc1462, 0xd7486900, 0x680ec0a4, 0x27a18dee,
+	0x4f3ffea2, 0xe887ad8c, 0xb58ce006, 0x7af4d6b6, 0xaace1e7c, 0xd3375fec,
+	0xce78a399, 0x406b2a42, 0x20fe9e35, 0xd9f385b9, 0xee39d7ab, 0x3b124e8b,
+	0x1dc9faf7, 0x4b6d1856, 0x26a36631, 0xeae397b2, 0x3a6efa74, 0xdd5b4332,
+	0x6841e7f7, 0xca7820fb, 0xfb0af54e, 0xd8feb397, 0x454056ac, 0xba489527,
+	0x55533a3a, 0x20838d87, 0xfe6ba9b7, 0xd096954b, 0x55a867bc, 0xa1159a58,
+	0xcca92963, 0x99e1db33, 0xa62a4a56, 0x3f3125f9, 0x5ef47e1c, 0x9029317c,
+	0xfdf8e802, 0x04272f70, 0x80bb155c, 0x05282ce3, 0x95c11548, 0xe4c66d22,
+	0x48c1133f, 0xc70f86dc, 0x07f9c9ee, 0x41041f0f, 0x404779a4, 0x5d886e17,
+	0x325f51eb, 0xd59bc0d1, 0xf2bcc18f, 0x41113564, 0x257b7834, 0x602a9c60,
+	0xdff8e8a3, 0x1f636c1b, 0x0e12b4c2, 0x02e1329e, 0xaf664fd1, 0xcad18115,
+	0x6b2395e0, 0x333e92e1, 0x3b240b62, 0xeebeb922, 0x85b2a20e, 0xe6ba0d99,
+	0xde720c8c, 0x2da2f728, 0xd0127845, 0x95b794fd, 0x647d0862, 0xe7ccf5f0,
+	0x5449a36f, 0x877d48fa, 0xc39dfd27, 0xf33e8d1e, 0x0a476341, 0x992eff74,
+	0x3a6f6eab, 0xf4f8fd37, 0xa812dc60, 0xa1ebddf8, 0x991be14c, 0xdb6e6b0d,
+	0xc67b5510, 0x6d672c37, 0x2765d43b, 0xdcd0e804, 0xf1290dc7, 0xcc00ffa3,
+	0xb5390f92, 0x690fed0b, 0x667b9ffb, 0xcedb7d9c, 0xa091cf0b, 0xd9155ea3,
+	0xbb132f88, 0x515bad24, 0x7b9479bf, 0x763bd6eb, 0x37392eb3, 0xcc115979,
+	0x8026e297, 0xf42e312d, 0x6842ada7, 0xc66a2b3b, 0x12754ccc, 0x782ef11c,
+	0x6a124237, 0xb79251e7, 0x06a1bbe6, 0x4bfb6350, 0x1a6b1018, 0x11caedfa,
+	0x3d25bdd8, 0xe2e1c3c9, 0x44421659, 0x0a121386, 0xd90cec6e, 0xd5abea2a,
+	0x64af674e, 0xda86a85f, 0xbebfe988, 0x64e4c3fe, 0x9dbc8057, 0xf0f7c086,
+	0x60787bf8, 0x6003604d, 0xd1fd8346, 0xf6381fb0, 0x7745ae04, 0xd736fccc,
+	0x83426b33, 0xf01eab71, 0xb0804187, 0x3c005e5f, 0x77a057be, 0xbde8ae24,
+	0x55464299, 0xbf582e61, 0x4e58f48f, 0xf2ddfda2, 0xf474ef38, 0x8789bdc2,
+	0x5366f9c3, 0xc8b38e74, 0xb475f255, 0x46fcd9b9, 0x7aeb2661, 0x8b1ddf84,
+	0x846a0e79, 0x915f95e2, 0x466e598e, 0x20b45770, 0x8cd55591, 0xc902de4c,
+	0xb90bace1, 0xbb8205d0, 0x11a86248, 0x7574a99e, 0xb77f19b6, 0xe0a9dc09,
+	0x662d09a1, 0xc4324633, 0xe85a1f02, 0x09f0be8c, 0x4a99a025, 0x1d6efe10,
+	0x1ab93d1d, 0x0ba5a4df, 0xa186f20f, 0x2868f169, 0xdcb7da83, 0x573906fe,
+	0xa1e2ce9b, 0x4fcd7f52, 0x50115e01, 0xa70683fa, 0xa002b5c4, 0x0de6d027,
+	0x9af88c27, 0x773f8641, 0xc3604c06, 0x61a806b5, 0xf0177a28, 0xc0f586e0,
+	0x006058aa, 0x30dc7d62, 0x11e69ed7, 0x2338ea63, 0x53c2dd94, 0xc2c21634,
+	0xbbcbee56, 0x90bcb6de, 0xebfc7da1, 0xce591d76, 0x6f05e409, 0x4b7c0188,
+	0x39720a3d, 0x7c927c24, 0x86e3725f, 0x724d9db9, 0x1ac15bb4, 0xd39eb8fc,
+	0xed545578, 0x08fca5b5, 0xd83d7cd3, 0x4dad0fc4, 0x1e50ef5e, 0xb161e6f8,
+	0xa28514d9, 0x6c51133c, 0x6fd5c7e7, 0x56e14ec4, 0x362abfce, 0xddc6c837,
+	0xd79a3234, 0x92638212, 0x670efa8e, 0x406000e0
+    ], [
+	0x3a39ce37, 0xd3faf5cf, 0xabc27737, 0x5ac52d1b, 0x5cb0679e, 0x4fa33742,
+	0xd3822740, 0x99bc9bbe, 0xd5118e9d, 0xbf0f7315, 0xd62d1c7e, 0xc700c47b,
+	0xb78c1b6b, 0x21a19045, 0xb26eb1be, 0x6a366eb4, 0x5748ab2f, 0xbc946e79,
+	0xc6a376d2, 0x6549c2c8, 0x530ff8ee, 0x468dde7d, 0xd5730a1d, 0x4cd04dc6,
+	0x2939bbdb, 0xa9ba4650, 0xac9526e8, 0xbe5ee304, 0xa1fad5f0, 0x6a2d519a,
+	0x63ef8ce2, 0x9a86ee22, 0xc089c2b8, 0x43242ef6, 0xa51e03aa, 0x9cf2d0a4,
+	0x83c061ba, 0x9be96a4d, 0x8fe51550, 0xba645bd6, 0x2826a2f9, 0xa73a3ae1,
+	0x4ba99586, 0xef5562e9, 0xc72fefd3, 0xf752f7da, 0x3f046f69, 0x77fa0a59,
+	0x80e4a915, 0x87b08601, 0x9b09e6ad, 0x3b3ee593, 0xe990fd5a, 0x9e34d797,
+	0x2cf0b7d9, 0x022b8b51, 0x96d5ac3a, 0x017da67d, 0xd1cf3ed6, 0x7c7d2d28,
+	0x1f9f25cf, 0xadf2b89b, 0x5ad6b472, 0x5a88f54c, 0xe029ac71, 0xe019a5e6,
+	0x47b0acfd, 0xed93fa9b, 0xe8d3c48d, 0x283b57cc, 0xf8d56629, 0x79132e28,
+	0x785f0191, 0xed756055, 0xf7960e44, 0xe3d35e8c, 0x15056dd4, 0x88f46dba,
+	0x03a16125, 0x0564f0bd, 0xc3eb9e15, 0x3c9057a2, 0x97271aec, 0xa93a072a,
+	0x1b3f6d9b, 0x1e6321f5, 0xf59c66fb, 0x26dcf319, 0x7533d928, 0xb155fdf5,
+	0x03563482, 0x8aba3cbb, 0x28517711, 0xc20ad9f8, 0xabcc5167, 0xccad925f,
+	0x4de81751, 0x3830dc8e, 0x379d5862, 0x9320f991, 0xea7a90c2, 0xfb3e7bce,
+	0x5121ce64, 0x774fbe32, 0xa8b6e37e, 0xc3293d46, 0x48de5369, 0x6413e680,
+	0xa2ae0810, 0xdd6db224, 0x69852dfd, 0x09072166, 0xb39a460a, 0x6445c0dd,
+	0x586cdecf, 0x1c20c8ae, 0x5bbef7dd, 0x1b588d40, 0xccd2017f, 0x6bb4e3bb,
+	0xdda26a7e, 0x3a59ff45, 0x3e350a44, 0xbcb4cdd5, 0x72eacea8, 0xfa6484bb,
+	0x8d6612ae, 0xbf3c6f47, 0xd29be463, 0x542f5d9e, 0xaec2771b, 0xf64e6370,
+	0x740e0d8d, 0xe75b1357, 0xf8721671, 0xaf537d5d, 0x4040cb08, 0x4eb4e2cc,
+	0x34d2466a, 0x0115af84, 0xe1b00428, 0x95983a1d, 0x06b89fb4, 0xce6ea048,
+	0x6f3f3b82, 0x3520ab82, 0x011a1d4b, 0x277227f8, 0x611560b1, 0xe7933fdc,
+	0xbb3a792b, 0x344525bd, 0xa08839e1, 0x51ce794b, 0x2f32c9b7, 0xa01fbac9,
+	0xe01cc87e, 0xbcc7d1f6, 0xcf0111c3, 0xa1e8aac7, 0x1a908749, 0xd44fbd9a,
+	0xd0dadecb, 0xd50ada38, 0x0339c32a, 0xc6913667, 0x8df9317c, 0xe0b12b4f,
+	0xf79e59b7, 0x43f5bb3a, 0xf2d519ff, 0x27d9459c, 0xbf97222c, 0x15e6fc2a,
+	0x0f91fc71, 0x9b941525, 0xfae59361, 0xceb69ceb, 0xc2a86459, 0x12baa8d1,
+	0xb6c1075e, 0xe3056a0c, 0x10d25065, 0xcb03a442, 0xe0ec6e0e, 0x1698db3b,
+	0x4c98a0be, 0x3278e964, 0x9f1f9532, 0xe0d392df, 0xd3a0342b, 0x8971f21e,
+	0x1b0a7441, 0x4ba3348c, 0xc5be7120, 0xc37632d8, 0xdf359f8d, 0x9b992f2e,
+	0xe60b6f47, 0x0fe3f11d, 0xe54cda54, 0x1edad891, 0xce6279cf, 0xcd3e7e6f,
+	0x1618b166, 0xfd2c1d05, 0x848fd2c5, 0xf6fb2299, 0xf523f357, 0xa6327623,
+	0x93a83531, 0x56cccd02, 0xacf08162, 0x5a75ebb5, 0x6e163697, 0x88d273cc,
+	0xde966292, 0x81b949d0, 0x4c50901b, 0x71c65614, 0xe6c6c7bd, 0x327a140a,
+	0x45e1d006, 0xc3f27b9a, 0xc9aa53fd, 0x62a80f00, 0xbb25bfe2, 0x35bdd2f6,
+	0x71126905, 0xb2040222, 0xb6cbcf7c, 0xcd769c2b, 0x53113ec0, 0x1640e3d3,
+	0x38abbd60, 0x2547adf0, 0xba38209c, 0xf746ce76, 0x77afa1c5, 0x20756060,
+	0x85cbfe4e, 0x8ae88dd8, 0x7aaaf9b0, 0x4cf9aa7e, 0x1948c25c, 0x02fb8a8c,
+	0x01c36ae4, 0xd6ebe1f9, 0x90d4f869, 0xa65cdea0, 0x3f09252d, 0xc208e69f,
+	0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6
+    ]
+];
+
+//*
+//* This is the default PARRAY
+//*
+Blowfish.prototype.PARRAY = [
+    0x243f6a88, 0x85a308d3, 0x13198a2e, 0x03707344, 0xa4093822, 0x299f31d0,
+    0x082efa98, 0xec4e6c89, 0x452821e6, 0x38d01377, 0xbe5466cf, 0x34e90c6c,
+    0xc0ac29b7, 0xc97c50dd, 0x3f84d5b5, 0xb5470917, 0x9216d5d9, 0x8979fb1b
+];
+
+//*
+//* This is the number of rounds the cipher will go
+//*
+Blowfish.prototype.NN = 16;
+
+//*
+//* This function is needed to get rid of problems
+//* with the high-bit getting set.  If we don't do
+//* this, then sometimes ( aa & 0x00FFFFFFFF ) is not
+//* equal to ( bb & 0x00FFFFFFFF ) even when they
+//* agree bit-for-bit for the first 32 bits.
+//*
+Blowfish.prototype._clean = function( xx ) {
+    if ( xx < 0 ) {
+	var yy = xx & 0x7FFFFFFF;
+	xx = yy + 0x80000000;
+    }
+    return xx;
+};
+
+//*
+//* This is the mixing function that uses the sboxes
+//*
+Blowfish.prototype._F = function ( xx ) {
+    var aa;
+    var bb;
+    var cc;
+    var dd;
+    var yy;
+
+    dd = xx & 0x00FF;
+    xx >>>= 8;
+    cc = xx & 0x00FF;
+    xx >>>= 8;
+    bb = xx & 0x00FF;
+    xx >>>= 8;
+    aa = xx & 0x00FF;
+
+    yy = this.sboxes[ 0 ][ aa ] + this.sboxes[ 1 ][ bb ];
+    yy = yy ^ this.sboxes[ 2 ][ cc ];
+    yy = yy + this.sboxes[ 3 ][ dd ];
+
+    return yy;
+};
+
+//*
+//* This method takes an array with two values, left and right
+//* and does NN rounds of Blowfish on them.
+//*
+Blowfish.prototype._encrypt_block = function ( vals ) {
+    var dataL = vals[ 0 ];
+    var dataR = vals[ 1 ];
+
+    var ii;
+
+    for ( ii=0; ii < this.NN; ++ii ) {
+	dataL = dataL ^ this.parray[ ii ];
+	dataR = this._F( dataL ) ^ dataR;
+
+	var tmp = dataL;
+	dataL = dataR;
+	dataR = tmp;
+    }
+
+    dataL = dataL ^ this.parray[ this.NN + 0 ];
+    dataR = dataR ^ this.parray[ this.NN + 1 ];
+
+    vals[ 0 ] = this._clean( dataR );
+    vals[ 1 ] = this._clean( dataL );
+};
+
+//*
+//* This method takes a vector of numbers and turns them
+//* into long words so that they can be processed by the
+//* real algorithm.
+//*
+//* Maybe I should make the real algorithm above take a vector
+//* instead.  That will involve more looping, but it won't require
+//* the F() method to deconstruct the vector.
+//*
+Blowfish.prototype.encrypt_block = function ( vector ) {
+    var ii;
+    var vals = [ 0, 0 ];
+    var off  = this.BLOCKSIZE/2;
+    for ( ii = 0; ii < this.BLOCKSIZE/2; ++ii ) {
+	vals[0] = ( vals[0] << 8 ) | ( vector[ ii + 0   ] & 0x00FF );
+	vals[1] = ( vals[1] << 8 ) | ( vector[ ii + off ] & 0x00FF );
+    }
+
+    this._encrypt_block( vals );
+
+    var ret = [ ];
+    for ( ii = 0; ii < this.BLOCKSIZE/2; ++ii ) {
+	ret[ ii + 0   ] = ( vals[ 0 ] >>> (24 - 8*(ii)) & 0x00FF );
+	ret[ ii + off ] = ( vals[ 1 ] >>> (24 - 8*(ii)) & 0x00FF );
+	// vals[ 0 ] = ( vals[ 0 ] >>> 8 );
+	// vals[ 1 ] = ( vals[ 1 ] >>> 8 );
+    }
+
+    return ret;
+};
+
+//*
+//* This method takes an array with two values, left and right
+//* and undoes NN rounds of Blowfish on them.
+//*
+Blowfish.prototype._decrypt_block = function ( vals ) {
+    var dataL = vals[ 0 ];
+    var dataR = vals[ 1 ];
+
+    var ii;
+
+    for ( ii=this.NN+1; ii > 1; --ii ) {
+	dataL = dataL ^ this.parray[ ii ];
+	dataR = this._F( dataL ) ^ dataR;
+
+	var tmp = dataL;
+	dataL = dataR;
+	dataR = tmp;
+    }
+
+    dataL = dataL ^ this.parray[ 1 ];
+    dataR = dataR ^ this.parray[ 0 ];
+
+    vals[ 0 ] = this._clean( dataR );
+    vals[ 1 ] = this._clean( dataL );
+};
+
+//*
+//* This method takes a key array and initializes the
+//* sboxes and parray for this encryption.
+//*
+Blowfish.prototype.init = function ( key ) {
+    var ii;
+    var jj = 0;
+
+    this.parray = [];
+    for ( ii=0; ii < this.NN + 2; ++ii ) {
+	var data = 0x00000000;
+	var kk;
+	for ( kk=0; kk < 4; ++kk ) {
+	    data = ( data << 8 ) | ( key[ jj ] & 0x00FF );
+	    if ( ++jj >= key.length ) {
+		jj = 0;
+	    }
+	}
+	this.parray[ ii ] = this.PARRAY[ ii ] ^ data;
+    }
+
+    this.sboxes = [];
+    for ( ii=0; ii < 4; ++ii ) {
+	this.sboxes[ ii ] = [];
+	for ( jj=0; jj < 256; ++jj ) {
+	    this.sboxes[ ii ][ jj ] = this.SBOXES[ ii ][ jj ];
+	}
+    }
+
+    var vals = [ 0x00000000, 0x00000000 ];
+
+    for ( ii=0; ii < this.NN+2; ii += 2 ) {
+	this._encrypt_block( vals );
+	this.parray[ ii + 0 ] = vals[ 0 ];
+	this.parray[ ii + 1 ] = vals[ 1 ];
+    }
+
+    for ( ii=0; ii < 4; ++ii ) {
+	for ( jj=0; jj < 256; jj += 2 ) {
+	    this._encrypt_block( vals );
+	    this.sboxes[ ii ][ jj + 0 ] = vals[ 0 ];
+	    this.sboxes[ ii ][ jj + 1 ] = vals[ 1 ];
+	}
+    }
+};
+
+// added by Recurity Labs
+function BFencrypt(block,key) {
+	var bf = new Blowfish();
+	bf.init(util.str2bin(key));
+	return bf.encrypt_block(block);
+}
+
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// Copyright 2010 pjacobs@xeekr.com . All rights reserved.
+
+// Modified by Recurity Labs GmbH
+
+// fixed/modified by Herbert Hanewinkel, www.haneWIN.de
+// check www.haneWIN.de for the latest version
+
+// cast5.js is a Javascript implementation of CAST-128, as defined in RFC 2144.
+// CAST-128 is a common OpenPGP cipher.
+
+
+// CAST5 constructor
+
+function cast5_encrypt(block, key) {
+	var cast5 = new openpgp_symenc_cast5();
+	cast5.setKey(util.str2bin(key));
+	return cast5.encrypt(block);
+}
+
+function openpgp_symenc_cast5() {
+	this.BlockSize= 8;
+	this.KeySize = 16;
+
+	this.setKey = function (key) {
+		 this.masking = new Array(16);
+		 this.rotate = new Array(16);
+
+		 this.reset();
+
+		 if (key.length == this.KeySize)
+		 {
+		   this.keySchedule(key);
+		 }
+		 else
+		 {
+		   util.print_error('cast5.js: CAST-128: keys must be 16 bytes');
+		   return false;
+		 }
+		 return true;
+	};
+	
+	this.reset = function() {
+		 for (var i = 0; i < 16; i++)
+		 {
+		  this.masking[i] = 0;
+		  this.rotate[i] = 0;
+		 }
+	};
+
+	this.getBlockSize = function() {
+		 return BlockSize;
+	};
+
+	this.encrypt = function(src) {
+		 var dst = new Array(src.length);
+
+		 for(var i = 0; i < src.length; i+=8)
+		 {
+		  var l = src[i]<<24 | src[i+1]<<16 | src[i+2]<<8 | src[i+3];
+		  var r = src[i+4]<<24 | src[i+5]<<16 | src[i+6]<<8 | src[i+7];
+		  var t;
+
+		  t = r; r = l^f1(r, this.masking[0], this.rotate[0]); l = t;
+		  t = r; r = l^f2(r, this.masking[1], this.rotate[1]); l = t;
+		  t = r; r = l^f3(r, this.masking[2], this.rotate[2]); l = t;
+		  t = r; r = l^f1(r, this.masking[3], this.rotate[3]); l = t;
+
+		  t = r; r = l^f2(r, this.masking[4], this.rotate[4]); l = t;
+		  t = r; r = l^f3(r, this.masking[5], this.rotate[5]); l = t;
+		  t = r; r = l^f1(r, this.masking[6], this.rotate[6]); l = t;
+		  t = r; r = l^f2(r, this.masking[7], this.rotate[7]); l = t;
+
+		  t = r; r = l^f3(r, this.masking[8], this.rotate[8]); l = t;
+		  t = r; r = l^f1(r, this.masking[9], this.rotate[9]); l = t;
+		  t = r; r = l^f2(r, this.masking[10], this.rotate[10]); l = t;
+		  t = r; r = l^f3(r, this.masking[11], this.rotate[11]); l = t;
+
+		  t = r; r = l^f1(r, this.masking[12], this.rotate[12]); l = t;
+		  t = r; r = l^f2(r, this.masking[13], this.rotate[13]); l = t;
+		  t = r; r = l^f3(r, this.masking[14], this.rotate[14]); l = t;
+		  t = r; r = l^f1(r, this.masking[15], this.rotate[15]); l = t;
+
+		  dst[i]   = (r >>> 24)&255;
+		  dst[i+1] = (r >>> 16)&255;
+		  dst[i+2] = (r >>> 8)&255;
+		  dst[i+3] = r&255;
+		  dst[i+4] = (l >>> 24)&255;
+		  dst[i+5] = (l >>> 16)&255;
+		  dst[i+6] = (l >>> 8)&255;
+		  dst[i+7] = l&255;
+		 }
+
+		 return dst;
+	};
+	
+	this.decrypt = function(src) {
+		 var dst = new Array(src.length);
+
+		 for(var i = 0; i < src.length; i+=8)
+		 {
+		  var l = src[i]<<24 | src[i+1]<<16 | src[i+2]<<8 | src[i+3];
+		  var r = src[i+4]<<24 | src[i+5]<<16 | src[i+6]<<8 | src[i+7];
+		  var t;
+
+		  t = r; r = l^f1(r, this.masking[15], this.rotate[15]); l = t;
+		  t = r; r = l^f3(r, this.masking[14], this.rotate[14]); l = t;
+		  t = r; r = l^f2(r, this.masking[13], this.rotate[13]); l = t;
+		  t = r; r = l^f1(r, this.masking[12], this.rotate[12]); l = t;
+
+		  t = r; r = l^f3(r, this.masking[11], this.rotate[11]); l = t;
+		  t = r; r = l^f2(r, this.masking[10], this.rotate[10]); l = t;
+		  t = r; r = l^f1(r, this.masking[9], this.rotate[9]); l = t;
+		  t = r; r = l^f3(r, this.masking[8], this.rotate[8]); l = t;
+
+		  t = r; r = l^f2(r, this.masking[7], this.rotate[7]); l = t;
+		  t = r; r = l^f1(r, this.masking[6], this.rotate[6]); l = t;
+		  t = r; r = l^f3(r, this.masking[5], this.rotate[5]); l = t;
+		  t = r; r = l^f2(r, this.masking[4], this.rotate[4]); l = t;
+
+		  t = r; r = l^f1(r, this.masking[3], this.rotate[3]); l = t;
+		  t = r; r = l^f3(r, this.masking[2], this.rotate[2]); l = t;
+		  t = r; r = l^f2(r, this.masking[1], this.rotate[1]); l = t;
+		  t = r; r = l^f1(r, this.masking[0], this.rotate[0]); l = t;
+
+		  dst[i]   = (r >>> 24)&255;
+		  dst[i+1] = (r >>> 16)&255;
+		  dst[i+2] = (r >>> 8)&255;
+		  dst[i+3] = r&255;
+		  dst[i+4] = (l >>> 24)&255;
+		  dst[i+5] = (l >> 16)&255;
+		  dst[i+6] = (l >> 8)&255;
+		  dst[i+7] = l&255;
+		 }
+
+		 return dst;
+		};
+		var scheduleA = new Array(4);
+
+		scheduleA[0] = new Array(4);
+		scheduleA[0][0] = new Array(4, 0, 0xd, 0xf, 0xc, 0xe, 0x8);
+		scheduleA[0][1] = new Array(5, 2, 16 + 0, 16 + 2, 16 + 1, 16 + 3, 0xa);
+		scheduleA[0][2] = new Array(6, 3, 16 + 7, 16 + 6, 16 + 5, 16 + 4, 9);
+		scheduleA[0][3] = new Array(7, 1, 16 + 0xa, 16 + 9, 16 + 0xb, 16 + 8, 0xb);
+
+		scheduleA[1] = new Array(4);
+		scheduleA[1][0] = new Array(0, 6, 16 + 5, 16 + 7, 16 + 4, 16 + 6, 16 + 0);
+		scheduleA[1][1] = new Array(1, 4, 0, 2, 1, 3, 16 + 2);
+		scheduleA[1][2] = new Array(2, 5, 7, 6, 5, 4, 16 + 1);
+		scheduleA[1][3] = new Array(3, 7, 0xa, 9, 0xb, 8, 16 + 3);
+
+		scheduleA[2] = new Array(4);
+		scheduleA[2][0] = new Array(4, 0, 0xd, 0xf, 0xc, 0xe, 8);
+		scheduleA[2][1] = new Array(5, 2, 16 + 0, 16 + 2, 16 + 1, 16 + 3, 0xa);
+		scheduleA[2][2] = new Array(6, 3, 16 + 7, 16 + 6, 16 + 5, 16 + 4, 9);
+		scheduleA[2][3] = new Array(7, 1, 16 + 0xa, 16 + 9, 16 + 0xb, 16 + 8, 0xb);
+
+
+		scheduleA[3] = new Array(4);
+		scheduleA[3][0] = new Array(0, 6, 16 + 5, 16 + 7, 16 + 4, 16 + 6, 16 + 0);
+		scheduleA[3][1] = new Array(1, 4, 0, 2, 1, 3, 16 + 2);
+		scheduleA[3][2] = new Array(2, 5, 7, 6, 5, 4, 16 + 1);
+		scheduleA[3][3] = new Array(3, 7, 0xa, 9, 0xb, 8, 16 + 3);
+
+		var scheduleB = new Array(4);
+
+		scheduleB[0] = new Array(4);
+		scheduleB[0][0] = new Array(16 + 8, 16 + 9, 16 + 7, 16 + 6, 16 + 2);
+		scheduleB[0][1] = new Array(16 + 0xa, 16 + 0xb, 16 + 5, 16 + 4, 16 + 6);
+		scheduleB[0][2] = new Array(16 + 0xc, 16 + 0xd, 16 + 3, 16 + 2, 16 + 9);
+		scheduleB[0][3] = new Array(16 + 0xe, 16 + 0xf, 16 + 1, 16 + 0, 16 + 0xc);
+
+		scheduleB[1] = new Array(4);
+		scheduleB[1][0] = new Array(3, 2, 0xc, 0xd, 8);
+		scheduleB[1][1] = new Array(1, 0, 0xe, 0xf, 0xd);
+		scheduleB[1][2] = new Array(7, 6, 8, 9, 3);
+		scheduleB[1][3] = new Array(5, 4, 0xa, 0xb, 7);
+
+
+		scheduleB[2] = new Array(4);
+		scheduleB[2][0] = new Array(16 + 3, 16 + 2, 16 + 0xc, 16 + 0xd, 16 + 9);
+		scheduleB[2][1] = new Array(16 + 1, 16 + 0, 16 + 0xe, 16 + 0xf, 16 + 0xc);
+		scheduleB[2][2] = new Array(16 + 7, 16 + 6, 16 + 8, 16 + 9, 16 + 2);
+		scheduleB[2][3] = new Array(16 + 5, 16 + 4, 16 + 0xa, 16 + 0xb, 16 + 6);
+
+
+		scheduleB[3] = new Array(4);
+		scheduleB[3][0] = new Array(8, 9, 7, 6, 3);
+		scheduleB[3][1] = new Array(0xa, 0xb, 5, 4, 7);
+		scheduleB[3][2] = new Array(0xc, 0xd, 3, 2, 8);
+		scheduleB[3][3] = new Array(0xe, 0xf, 1, 0, 0xd);
+
+		// changed 'in' to 'inn' (in javascript 'in' is a reserved word)
+		this.keySchedule = function(inn)
+		{
+		 var t = new Array(8);
+		 var k = new Array(32);
+
+		 for (var i = 0; i < 4; i++)
+		 {
+		  var j = i * 4;
+		  t[i] = inn[j]<<24 | inn[j+1]<<16 | inn[j+2]<<8 | inn[j+3];
+		 }
+
+		 var x = [6, 7, 4, 5];
+		 var ki = 0;
+
+		 for (var half = 0; half < 2; half++)
+		 {
+		  for (var round = 0; round < 4; round++)
+		  {
+		   for (var j = 0; j < 4; j++)
+		   {
+		    var a = scheduleA[round][j];
+		    var w = t[a[1]];
+
+		    w ^= sBox[4][(t[a[2]>>>2]>>>(24-8*(a[2]&3)))&0xff];
+		    w ^= sBox[5][(t[a[3]>>>2]>>>(24-8*(a[3]&3)))&0xff];
+		    w ^= sBox[6][(t[a[4]>>>2]>>>(24-8*(a[4]&3)))&0xff];
+		    w ^= sBox[7][(t[a[5]>>>2]>>>(24-8*(a[5]&3)))&0xff];
+		    w ^= sBox[x[j]][(t[a[6]>>>2]>>>(24-8*(a[6]&3)))&0xff];
+		    t[a[0]] = w;
+		   }
+
+		   for (var j = 0; j < 4; j++)
+		   {
+		    var b = scheduleB[round][j];
+		    var w = sBox[4][(t[b[0]>>>2]>>>(24-8*(b[0]&3)))&0xff];
+
+		    w ^= sBox[5][(t[b[1]>>>2]>>>(24-8*(b[1]&3)))&0xff];
+		    w ^= sBox[6][(t[b[2]>>>2]>>>(24-8*(b[2]&3)))&0xff];
+		    w ^= sBox[7][(t[b[3]>>>2]>>>(24-8*(b[3]&3)))&0xff];
+		    w ^= sBox[4+j][(t[b[4]>>>2]>>>(24-8*(b[4]&3)))&0xff];
+		    k[ki] = w;
+		    ki++;
+		   }
+		  }
+		 }
+
+		 for (var i = 0; i < 16; i++)
+		 {
+		  this.masking[i] = k[i];
+		  this.rotate[i]  = k[16+i] & 0x1f;
+		 }
+		};
+
+		// These are the three 'f' functions. See RFC 2144, section 2.2.
+
+		function f1(d, m, r)
+		{
+		 var t = m + d;
+		 var I = (t << r) | (t >>> (32 - r));
+		 return ((sBox[0][I>>>24] ^ sBox[1][(I>>>16)&255]) - sBox[2][(I>>>8)&255]) + sBox[3][I&255];
+		}
+
+		function f2(d, m, r)
+		{
+		 var t = m ^ d;
+		 var I = (t << r) | (t >>> (32 - r));
+		 return ((sBox[0][I>>>24] - sBox[1][(I>>>16)&255]) + sBox[2][(I>>>8)&255]) ^ sBox[3][I&255];
+		}
+
+		function f3(d, m, r)
+		{
+		 var t = m - d;
+		 var I = (t << r) | (t >>> (32 - r));
+		 return ((sBox[0][I>>>24] + sBox[1][(I>>>16)&255]) ^ sBox[2][(I>>>8)&255]) - sBox[3][I&255];
+		}
+
+		var sBox = new Array(8);
+		sBox[0] = new Array(
+		  0x30fb40d4, 0x9fa0ff0b, 0x6beccd2f, 0x3f258c7a, 0x1e213f2f, 0x9c004dd3, 0x6003e540, 0xcf9fc949,
+		  0xbfd4af27, 0x88bbbdb5, 0xe2034090, 0x98d09675, 0x6e63a0e0, 0x15c361d2, 0xc2e7661d, 0x22d4ff8e,
+		  0x28683b6f, 0xc07fd059, 0xff2379c8, 0x775f50e2, 0x43c340d3, 0xdf2f8656, 0x887ca41a, 0xa2d2bd2d,
+		  0xa1c9e0d6, 0x346c4819, 0x61b76d87, 0x22540f2f, 0x2abe32e1, 0xaa54166b, 0x22568e3a, 0xa2d341d0,
+		  0x66db40c8, 0xa784392f, 0x004dff2f, 0x2db9d2de, 0x97943fac, 0x4a97c1d8, 0x527644b7, 0xb5f437a7,
+		  0xb82cbaef, 0xd751d159, 0x6ff7f0ed, 0x5a097a1f, 0x827b68d0, 0x90ecf52e, 0x22b0c054, 0xbc8e5935,
+		  0x4b6d2f7f, 0x50bb64a2, 0xd2664910, 0xbee5812d, 0xb7332290, 0xe93b159f, 0xb48ee411, 0x4bff345d,
+		  0xfd45c240, 0xad31973f, 0xc4f6d02e, 0x55fc8165, 0xd5b1caad, 0xa1ac2dae, 0xa2d4b76d, 0xc19b0c50,
+		  0x882240f2, 0x0c6e4f38, 0xa4e4bfd7, 0x4f5ba272, 0x564c1d2f, 0xc59c5319, 0xb949e354, 0xb04669fe,
+		  0xb1b6ab8a, 0xc71358dd, 0x6385c545, 0x110f935d, 0x57538ad5, 0x6a390493, 0xe63d37e0, 0x2a54f6b3,
+		  0x3a787d5f, 0x6276a0b5, 0x19a6fcdf, 0x7a42206a, 0x29f9d4d5, 0xf61b1891, 0xbb72275e, 0xaa508167,
+		  0x38901091, 0xc6b505eb, 0x84c7cb8c, 0x2ad75a0f, 0x874a1427, 0xa2d1936b, 0x2ad286af, 0xaa56d291,
+		  0xd7894360, 0x425c750d, 0x93b39e26, 0x187184c9, 0x6c00b32d, 0x73e2bb14, 0xa0bebc3c, 0x54623779,
+		  0x64459eab, 0x3f328b82, 0x7718cf82, 0x59a2cea6, 0x04ee002e, 0x89fe78e6, 0x3fab0950, 0x325ff6c2,
+		  0x81383f05, 0x6963c5c8, 0x76cb5ad6, 0xd49974c9, 0xca180dcf, 0x380782d5, 0xc7fa5cf6, 0x8ac31511,
+		  0x35e79e13, 0x47da91d0, 0xf40f9086, 0xa7e2419e, 0x31366241, 0x051ef495, 0xaa573b04, 0x4a805d8d,
+		  0x548300d0, 0x00322a3c, 0xbf64cddf, 0xba57a68e, 0x75c6372b, 0x50afd341, 0xa7c13275, 0x915a0bf5,
+		  0x6b54bfab, 0x2b0b1426, 0xab4cc9d7, 0x449ccd82, 0xf7fbf265, 0xab85c5f3, 0x1b55db94, 0xaad4e324,
+		  0xcfa4bd3f, 0x2deaa3e2, 0x9e204d02, 0xc8bd25ac, 0xeadf55b3, 0xd5bd9e98, 0xe31231b2, 0x2ad5ad6c,
+		  0x954329de, 0xadbe4528, 0xd8710f69, 0xaa51c90f, 0xaa786bf6, 0x22513f1e, 0xaa51a79b, 0x2ad344cc,
+		  0x7b5a41f0, 0xd37cfbad, 0x1b069505, 0x41ece491, 0xb4c332e6, 0x032268d4, 0xc9600acc, 0xce387e6d,
+		  0xbf6bb16c, 0x6a70fb78, 0x0d03d9c9, 0xd4df39de, 0xe01063da, 0x4736f464, 0x5ad328d8, 0xb347cc96,
+		  0x75bb0fc3, 0x98511bfb, 0x4ffbcc35, 0xb58bcf6a, 0xe11f0abc, 0xbfc5fe4a, 0xa70aec10, 0xac39570a,
+		  0x3f04442f, 0x6188b153, 0xe0397a2e, 0x5727cb79, 0x9ceb418f, 0x1cacd68d, 0x2ad37c96, 0x0175cb9d,
+		  0xc69dff09, 0xc75b65f0, 0xd9db40d8, 0xec0e7779, 0x4744ead4, 0xb11c3274, 0xdd24cb9e, 0x7e1c54bd,
+		  0xf01144f9, 0xd2240eb1, 0x9675b3fd, 0xa3ac3755, 0xd47c27af, 0x51c85f4d, 0x56907596, 0xa5bb15e6,
+		  0x580304f0, 0xca042cf1, 0x011a37ea, 0x8dbfaadb, 0x35ba3e4a, 0x3526ffa0, 0xc37b4d09, 0xbc306ed9,
+		  0x98a52666, 0x5648f725, 0xff5e569d, 0x0ced63d0, 0x7c63b2cf, 0x700b45e1, 0xd5ea50f1, 0x85a92872,
+		  0xaf1fbda7, 0xd4234870, 0xa7870bf3, 0x2d3b4d79, 0x42e04198, 0x0cd0ede7, 0x26470db8, 0xf881814c,
+		  0x474d6ad7, 0x7c0c5e5c, 0xd1231959, 0x381b7298, 0xf5d2f4db, 0xab838653, 0x6e2f1e23, 0x83719c9e,
+		  0xbd91e046, 0x9a56456e, 0xdc39200c, 0x20c8c571, 0x962bda1c, 0xe1e696ff, 0xb141ab08, 0x7cca89b9,
+		  0x1a69e783, 0x02cc4843, 0xa2f7c579, 0x429ef47d, 0x427b169c, 0x5ac9f049, 0xdd8f0f00, 0x5c8165bf);
+
+		sBox[1] = new Array(
+		  0x1f201094, 0xef0ba75b, 0x69e3cf7e, 0x393f4380, 0xfe61cf7a, 0xeec5207a, 0x55889c94, 0x72fc0651,
+		  0xada7ef79, 0x4e1d7235, 0xd55a63ce, 0xde0436ba, 0x99c430ef, 0x5f0c0794, 0x18dcdb7d, 0xa1d6eff3,
+		  0xa0b52f7b, 0x59e83605, 0xee15b094, 0xe9ffd909, 0xdc440086, 0xef944459, 0xba83ccb3, 0xe0c3cdfb,
+		  0xd1da4181, 0x3b092ab1, 0xf997f1c1, 0xa5e6cf7b, 0x01420ddb, 0xe4e7ef5b, 0x25a1ff41, 0xe180f806,
+		  0x1fc41080, 0x179bee7a, 0xd37ac6a9, 0xfe5830a4, 0x98de8b7f, 0x77e83f4e, 0x79929269, 0x24fa9f7b,
+		  0xe113c85b, 0xacc40083, 0xd7503525, 0xf7ea615f, 0x62143154, 0x0d554b63, 0x5d681121, 0xc866c359,
+		  0x3d63cf73, 0xcee234c0, 0xd4d87e87, 0x5c672b21, 0x071f6181, 0x39f7627f, 0x361e3084, 0xe4eb573b,
+		  0x602f64a4, 0xd63acd9c, 0x1bbc4635, 0x9e81032d, 0x2701f50c, 0x99847ab4, 0xa0e3df79, 0xba6cf38c,
+		  0x10843094, 0x2537a95e, 0xf46f6ffe, 0xa1ff3b1f, 0x208cfb6a, 0x8f458c74, 0xd9e0a227, 0x4ec73a34,
+		  0xfc884f69, 0x3e4de8df, 0xef0e0088, 0x3559648d, 0x8a45388c, 0x1d804366, 0x721d9bfd, 0xa58684bb,
+		  0xe8256333, 0x844e8212, 0x128d8098, 0xfed33fb4, 0xce280ae1, 0x27e19ba5, 0xd5a6c252, 0xe49754bd,
+		  0xc5d655dd, 0xeb667064, 0x77840b4d, 0xa1b6a801, 0x84db26a9, 0xe0b56714, 0x21f043b7, 0xe5d05860,
+		  0x54f03084, 0x066ff472, 0xa31aa153, 0xdadc4755, 0xb5625dbf, 0x68561be6, 0x83ca6b94, 0x2d6ed23b,
+		  0xeccf01db, 0xa6d3d0ba, 0xb6803d5c, 0xaf77a709, 0x33b4a34c, 0x397bc8d6, 0x5ee22b95, 0x5f0e5304,
+		  0x81ed6f61, 0x20e74364, 0xb45e1378, 0xde18639b, 0x881ca122, 0xb96726d1, 0x8049a7e8, 0x22b7da7b,
+		  0x5e552d25, 0x5272d237, 0x79d2951c, 0xc60d894c, 0x488cb402, 0x1ba4fe5b, 0xa4b09f6b, 0x1ca815cf,
+		  0xa20c3005, 0x8871df63, 0xb9de2fcb, 0x0cc6c9e9, 0x0beeff53, 0xe3214517, 0xb4542835, 0x9f63293c,
+		  0xee41e729, 0x6e1d2d7c, 0x50045286, 0x1e6685f3, 0xf33401c6, 0x30a22c95, 0x31a70850, 0x60930f13,
+		  0x73f98417, 0xa1269859, 0xec645c44, 0x52c877a9, 0xcdff33a6, 0xa02b1741, 0x7cbad9a2, 0x2180036f,
+		  0x50d99c08, 0xcb3f4861, 0xc26bd765, 0x64a3f6ab, 0x80342676, 0x25a75e7b, 0xe4e6d1fc, 0x20c710e6,
+		  0xcdf0b680, 0x17844d3b, 0x31eef84d, 0x7e0824e4, 0x2ccb49eb, 0x846a3bae, 0x8ff77888, 0xee5d60f6,
+		  0x7af75673, 0x2fdd5cdb, 0xa11631c1, 0x30f66f43, 0xb3faec54, 0x157fd7fa, 0xef8579cc, 0xd152de58,
+		  0xdb2ffd5e, 0x8f32ce19, 0x306af97a, 0x02f03ef8, 0x99319ad5, 0xc242fa0f, 0xa7e3ebb0, 0xc68e4906,
+		  0xb8da230c, 0x80823028, 0xdcdef3c8, 0xd35fb171, 0x088a1bc8, 0xbec0c560, 0x61a3c9e8, 0xbca8f54d,
+		  0xc72feffa, 0x22822e99, 0x82c570b4, 0xd8d94e89, 0x8b1c34bc, 0x301e16e6, 0x273be979, 0xb0ffeaa6,
+		  0x61d9b8c6, 0x00b24869, 0xb7ffce3f, 0x08dc283b, 0x43daf65a, 0xf7e19798, 0x7619b72f, 0x8f1c9ba4,
+		  0xdc8637a0, 0x16a7d3b1, 0x9fc393b7, 0xa7136eeb, 0xc6bcc63e, 0x1a513742, 0xef6828bc, 0x520365d6,
+		  0x2d6a77ab, 0x3527ed4b, 0x821fd216, 0x095c6e2e, 0xdb92f2fb, 0x5eea29cb, 0x145892f5, 0x91584f7f,
+		  0x5483697b, 0x2667a8cc, 0x85196048, 0x8c4bacea, 0x833860d4, 0x0d23e0f9, 0x6c387e8a, 0x0ae6d249,
+		  0xb284600c, 0xd835731d, 0xdcb1c647, 0xac4c56ea, 0x3ebd81b3, 0x230eabb0, 0x6438bc87, 0xf0b5b1fa,
+		  0x8f5ea2b3, 0xfc184642, 0x0a036b7a, 0x4fb089bd, 0x649da589, 0xa345415e, 0x5c038323, 0x3e5d3bb9,
+		  0x43d79572, 0x7e6dd07c, 0x06dfdf1e, 0x6c6cc4ef, 0x7160a539, 0x73bfbe70, 0x83877605, 0x4523ecf1);
+
+		sBox[2] = new Array(
+		  0x8defc240, 0x25fa5d9f, 0xeb903dbf, 0xe810c907, 0x47607fff, 0x369fe44b, 0x8c1fc644, 0xaececa90,
+		  0xbeb1f9bf, 0xeefbcaea, 0xe8cf1950, 0x51df07ae, 0x920e8806, 0xf0ad0548, 0xe13c8d83, 0x927010d5,
+		  0x11107d9f, 0x07647db9, 0xb2e3e4d4, 0x3d4f285e, 0xb9afa820, 0xfade82e0, 0xa067268b, 0x8272792e,
+		  0x553fb2c0, 0x489ae22b, 0xd4ef9794, 0x125e3fbc, 0x21fffcee, 0x825b1bfd, 0x9255c5ed, 0x1257a240,
+		  0x4e1a8302, 0xbae07fff, 0x528246e7, 0x8e57140e, 0x3373f7bf, 0x8c9f8188, 0xa6fc4ee8, 0xc982b5a5,
+		  0xa8c01db7, 0x579fc264, 0x67094f31, 0xf2bd3f5f, 0x40fff7c1, 0x1fb78dfc, 0x8e6bd2c1, 0x437be59b,
+		  0x99b03dbf, 0xb5dbc64b, 0x638dc0e6, 0x55819d99, 0xa197c81c, 0x4a012d6e, 0xc5884a28, 0xccc36f71,
+		  0xb843c213, 0x6c0743f1, 0x8309893c, 0x0feddd5f, 0x2f7fe850, 0xd7c07f7e, 0x02507fbf, 0x5afb9a04,
+		  0xa747d2d0, 0x1651192e, 0xaf70bf3e, 0x58c31380, 0x5f98302e, 0x727cc3c4, 0x0a0fb402, 0x0f7fef82,
+		  0x8c96fdad, 0x5d2c2aae, 0x8ee99a49, 0x50da88b8, 0x8427f4a0, 0x1eac5790, 0x796fb449, 0x8252dc15,
+		  0xefbd7d9b, 0xa672597d, 0xada840d8, 0x45f54504, 0xfa5d7403, 0xe83ec305, 0x4f91751a, 0x925669c2,
+		  0x23efe941, 0xa903f12e, 0x60270df2, 0x0276e4b6, 0x94fd6574, 0x927985b2, 0x8276dbcb, 0x02778176,
+		  0xf8af918d, 0x4e48f79e, 0x8f616ddf, 0xe29d840e, 0x842f7d83, 0x340ce5c8, 0x96bbb682, 0x93b4b148,
+		  0xef303cab, 0x984faf28, 0x779faf9b, 0x92dc560d, 0x224d1e20, 0x8437aa88, 0x7d29dc96, 0x2756d3dc,
+		  0x8b907cee, 0xb51fd240, 0xe7c07ce3, 0xe566b4a1, 0xc3e9615e, 0x3cf8209d, 0x6094d1e3, 0xcd9ca341,
+		  0x5c76460e, 0x00ea983b, 0xd4d67881, 0xfd47572c, 0xf76cedd9, 0xbda8229c, 0x127dadaa, 0x438a074e,
+		  0x1f97c090, 0x081bdb8a, 0x93a07ebe, 0xb938ca15, 0x97b03cff, 0x3dc2c0f8, 0x8d1ab2ec, 0x64380e51,
+		  0x68cc7bfb, 0xd90f2788, 0x12490181, 0x5de5ffd4, 0xdd7ef86a, 0x76a2e214, 0xb9a40368, 0x925d958f,
+		  0x4b39fffa, 0xba39aee9, 0xa4ffd30b, 0xfaf7933b, 0x6d498623, 0x193cbcfa, 0x27627545, 0x825cf47a,
+		  0x61bd8ba0, 0xd11e42d1, 0xcead04f4, 0x127ea392, 0x10428db7, 0x8272a972, 0x9270c4a8, 0x127de50b,
+		  0x285ba1c8, 0x3c62f44f, 0x35c0eaa5, 0xe805d231, 0x428929fb, 0xb4fcdf82, 0x4fb66a53, 0x0e7dc15b,
+		  0x1f081fab, 0x108618ae, 0xfcfd086d, 0xf9ff2889, 0x694bcc11, 0x236a5cae, 0x12deca4d, 0x2c3f8cc5,
+		  0xd2d02dfe, 0xf8ef5896, 0xe4cf52da, 0x95155b67, 0x494a488c, 0xb9b6a80c, 0x5c8f82bc, 0x89d36b45,
+		  0x3a609437, 0xec00c9a9, 0x44715253, 0x0a874b49, 0xd773bc40, 0x7c34671c, 0x02717ef6, 0x4feb5536,
+		  0xa2d02fff, 0xd2bf60c4, 0xd43f03c0, 0x50b4ef6d, 0x07478cd1, 0x006e1888, 0xa2e53f55, 0xb9e6d4bc,
+		  0xa2048016, 0x97573833, 0xd7207d67, 0xde0f8f3d, 0x72f87b33, 0xabcc4f33, 0x7688c55d, 0x7b00a6b0,
+		  0x947b0001, 0x570075d2, 0xf9bb88f8, 0x8942019e, 0x4264a5ff, 0x856302e0, 0x72dbd92b, 0xee971b69,
+		  0x6ea22fde, 0x5f08ae2b, 0xaf7a616d, 0xe5c98767, 0xcf1febd2, 0x61efc8c2, 0xf1ac2571, 0xcc8239c2,
+		  0x67214cb8, 0xb1e583d1, 0xb7dc3e62, 0x7f10bdce, 0xf90a5c38, 0x0ff0443d, 0x606e6dc6, 0x60543a49,
+		  0x5727c148, 0x2be98a1d, 0x8ab41738, 0x20e1be24, 0xaf96da0f, 0x68458425, 0x99833be5, 0x600d457d,
+		  0x282f9350, 0x8334b362, 0xd91d1120, 0x2b6d8da0, 0x642b1e31, 0x9c305a00, 0x52bce688, 0x1b03588a,
+		  0xf7baefd5, 0x4142ed9c, 0xa4315c11, 0x83323ec5, 0xdfef4636, 0xa133c501, 0xe9d3531c, 0xee353783);
+
+		sBox[3] = new Array(
+		  0x9db30420, 0x1fb6e9de, 0xa7be7bef, 0xd273a298, 0x4a4f7bdb, 0x64ad8c57, 0x85510443, 0xfa020ed1,
+		  0x7e287aff, 0xe60fb663, 0x095f35a1, 0x79ebf120, 0xfd059d43, 0x6497b7b1, 0xf3641f63, 0x241e4adf,
+		  0x28147f5f, 0x4fa2b8cd, 0xc9430040, 0x0cc32220, 0xfdd30b30, 0xc0a5374f, 0x1d2d00d9, 0x24147b15,
+		  0xee4d111a, 0x0fca5167, 0x71ff904c, 0x2d195ffe, 0x1a05645f, 0x0c13fefe, 0x081b08ca, 0x05170121,
+		  0x80530100, 0xe83e5efe, 0xac9af4f8, 0x7fe72701, 0xd2b8ee5f, 0x06df4261, 0xbb9e9b8a, 0x7293ea25,
+		  0xce84ffdf, 0xf5718801, 0x3dd64b04, 0xa26f263b, 0x7ed48400, 0x547eebe6, 0x446d4ca0, 0x6cf3d6f5,
+		  0x2649abdf, 0xaea0c7f5, 0x36338cc1, 0x503f7e93, 0xd3772061, 0x11b638e1, 0x72500e03, 0xf80eb2bb,
+		  0xabe0502e, 0xec8d77de, 0x57971e81, 0xe14f6746, 0xc9335400, 0x6920318f, 0x081dbb99, 0xffc304a5,
+		  0x4d351805, 0x7f3d5ce3, 0xa6c866c6, 0x5d5bcca9, 0xdaec6fea, 0x9f926f91, 0x9f46222f, 0x3991467d,
+		  0xa5bf6d8e, 0x1143c44f, 0x43958302, 0xd0214eeb, 0x022083b8, 0x3fb6180c, 0x18f8931e, 0x281658e6,
+		  0x26486e3e, 0x8bd78a70, 0x7477e4c1, 0xb506e07c, 0xf32d0a25, 0x79098b02, 0xe4eabb81, 0x28123b23,
+		  0x69dead38, 0x1574ca16, 0xdf871b62, 0x211c40b7, 0xa51a9ef9, 0x0014377b, 0x041e8ac8, 0x09114003,
+		  0xbd59e4d2, 0xe3d156d5, 0x4fe876d5, 0x2f91a340, 0x557be8de, 0x00eae4a7, 0x0ce5c2ec, 0x4db4bba6,
+		  0xe756bdff, 0xdd3369ac, 0xec17b035, 0x06572327, 0x99afc8b0, 0x56c8c391, 0x6b65811c, 0x5e146119,
+		  0x6e85cb75, 0xbe07c002, 0xc2325577, 0x893ff4ec, 0x5bbfc92d, 0xd0ec3b25, 0xb7801ab7, 0x8d6d3b24,
+		  0x20c763ef, 0xc366a5fc, 0x9c382880, 0x0ace3205, 0xaac9548a, 0xeca1d7c7, 0x041afa32, 0x1d16625a,
+		  0x6701902c, 0x9b757a54, 0x31d477f7, 0x9126b031, 0x36cc6fdb, 0xc70b8b46, 0xd9e66a48, 0x56e55a79,
+		  0x026a4ceb, 0x52437eff, 0x2f8f76b4, 0x0df980a5, 0x8674cde3, 0xedda04eb, 0x17a9be04, 0x2c18f4df,
+		  0xb7747f9d, 0xab2af7b4, 0xefc34d20, 0x2e096b7c, 0x1741a254, 0xe5b6a035, 0x213d42f6, 0x2c1c7c26,
+		  0x61c2f50f, 0x6552daf9, 0xd2c231f8, 0x25130f69, 0xd8167fa2, 0x0418f2c8, 0x001a96a6, 0x0d1526ab,
+		  0x63315c21, 0x5e0a72ec, 0x49bafefd, 0x187908d9, 0x8d0dbd86, 0x311170a7, 0x3e9b640c, 0xcc3e10d7,
+		  0xd5cad3b6, 0x0caec388, 0xf73001e1, 0x6c728aff, 0x71eae2a1, 0x1f9af36e, 0xcfcbd12f, 0xc1de8417,
+		  0xac07be6b, 0xcb44a1d8, 0x8b9b0f56, 0x013988c3, 0xb1c52fca, 0xb4be31cd, 0xd8782806, 0x12a3a4e2,
+		  0x6f7de532, 0x58fd7eb6, 0xd01ee900, 0x24adffc2, 0xf4990fc5, 0x9711aac5, 0x001d7b95, 0x82e5e7d2,
+		  0x109873f6, 0x00613096, 0xc32d9521, 0xada121ff, 0x29908415, 0x7fbb977f, 0xaf9eb3db, 0x29c9ed2a,
+		  0x5ce2a465, 0xa730f32c, 0xd0aa3fe8, 0x8a5cc091, 0xd49e2ce7, 0x0ce454a9, 0xd60acd86, 0x015f1919,
+		  0x77079103, 0xdea03af6, 0x78a8565e, 0xdee356df, 0x21f05cbe, 0x8b75e387, 0xb3c50651, 0xb8a5c3ef,
+		  0xd8eeb6d2, 0xe523be77, 0xc2154529, 0x2f69efdf, 0xafe67afb, 0xf470c4b2, 0xf3e0eb5b, 0xd6cc9876,
+		  0x39e4460c, 0x1fda8538, 0x1987832f, 0xca007367, 0xa99144f8, 0x296b299e, 0x492fc295, 0x9266beab,
+		  0xb5676e69, 0x9bd3ddda, 0xdf7e052f, 0xdb25701c, 0x1b5e51ee, 0xf65324e6, 0x6afce36c, 0x0316cc04,
+		  0x8644213e, 0xb7dc59d0, 0x7965291f, 0xccd6fd43, 0x41823979, 0x932bcdf6, 0xb657c34d, 0x4edfd282,
+		  0x7ae5290c, 0x3cb9536b, 0x851e20fe, 0x9833557e, 0x13ecf0b0, 0xd3ffb372, 0x3f85c5c1, 0x0aef7ed2);
+
+		sBox[4] = new Array(
+		  0x7ec90c04, 0x2c6e74b9, 0x9b0e66df, 0xa6337911, 0xb86a7fff, 0x1dd358f5, 0x44dd9d44, 0x1731167f,
+		  0x08fbf1fa, 0xe7f511cc, 0xd2051b00, 0x735aba00, 0x2ab722d8, 0x386381cb, 0xacf6243a, 0x69befd7a,
+		  0xe6a2e77f, 0xf0c720cd, 0xc4494816, 0xccf5c180, 0x38851640, 0x15b0a848, 0xe68b18cb, 0x4caadeff,
+		  0x5f480a01, 0x0412b2aa, 0x259814fc, 0x41d0efe2, 0x4e40b48d, 0x248eb6fb, 0x8dba1cfe, 0x41a99b02,
+		  0x1a550a04, 0xba8f65cb, 0x7251f4e7, 0x95a51725, 0xc106ecd7, 0x97a5980a, 0xc539b9aa, 0x4d79fe6a,
+		  0xf2f3f763, 0x68af8040, 0xed0c9e56, 0x11b4958b, 0xe1eb5a88, 0x8709e6b0, 0xd7e07156, 0x4e29fea7,
+		  0x6366e52d, 0x02d1c000, 0xc4ac8e05, 0x9377f571, 0x0c05372a, 0x578535f2, 0x2261be02, 0xd642a0c9,
+		  0xdf13a280, 0x74b55bd2, 0x682199c0, 0xd421e5ec, 0x53fb3ce8, 0xc8adedb3, 0x28a87fc9, 0x3d959981,
+		  0x5c1ff900, 0xfe38d399, 0x0c4eff0b, 0x062407ea, 0xaa2f4fb1, 0x4fb96976, 0x90c79505, 0xb0a8a774,
+		  0xef55a1ff, 0xe59ca2c2, 0xa6b62d27, 0xe66a4263, 0xdf65001f, 0x0ec50966, 0xdfdd55bc, 0x29de0655,
+		  0x911e739a, 0x17af8975, 0x32c7911c, 0x89f89468, 0x0d01e980, 0x524755f4, 0x03b63cc9, 0x0cc844b2,
+		  0xbcf3f0aa, 0x87ac36e9, 0xe53a7426, 0x01b3d82b, 0x1a9e7449, 0x64ee2d7e, 0xcddbb1da, 0x01c94910,
+		  0xb868bf80, 0x0d26f3fd, 0x9342ede7, 0x04a5c284, 0x636737b6, 0x50f5b616, 0xf24766e3, 0x8eca36c1,
+		  0x136e05db, 0xfef18391, 0xfb887a37, 0xd6e7f7d4, 0xc7fb7dc9, 0x3063fcdf, 0xb6f589de, 0xec2941da,
+		  0x26e46695, 0xb7566419, 0xf654efc5, 0xd08d58b7, 0x48925401, 0xc1bacb7f, 0xe5ff550f, 0xb6083049,
+		  0x5bb5d0e8, 0x87d72e5a, 0xab6a6ee1, 0x223a66ce, 0xc62bf3cd, 0x9e0885f9, 0x68cb3e47, 0x086c010f,
+		  0xa21de820, 0xd18b69de, 0xf3f65777, 0xfa02c3f6, 0x407edac3, 0xcbb3d550, 0x1793084d, 0xb0d70eba,
+		  0x0ab378d5, 0xd951fb0c, 0xded7da56, 0x4124bbe4, 0x94ca0b56, 0x0f5755d1, 0xe0e1e56e, 0x6184b5be,
+		  0x580a249f, 0x94f74bc0, 0xe327888e, 0x9f7b5561, 0xc3dc0280, 0x05687715, 0x646c6bd7, 0x44904db3,
+		  0x66b4f0a3, 0xc0f1648a, 0x697ed5af, 0x49e92ff6, 0x309e374f, 0x2cb6356a, 0x85808573, 0x4991f840,
+		  0x76f0ae02, 0x083be84d, 0x28421c9a, 0x44489406, 0x736e4cb8, 0xc1092910, 0x8bc95fc6, 0x7d869cf4,
+		  0x134f616f, 0x2e77118d, 0xb31b2be1, 0xaa90b472, 0x3ca5d717, 0x7d161bba, 0x9cad9010, 0xaf462ba2,
+		  0x9fe459d2, 0x45d34559, 0xd9f2da13, 0xdbc65487, 0xf3e4f94e, 0x176d486f, 0x097c13ea, 0x631da5c7,
+		  0x445f7382, 0x175683f4, 0xcdc66a97, 0x70be0288, 0xb3cdcf72, 0x6e5dd2f3, 0x20936079, 0x459b80a5,
+		  0xbe60e2db, 0xa9c23101, 0xeba5315c, 0x224e42f2, 0x1c5c1572, 0xf6721b2c, 0x1ad2fff3, 0x8c25404e,
+		  0x324ed72f, 0x4067b7fd, 0x0523138e, 0x5ca3bc78, 0xdc0fd66e, 0x75922283, 0x784d6b17, 0x58ebb16e,
+		  0x44094f85, 0x3f481d87, 0xfcfeae7b, 0x77b5ff76, 0x8c2302bf, 0xaaf47556, 0x5f46b02a, 0x2b092801,
+		  0x3d38f5f7, 0x0ca81f36, 0x52af4a8a, 0x66d5e7c0, 0xdf3b0874, 0x95055110, 0x1b5ad7a8, 0xf61ed5ad,
+		  0x6cf6e479, 0x20758184, 0xd0cefa65, 0x88f7be58, 0x4a046826, 0x0ff6f8f3, 0xa09c7f70, 0x5346aba0,
+		  0x5ce96c28, 0xe176eda3, 0x6bac307f, 0x376829d2, 0x85360fa9, 0x17e3fe2a, 0x24b79767, 0xf5a96b20,
+		  0xd6cd2595, 0x68ff1ebf, 0x7555442c, 0xf19f06be, 0xf9e0659a, 0xeeb9491d, 0x34010718, 0xbb30cab8,
+		  0xe822fe15, 0x88570983, 0x750e6249, 0xda627e55, 0x5e76ffa8, 0xb1534546, 0x6d47de08, 0xefe9e7d4);
+
+		sBox[5] = new Array(
+		  0xf6fa8f9d, 0x2cac6ce1, 0x4ca34867, 0xe2337f7c, 0x95db08e7, 0x016843b4, 0xeced5cbc, 0x325553ac,
+		  0xbf9f0960, 0xdfa1e2ed, 0x83f0579d, 0x63ed86b9, 0x1ab6a6b8, 0xde5ebe39, 0xf38ff732, 0x8989b138,
+		  0x33f14961, 0xc01937bd, 0xf506c6da, 0xe4625e7e, 0xa308ea99, 0x4e23e33c, 0x79cbd7cc, 0x48a14367,
+		  0xa3149619, 0xfec94bd5, 0xa114174a, 0xeaa01866, 0xa084db2d, 0x09a8486f, 0xa888614a, 0x2900af98,
+		  0x01665991, 0xe1992863, 0xc8f30c60, 0x2e78ef3c, 0xd0d51932, 0xcf0fec14, 0xf7ca07d2, 0xd0a82072,
+		  0xfd41197e, 0x9305a6b0, 0xe86be3da, 0x74bed3cd, 0x372da53c, 0x4c7f4448, 0xdab5d440, 0x6dba0ec3,
+		  0x083919a7, 0x9fbaeed9, 0x49dbcfb0, 0x4e670c53, 0x5c3d9c01, 0x64bdb941, 0x2c0e636a, 0xba7dd9cd,
+		  0xea6f7388, 0xe70bc762, 0x35f29adb, 0x5c4cdd8d, 0xf0d48d8c, 0xb88153e2, 0x08a19866, 0x1ae2eac8,
+		  0x284caf89, 0xaa928223, 0x9334be53, 0x3b3a21bf, 0x16434be3, 0x9aea3906, 0xefe8c36e, 0xf890cdd9,
+		  0x80226dae, 0xc340a4a3, 0xdf7e9c09, 0xa694a807, 0x5b7c5ecc, 0x221db3a6, 0x9a69a02f, 0x68818a54,
+		  0xceb2296f, 0x53c0843a, 0xfe893655, 0x25bfe68a, 0xb4628abc, 0xcf222ebf, 0x25ac6f48, 0xa9a99387,
+		  0x53bddb65, 0xe76ffbe7, 0xe967fd78, 0x0ba93563, 0x8e342bc1, 0xe8a11be9, 0x4980740d, 0xc8087dfc,
+		  0x8de4bf99, 0xa11101a0, 0x7fd37975, 0xda5a26c0, 0xe81f994f, 0x9528cd89, 0xfd339fed, 0xb87834bf,
+		  0x5f04456d, 0x22258698, 0xc9c4c83b, 0x2dc156be, 0x4f628daa, 0x57f55ec5, 0xe2220abe, 0xd2916ebf,
+		  0x4ec75b95, 0x24f2c3c0, 0x42d15d99, 0xcd0d7fa0, 0x7b6e27ff, 0xa8dc8af0, 0x7345c106, 0xf41e232f,
+		  0x35162386, 0xe6ea8926, 0x3333b094, 0x157ec6f2, 0x372b74af, 0x692573e4, 0xe9a9d848, 0xf3160289,
+		  0x3a62ef1d, 0xa787e238, 0xf3a5f676, 0x74364853, 0x20951063, 0x4576698d, 0xb6fad407, 0x592af950,
+		  0x36f73523, 0x4cfb6e87, 0x7da4cec0, 0x6c152daa, 0xcb0396a8, 0xc50dfe5d, 0xfcd707ab, 0x0921c42f,
+		  0x89dff0bb, 0x5fe2be78, 0x448f4f33, 0x754613c9, 0x2b05d08d, 0x48b9d585, 0xdc049441, 0xc8098f9b,
+		  0x7dede786, 0xc39a3373, 0x42410005, 0x6a091751, 0x0ef3c8a6, 0x890072d6, 0x28207682, 0xa9a9f7be,
+		  0xbf32679d, 0xd45b5b75, 0xb353fd00, 0xcbb0e358, 0x830f220a, 0x1f8fb214, 0xd372cf08, 0xcc3c4a13,
+		  0x8cf63166, 0x061c87be, 0x88c98f88, 0x6062e397, 0x47cf8e7a, 0xb6c85283, 0x3cc2acfb, 0x3fc06976,
+		  0x4e8f0252, 0x64d8314d, 0xda3870e3, 0x1e665459, 0xc10908f0, 0x513021a5, 0x6c5b68b7, 0x822f8aa0,
+		  0x3007cd3e, 0x74719eef, 0xdc872681, 0x073340d4, 0x7e432fd9, 0x0c5ec241, 0x8809286c, 0xf592d891,
+		  0x08a930f6, 0x957ef305, 0xb7fbffbd, 0xc266e96f, 0x6fe4ac98, 0xb173ecc0, 0xbc60b42a, 0x953498da,
+		  0xfba1ae12, 0x2d4bd736, 0x0f25faab, 0xa4f3fceb, 0xe2969123, 0x257f0c3d, 0x9348af49, 0x361400bc,
+		  0xe8816f4a, 0x3814f200, 0xa3f94043, 0x9c7a54c2, 0xbc704f57, 0xda41e7f9, 0xc25ad33a, 0x54f4a084,
+		  0xb17f5505, 0x59357cbe, 0xedbd15c8, 0x7f97c5ab, 0xba5ac7b5, 0xb6f6deaf, 0x3a479c3a, 0x5302da25,
+		  0x653d7e6a, 0x54268d49, 0x51a477ea, 0x5017d55b, 0xd7d25d88, 0x44136c76, 0x0404a8c8, 0xb8e5a121,
+		  0xb81a928a, 0x60ed5869, 0x97c55b96, 0xeaec991b, 0x29935913, 0x01fdb7f1, 0x088e8dfa, 0x9ab6f6f5,
+		  0x3b4cbf9f, 0x4a5de3ab, 0xe6051d35, 0xa0e1d855, 0xd36b4cf1, 0xf544edeb, 0xb0e93524, 0xbebb8fbd,
+		  0xa2d762cf, 0x49c92f54, 0x38b5f331, 0x7128a454, 0x48392905, 0xa65b1db8, 0x851c97bd, 0xd675cf2f);
+
+		sBox[6] = new Array(
+		  0x85e04019, 0x332bf567, 0x662dbfff, 0xcfc65693, 0x2a8d7f6f, 0xab9bc912, 0xde6008a1, 0x2028da1f,
+		  0x0227bce7, 0x4d642916, 0x18fac300, 0x50f18b82, 0x2cb2cb11, 0xb232e75c, 0x4b3695f2, 0xb28707de,
+		  0xa05fbcf6, 0xcd4181e9, 0xe150210c, 0xe24ef1bd, 0xb168c381, 0xfde4e789, 0x5c79b0d8, 0x1e8bfd43,
+		  0x4d495001, 0x38be4341, 0x913cee1d, 0x92a79c3f, 0x089766be, 0xbaeeadf4, 0x1286becf, 0xb6eacb19,
+		  0x2660c200, 0x7565bde4, 0x64241f7a, 0x8248dca9, 0xc3b3ad66, 0x28136086, 0x0bd8dfa8, 0x356d1cf2,
+		  0x107789be, 0xb3b2e9ce, 0x0502aa8f, 0x0bc0351e, 0x166bf52a, 0xeb12ff82, 0xe3486911, 0xd34d7516,
+		  0x4e7b3aff, 0x5f43671b, 0x9cf6e037, 0x4981ac83, 0x334266ce, 0x8c9341b7, 0xd0d854c0, 0xcb3a6c88,
+		  0x47bc2829, 0x4725ba37, 0xa66ad22b, 0x7ad61f1e, 0x0c5cbafa, 0x4437f107, 0xb6e79962, 0x42d2d816,
+		  0x0a961288, 0xe1a5c06e, 0x13749e67, 0x72fc081a, 0xb1d139f7, 0xf9583745, 0xcf19df58, 0xbec3f756,
+		  0xc06eba30, 0x07211b24, 0x45c28829, 0xc95e317f, 0xbc8ec511, 0x38bc46e9, 0xc6e6fa14, 0xbae8584a,
+		  0xad4ebc46, 0x468f508b, 0x7829435f, 0xf124183b, 0x821dba9f, 0xaff60ff4, 0xea2c4e6d, 0x16e39264,
+		  0x92544a8b, 0x009b4fc3, 0xaba68ced, 0x9ac96f78, 0x06a5b79a, 0xb2856e6e, 0x1aec3ca9, 0xbe838688,
+		  0x0e0804e9, 0x55f1be56, 0xe7e5363b, 0xb3a1f25d, 0xf7debb85, 0x61fe033c, 0x16746233, 0x3c034c28,
+		  0xda6d0c74, 0x79aac56c, 0x3ce4e1ad, 0x51f0c802, 0x98f8f35a, 0x1626a49f, 0xeed82b29, 0x1d382fe3,
+		  0x0c4fb99a, 0xbb325778, 0x3ec6d97b, 0x6e77a6a9, 0xcb658b5c, 0xd45230c7, 0x2bd1408b, 0x60c03eb7,
+		  0xb9068d78, 0xa33754f4, 0xf430c87d, 0xc8a71302, 0xb96d8c32, 0xebd4e7be, 0xbe8b9d2d, 0x7979fb06,
+		  0xe7225308, 0x8b75cf77, 0x11ef8da4, 0xe083c858, 0x8d6b786f, 0x5a6317a6, 0xfa5cf7a0, 0x5dda0033,
+		  0xf28ebfb0, 0xf5b9c310, 0xa0eac280, 0x08b9767a, 0xa3d9d2b0, 0x79d34217, 0x021a718d, 0x9ac6336a,
+		  0x2711fd60, 0x438050e3, 0x069908a8, 0x3d7fedc4, 0x826d2bef, 0x4eeb8476, 0x488dcf25, 0x36c9d566,
+		  0x28e74e41, 0xc2610aca, 0x3d49a9cf, 0xbae3b9df, 0xb65f8de6, 0x92aeaf64, 0x3ac7d5e6, 0x9ea80509,
+		  0xf22b017d, 0xa4173f70, 0xdd1e16c3, 0x15e0d7f9, 0x50b1b887, 0x2b9f4fd5, 0x625aba82, 0x6a017962,
+		  0x2ec01b9c, 0x15488aa9, 0xd716e740, 0x40055a2c, 0x93d29a22, 0xe32dbf9a, 0x058745b9, 0x3453dc1e,
+		  0xd699296e, 0x496cff6f, 0x1c9f4986, 0xdfe2ed07, 0xb87242d1, 0x19de7eae, 0x053e561a, 0x15ad6f8c,
+		  0x66626c1c, 0x7154c24c, 0xea082b2a, 0x93eb2939, 0x17dcb0f0, 0x58d4f2ae, 0x9ea294fb, 0x52cf564c,
+		  0x9883fe66, 0x2ec40581, 0x763953c3, 0x01d6692e, 0xd3a0c108, 0xa1e7160e, 0xe4f2dfa6, 0x693ed285,
+		  0x74904698, 0x4c2b0edd, 0x4f757656, 0x5d393378, 0xa132234f, 0x3d321c5d, 0xc3f5e194, 0x4b269301,
+		  0xc79f022f, 0x3c997e7e, 0x5e4f9504, 0x3ffafbbd, 0x76f7ad0e, 0x296693f4, 0x3d1fce6f, 0xc61e45be,
+		  0xd3b5ab34, 0xf72bf9b7, 0x1b0434c0, 0x4e72b567, 0x5592a33d, 0xb5229301, 0xcfd2a87f, 0x60aeb767,
+		  0x1814386b, 0x30bcc33d, 0x38a0c07d, 0xfd1606f2, 0xc363519b, 0x589dd390, 0x5479f8e6, 0x1cb8d647,
+		  0x97fd61a9, 0xea7759f4, 0x2d57539d, 0x569a58cf, 0xe84e63ad, 0x462e1b78, 0x6580f87e, 0xf3817914,
+		  0x91da55f4, 0x40a230f3, 0xd1988f35, 0xb6e318d2, 0x3ffa50bc, 0x3d40f021, 0xc3c0bdae, 0x4958c24c,
+		  0x518f36b2, 0x84b1d370, 0x0fedce83, 0x878ddada, 0xf2a279c7, 0x94e01be8, 0x90716f4b, 0x954b8aa3);
+
+		sBox[7] = new Array(
+		  0xe216300d, 0xbbddfffc, 0xa7ebdabd, 0x35648095, 0x7789f8b7, 0xe6c1121b, 0x0e241600, 0x052ce8b5,
+		  0x11a9cfb0, 0xe5952f11, 0xece7990a, 0x9386d174, 0x2a42931c, 0x76e38111, 0xb12def3a, 0x37ddddfc,
+		  0xde9adeb1, 0x0a0cc32c, 0xbe197029, 0x84a00940, 0xbb243a0f, 0xb4d137cf, 0xb44e79f0, 0x049eedfd,
+		  0x0b15a15d, 0x480d3168, 0x8bbbde5a, 0x669ded42, 0xc7ece831, 0x3f8f95e7, 0x72df191b, 0x7580330d,
+		  0x94074251, 0x5c7dcdfa, 0xabbe6d63, 0xaa402164, 0xb301d40a, 0x02e7d1ca, 0x53571dae, 0x7a3182a2,
+		  0x12a8ddec, 0xfdaa335d, 0x176f43e8, 0x71fb46d4, 0x38129022, 0xce949ad4, 0xb84769ad, 0x965bd862,
+		  0x82f3d055, 0x66fb9767, 0x15b80b4e, 0x1d5b47a0, 0x4cfde06f, 0xc28ec4b8, 0x57e8726e, 0x647a78fc,
+		  0x99865d44, 0x608bd593, 0x6c200e03, 0x39dc5ff6, 0x5d0b00a3, 0xae63aff2, 0x7e8bd632, 0x70108c0c,
+		  0xbbd35049, 0x2998df04, 0x980cf42a, 0x9b6df491, 0x9e7edd53, 0x06918548, 0x58cb7e07, 0x3b74ef2e,
+		  0x522fffb1, 0xd24708cc, 0x1c7e27cd, 0xa4eb215b, 0x3cf1d2e2, 0x19b47a38, 0x424f7618, 0x35856039,
+		  0x9d17dee7, 0x27eb35e6, 0xc9aff67b, 0x36baf5b8, 0x09c467cd, 0xc18910b1, 0xe11dbf7b, 0x06cd1af8,
+		  0x7170c608, 0x2d5e3354, 0xd4de495a, 0x64c6d006, 0xbcc0c62c, 0x3dd00db3, 0x708f8f34, 0x77d51b42,
+		  0x264f620f, 0x24b8d2bf, 0x15c1b79e, 0x46a52564, 0xf8d7e54e, 0x3e378160, 0x7895cda5, 0x859c15a5,
+		  0xe6459788, 0xc37bc75f, 0xdb07ba0c, 0x0676a3ab, 0x7f229b1e, 0x31842e7b, 0x24259fd7, 0xf8bef472,
+		  0x835ffcb8, 0x6df4c1f2, 0x96f5b195, 0xfd0af0fc, 0xb0fe134c, 0xe2506d3d, 0x4f9b12ea, 0xf215f225,
+		  0xa223736f, 0x9fb4c428, 0x25d04979, 0x34c713f8, 0xc4618187, 0xea7a6e98, 0x7cd16efc, 0x1436876c,
+		  0xf1544107, 0xbedeee14, 0x56e9af27, 0xa04aa441, 0x3cf7c899, 0x92ecbae6, 0xdd67016d, 0x151682eb,
+		  0xa842eedf, 0xfdba60b4, 0xf1907b75, 0x20e3030f, 0x24d8c29e, 0xe139673b, 0xefa63fb8, 0x71873054,
+		  0xb6f2cf3b, 0x9f326442, 0xcb15a4cc, 0xb01a4504, 0xf1e47d8d, 0x844a1be5, 0xbae7dfdc, 0x42cbda70,
+		  0xcd7dae0a, 0x57e85b7a, 0xd53f5af6, 0x20cf4d8c, 0xcea4d428, 0x79d130a4, 0x3486ebfb, 0x33d3cddc,
+		  0x77853b53, 0x37effcb5, 0xc5068778, 0xe580b3e6, 0x4e68b8f4, 0xc5c8b37e, 0x0d809ea2, 0x398feb7c,
+		  0x132a4f94, 0x43b7950e, 0x2fee7d1c, 0x223613bd, 0xdd06caa2, 0x37df932b, 0xc4248289, 0xacf3ebc3,
+		  0x5715f6b7, 0xef3478dd, 0xf267616f, 0xc148cbe4, 0x9052815e, 0x5e410fab, 0xb48a2465, 0x2eda7fa4,
+		  0xe87b40e4, 0xe98ea084, 0x5889e9e1, 0xefd390fc, 0xdd07d35b, 0xdb485694, 0x38d7e5b2, 0x57720101,
+		  0x730edebc, 0x5b643113, 0x94917e4f, 0x503c2fba, 0x646f1282, 0x7523d24a, 0xe0779695, 0xf9c17a8f,
+		  0x7a5b2121, 0xd187b896, 0x29263a4d, 0xba510cdf, 0x81f47c9f, 0xad1163ed, 0xea7b5965, 0x1a00726e,
+		  0x11403092, 0x00da6d77, 0x4a0cdd61, 0xad1f4603, 0x605bdfb0, 0x9eedc364, 0x22ebe6a8, 0xcee7d28a,
+		  0xa0e736a0, 0x5564a6b9, 0x10853209, 0xc7eb8f37, 0x2de705ca, 0x8951570f, 0xdf09822b, 0xbd691a6c,
+		  0xaa12e4f2, 0x87451c0f, 0xe0f6a27a, 0x3ada4819, 0x4cf1764f, 0x0d771c2b, 0x67cdb156, 0x350d8384,
+		  0x5938fa0f, 0x42399ef3, 0x36997b07, 0x0e84093d, 0x4aa93e61, 0x8360d87b, 0x1fa98b0c, 0x1149382c,
+		  0xe97625a5, 0x0614d1b7, 0x0e25244b, 0x0c768347, 0x589e8d82, 0x0d2059d1, 0xa466bb1e, 0xf8da0a82,
+		  0x04f19130, 0xba6e4ec0, 0x99265164, 0x1ee7230d, 0x50b2ad80, 0xeaee6801, 0x8db2a283, 0xea8bf59e);
+
+};
+
+//Paul Tero, July 2001
+//http://www.tero.co.uk/des/
+//
+//Optimised for performance with large blocks by Michael Hayworth, November 2001
+//http://www.netdealing.com
+//
+// Modified by Recurity Labs GmbH
+
+//THIS SOFTWARE IS PROVIDED "AS IS" AND
+//ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+//FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//SUCH DAMAGE.
+
+//des
+//this takes the key, the message, and whether to encrypt or decrypt
+
+// added by Recurity Labs
+function desede(block,key) {
+	var key1 = key.substring(0,8);
+	var key2 = key.substring(8,16);
+	var key3 = key.substring(16,24);
+	return util.str2bin(des(des_createKeys(key3),des(des_createKeys(key2),des(des_createKeys(key1),util.bin2str(block), true, 0,null,null), false, 0,null,null), true, 0,null,null));
+}
+
+
+function des (keys, message, encrypt, mode, iv, padding) {
+  //declaring this locally speeds things up a bit
+  var spfunction1 = new Array (0x1010400,0,0x10000,0x1010404,0x1010004,0x10404,0x4,0x10000,0x400,0x1010400,0x1010404,0x400,0x1000404,0x1010004,0x1000000,0x4,0x404,0x1000400,0x1000400,0x10400,0x10400,0x1010000,0x1010000,0x1000404,0x10004,0x1000004,0x1000004,0x10004,0,0x404,0x10404,0x1000000,0x10000,0x1010404,0x4,0x1010000,0x1010400,0x1000000,0x1000000,0x400,0x1010004,0x10000,0x10400,0x1000004,0x400,0x4,0x1000404,0x10404,0x1010404,0x10004,0x1010000,0x1000404,0x1000004,0x404,0x10404,0x1010400,0x404,0x1000400,0x1000400,0,0x10004,0x10400,0,0x1010004);
+  var spfunction2 = new Array (-0x7fef7fe0,-0x7fff8000,0x8000,0x108020,0x100000,0x20,-0x7fefffe0,-0x7fff7fe0,-0x7fffffe0,-0x7fef7fe0,-0x7fef8000,-0x80000000,-0x7fff8000,0x100000,0x20,-0x7fefffe0,0x108000,0x100020,-0x7fff7fe0,0,-0x80000000,0x8000,0x108020,-0x7ff00000,0x100020,-0x7fffffe0,0,0x108000,0x8020,-0x7fef8000,-0x7ff00000,0x8020,0,0x108020,-0x7fefffe0,0x100000,-0x7fff7fe0,-0x7ff00000,-0x7fef8000,0x8000,-0x7ff00000,-0x7fff8000,0x20,-0x7fef7fe0,0x108020,0x20,0x8000,-0x80000000,0x8020,-0x7fef8000,0x100000,-0x7fffffe0,0x100020,-0x7fff7fe0,-0x7fffffe0,0x100020,0x108000,0,-0x7fff8000,0x8020,-0x80000000,-0x7fefffe0,-0x7fef7fe0,0x108000);
+  var spfunction3 = new Array (0x208,0x8020200,0,0x8020008,0x8000200,0,0x20208,0x8000200,0x20008,0x8000008,0x8000008,0x20000,0x8020208,0x20008,0x8020000,0x208,0x8000000,0x8,0x8020200,0x200,0x20200,0x8020000,0x8020008,0x20208,0x8000208,0x20200,0x20000,0x8000208,0x8,0x8020208,0x200,0x8000000,0x8020200,0x8000000,0x20008,0x208,0x20000,0x8020200,0x8000200,0,0x200,0x20008,0x8020208,0x8000200,0x8000008,0x200,0,0x8020008,0x8000208,0x20000,0x8000000,0x8020208,0x8,0x20208,0x20200,0x8000008,0x8020000,0x8000208,0x208,0x8020000,0x20208,0x8,0x8020008,0x20200);
+  var spfunction4 = new Array (0x802001,0x2081,0x2081,0x80,0x802080,0x800081,0x800001,0x2001,0,0x802000,0x802000,0x802081,0x81,0,0x800080,0x800001,0x1,0x2000,0x800000,0x802001,0x80,0x800000,0x2001,0x2080,0x800081,0x1,0x2080,0x800080,0x2000,0x802080,0x802081,0x81,0x800080,0x800001,0x802000,0x802081,0x81,0,0,0x802000,0x2080,0x800080,0x800081,0x1,0x802001,0x2081,0x2081,0x80,0x802081,0x81,0x1,0x2000,0x800001,0x2001,0x802080,0x800081,0x2001,0x2080,0x800000,0x802001,0x80,0x800000,0x2000,0x802080);
+  var spfunction5 = new Array (0x100,0x2080100,0x2080000,0x42000100,0x80000,0x100,0x40000000,0x2080000,0x40080100,0x80000,0x2000100,0x40080100,0x42000100,0x42080000,0x80100,0x40000000,0x2000000,0x40080000,0x40080000,0,0x40000100,0x42080100,0x42080100,0x2000100,0x42080000,0x40000100,0,0x42000000,0x2080100,0x2000000,0x42000000,0x80100,0x80000,0x42000100,0x100,0x2000000,0x40000000,0x2080000,0x42000100,0x40080100,0x2000100,0x40000000,0x42080000,0x2080100,0x40080100,0x100,0x2000000,0x42080000,0x42080100,0x80100,0x42000000,0x42080100,0x2080000,0,0x40080000,0x42000000,0x80100,0x2000100,0x40000100,0x80000,0,0x40080000,0x2080100,0x40000100);
+  var spfunction6 = new Array (0x20000010,0x20400000,0x4000,0x20404010,0x20400000,0x10,0x20404010,0x400000,0x20004000,0x404010,0x400000,0x20000010,0x400010,0x20004000,0x20000000,0x4010,0,0x400010,0x20004010,0x4000,0x404000,0x20004010,0x10,0x20400010,0x20400010,0,0x404010,0x20404000,0x4010,0x404000,0x20404000,0x20000000,0x20004000,0x10,0x20400010,0x404000,0x20404010,0x400000,0x4010,0x20000010,0x400000,0x20004000,0x20000000,0x4010,0x20000010,0x20404010,0x404000,0x20400000,0x404010,0x20404000,0,0x20400010,0x10,0x4000,0x20400000,0x404010,0x4000,0x400010,0x20004010,0,0x20404000,0x20000000,0x400010,0x20004010);
+  var spfunction7 = new Array (0x200000,0x4200002,0x4000802,0,0x800,0x4000802,0x200802,0x4200800,0x4200802,0x200000,0,0x4000002,0x2,0x4000000,0x4200002,0x802,0x4000800,0x200802,0x200002,0x4000800,0x4000002,0x4200000,0x4200800,0x200002,0x4200000,0x800,0x802,0x4200802,0x200800,0x2,0x4000000,0x200800,0x4000000,0x200800,0x200000,0x4000802,0x4000802,0x4200002,0x4200002,0x2,0x200002,0x4000000,0x4000800,0x200000,0x4200800,0x802,0x200802,0x4200800,0x802,0x4000002,0x4200802,0x4200000,0x200800,0,0x2,0x4200802,0,0x200802,0x4200000,0x800,0x4000002,0x4000800,0x800,0x200002);
+  var spfunction8 = new Array (0x10001040,0x1000,0x40000,0x10041040,0x10000000,0x10001040,0x40,0x10000000,0x40040,0x10040000,0x10041040,0x41000,0x10041000,0x41040,0x1000,0x40,0x10040000,0x10000040,0x10001000,0x1040,0x41000,0x40040,0x10040040,0x10041000,0x1040,0,0,0x10040040,0x10000040,0x10001000,0x41040,0x40000,0x41040,0x40000,0x10041000,0x1000,0x40,0x10040040,0x1000,0x41040,0x10001000,0x40,0x10000040,0x10040000,0x10040040,0x10000000,0x40000,0x10001040,0,0x10041040,0x40040,0x10000040,0x10040000,0x10001000,0x10001040,0,0x10041040,0x41000,0x41000,0x1040,0x1040,0x40040,0x10000000,0x10041000);
+
+  //create the 16 or 48 subkeys we will need
+  var m=0, i, j, temp, temp2, right1, right2, left, right, looping;
+  var cbcleft, cbcleft2, cbcright, cbcright2
+  var endloop, loopinc;
+  var len = message.length;
+  var chunk = 0;
+  //set up the loops for single and triple des
+  var iterations = keys.length == 32 ? 3 : 9; //single or triple des
+  if (iterations == 3) {looping = encrypt ? new Array (0, 32, 2) : new Array (30, -2, -2);}
+  else {looping = encrypt ? new Array (0, 32, 2, 62, 30, -2, 64, 96, 2) : new Array (94, 62, -2, 32, 64, 2, 30, -2, -2);}
+
+  //pad the message depending on the padding parameter
+  //only add padding if encrypting - note that you need to use the same padding option for both encrypt and decrypt
+  if (encrypt) {
+    message = des_addPadding(message, padding);
+    len = message.length;
+  }
+
+    //store the result here
+  result = "";
+  tempresult = "";
+
+  if (mode == 1) { //CBC mode
+    cbcleft = (iv.charCodeAt(m++) << 24) | (iv.charCodeAt(m++) << 16) | (iv.charCodeAt(m++) << 8) | iv.charCodeAt(m++);
+    cbcright = (iv.charCodeAt(m++) << 24) | (iv.charCodeAt(m++) << 16) | (iv.charCodeAt(m++) << 8) | iv.charCodeAt(m++);
+    m=0;
+  }
+
+  //loop through each 64 bit chunk of the message
+  while (m < len) {
+    left = (message.charCodeAt(m++) << 24) | (message.charCodeAt(m++) << 16) | (message.charCodeAt(m++) << 8) | message.charCodeAt(m++);
+    right = (message.charCodeAt(m++) << 24) | (message.charCodeAt(m++) << 16) | (message.charCodeAt(m++) << 8) | message.charCodeAt(m++);
+
+    //for Cipher Block Chaining mode, xor the message with the previous result
+    if (mode == 1) {if (encrypt) {left ^= cbcleft; right ^= cbcright;} else {cbcleft2 = cbcleft; cbcright2 = cbcright; cbcleft = left; cbcright = right;}}
+
+    //first each 64 but chunk of the message must be permuted according to IP
+    temp = ((left >>> 4) ^ right) & 0x0f0f0f0f; right ^= temp; left ^= (temp << 4);
+    temp = ((left >>> 16) ^ right) & 0x0000ffff; right ^= temp; left ^= (temp << 16);
+    temp = ((right >>> 2) ^ left) & 0x33333333; left ^= temp; right ^= (temp << 2);
+    temp = ((right >>> 8) ^ left) & 0x00ff00ff; left ^= temp; right ^= (temp << 8);
+    temp = ((left >>> 1) ^ right) & 0x55555555; right ^= temp; left ^= (temp << 1);
+
+    left = ((left << 1) | (left >>> 31)); 
+    right = ((right << 1) | (right >>> 31)); 
+
+    //do this either 1 or 3 times for each chunk of the message
+    for (j=0; j<iterations; j+=3) {
+      endloop = looping[j+1];
+      loopinc = looping[j+2];
+      //now go through and perform the encryption or decryption  
+      for (i=looping[j]; i!=endloop; i+=loopinc) { //for efficiency
+        right1 = right ^ keys[i]; 
+        right2 = ((right >>> 4) | (right << 28)) ^ keys[i+1];
+        //the result is attained by passing these bytes through the S selection functions
+        temp = left;
+        left = right;
+        right = temp ^ (spfunction2[(right1 >>> 24) & 0x3f] | spfunction4[(right1 >>> 16) & 0x3f]
+              | spfunction6[(right1 >>>  8) & 0x3f] | spfunction8[right1 & 0x3f]
+              | spfunction1[(right2 >>> 24) & 0x3f] | spfunction3[(right2 >>> 16) & 0x3f]
+              | spfunction5[(right2 >>>  8) & 0x3f] | spfunction7[right2 & 0x3f]);
+      }
+      temp = left; left = right; right = temp; //unreverse left and right
+    } //for either 1 or 3 iterations
+
+    //move then each one bit to the right
+    left = ((left >>> 1) | (left << 31)); 
+    right = ((right >>> 1) | (right << 31)); 
+
+    //now perform IP-1, which is IP in the opposite direction
+    temp = ((left >>> 1) ^ right) & 0x55555555; right ^= temp; left ^= (temp << 1);
+    temp = ((right >>> 8) ^ left) & 0x00ff00ff; left ^= temp; right ^= (temp << 8);
+    temp = ((right >>> 2) ^ left) & 0x33333333; left ^= temp; right ^= (temp << 2);
+    temp = ((left >>> 16) ^ right) & 0x0000ffff; right ^= temp; left ^= (temp << 16);
+    temp = ((left >>> 4) ^ right) & 0x0f0f0f0f; right ^= temp; left ^= (temp << 4);
+
+    //for Cipher Block Chaining mode, xor the message with the previous result
+    if (mode == 1) {if (encrypt) {cbcleft = left; cbcright = right;} else {left ^= cbcleft2; right ^= cbcright2;}}
+    tempresult += String.fromCharCode ((left>>>24), ((left>>>16) & 0xff), ((left>>>8) & 0xff), (left & 0xff), (right>>>24), ((right>>>16) & 0xff), ((right>>>8) & 0xff), (right & 0xff));
+
+    chunk += 8;
+    if (chunk == 512) {result += tempresult; tempresult = ""; chunk = 0;}
+  } //for every 8 characters, or 64 bits in the message
+
+  //return the result as an array
+  result += tempresult;
+    
+  //only remove padding if decrypting - note that you need to use the same padding option for both encrypt and decrypt
+  if (!encrypt) {
+    result = des_removePadding(result, padding);
+  }
+
+    return result;
+} //end of des
+
+
+
+//des_createKeys
+//this takes as input a 64 bit key (even though only 56 bits are used)
+//as an array of 2 integers, and returns 16 48 bit keys
+function des_createKeys (key) {
+  //declaring this locally speeds things up a bit
+  pc2bytes0  = new Array (0,0x4,0x20000000,0x20000004,0x10000,0x10004,0x20010000,0x20010004,0x200,0x204,0x20000200,0x20000204,0x10200,0x10204,0x20010200,0x20010204);
+  pc2bytes1  = new Array (0,0x1,0x100000,0x100001,0x4000000,0x4000001,0x4100000,0x4100001,0x100,0x101,0x100100,0x100101,0x4000100,0x4000101,0x4100100,0x4100101);
+  pc2bytes2  = new Array (0,0x8,0x800,0x808,0x1000000,0x1000008,0x1000800,0x1000808,0,0x8,0x800,0x808,0x1000000,0x1000008,0x1000800,0x1000808);
+  pc2bytes3  = new Array (0,0x200000,0x8000000,0x8200000,0x2000,0x202000,0x8002000,0x8202000,0x20000,0x220000,0x8020000,0x8220000,0x22000,0x222000,0x8022000,0x8222000);
+  pc2bytes4  = new Array (0,0x40000,0x10,0x40010,0,0x40000,0x10,0x40010,0x1000,0x41000,0x1010,0x41010,0x1000,0x41000,0x1010,0x41010);
+  pc2bytes5  = new Array (0,0x400,0x20,0x420,0,0x400,0x20,0x420,0x2000000,0x2000400,0x2000020,0x2000420,0x2000000,0x2000400,0x2000020,0x2000420);
+  pc2bytes6  = new Array (0,0x10000000,0x80000,0x10080000,0x2,0x10000002,0x80002,0x10080002,0,0x10000000,0x80000,0x10080000,0x2,0x10000002,0x80002,0x10080002);
+  pc2bytes7  = new Array (0,0x10000,0x800,0x10800,0x20000000,0x20010000,0x20000800,0x20010800,0x20000,0x30000,0x20800,0x30800,0x20020000,0x20030000,0x20020800,0x20030800);
+  pc2bytes8  = new Array (0,0x40000,0,0x40000,0x2,0x40002,0x2,0x40002,0x2000000,0x2040000,0x2000000,0x2040000,0x2000002,0x2040002,0x2000002,0x2040002);
+  pc2bytes9  = new Array (0,0x10000000,0x8,0x10000008,0,0x10000000,0x8,0x10000008,0x400,0x10000400,0x408,0x10000408,0x400,0x10000400,0x408,0x10000408);
+  pc2bytes10 = new Array (0,0x20,0,0x20,0x100000,0x100020,0x100000,0x100020,0x2000,0x2020,0x2000,0x2020,0x102000,0x102020,0x102000,0x102020);
+  pc2bytes11 = new Array (0,0x1000000,0x200,0x1000200,0x200000,0x1200000,0x200200,0x1200200,0x4000000,0x5000000,0x4000200,0x5000200,0x4200000,0x5200000,0x4200200,0x5200200);
+  pc2bytes12 = new Array (0,0x1000,0x8000000,0x8001000,0x80000,0x81000,0x8080000,0x8081000,0x10,0x1010,0x8000010,0x8001010,0x80010,0x81010,0x8080010,0x8081010);
+  pc2bytes13 = new Array (0,0x4,0x100,0x104,0,0x4,0x100,0x104,0x1,0x5,0x101,0x105,0x1,0x5,0x101,0x105);
+
+  //how many iterations (1 for des, 3 for triple des)
+  var iterations = key.length > 8 ? 3 : 1; //changed by Paul 16/6/2007 to use Triple DES for 9+ byte keys
+  //stores the return keys
+  var keys = new Array (32 * iterations);
+  //now define the left shifts which need to be done
+  var shifts = new Array (0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0);
+  //other variables
+  var lefttemp, righttemp, m=0, n=0, temp;
+
+  for (var j=0; j<iterations; j++) { //either 1 or 3 iterations
+    left = (key.charCodeAt(m++) << 24) | (key.charCodeAt(m++) << 16) | (key.charCodeAt(m++) << 8) | key.charCodeAt(m++);
+    right = (key.charCodeAt(m++) << 24) | (key.charCodeAt(m++) << 16) | (key.charCodeAt(m++) << 8) | key.charCodeAt(m++);
+
+    temp = ((left >>> 4) ^ right) & 0x0f0f0f0f; right ^= temp; left ^= (temp << 4);
+    temp = ((right >>> -16) ^ left) & 0x0000ffff; left ^= temp; right ^= (temp << -16);
+    temp = ((left >>> 2) ^ right) & 0x33333333; right ^= temp; left ^= (temp << 2);
+    temp = ((right >>> -16) ^ left) & 0x0000ffff; left ^= temp; right ^= (temp << -16);
+    temp = ((left >>> 1) ^ right) & 0x55555555; right ^= temp; left ^= (temp << 1);
+    temp = ((right >>> 8) ^ left) & 0x00ff00ff; left ^= temp; right ^= (temp << 8);
+    temp = ((left >>> 1) ^ right) & 0x55555555; right ^= temp; left ^= (temp << 1);
+
+    //the right side needs to be shifted and to get the last four bits of the left side
+    temp = (left << 8) | ((right >>> 20) & 0x000000f0);
+    //left needs to be put upside down
+    left = (right << 24) | ((right << 8) & 0xff0000) | ((right >>> 8) & 0xff00) | ((right >>> 24) & 0xf0);
+    right = temp;
+
+    //now go through and perform these shifts on the left and right keys
+    for (i=0; i < shifts.length; i++) {
+      //shift the keys either one or two bits to the left
+      if (shifts[i]) {left = (left << 2) | (left >>> 26); right = (right << 2) | (right >>> 26);}
+      else {left = (left << 1) | (left >>> 27); right = (right << 1) | (right >>> 27);}
+      left &= -0xf; right &= -0xf;
+
+      //now apply PC-2, in such a way that E is easier when encrypting or decrypting
+      //this conversion will look like PC-2 except only the last 6 bits of each byte are used
+      //rather than 48 consecutive bits and the order of lines will be according to 
+      //how the S selection functions will be applied: S2, S4, S6, S8, S1, S3, S5, S7
+      lefttemp = pc2bytes0[left >>> 28] | pc2bytes1[(left >>> 24) & 0xf]
+              | pc2bytes2[(left >>> 20) & 0xf] | pc2bytes3[(left >>> 16) & 0xf]
+              | pc2bytes4[(left >>> 12) & 0xf] | pc2bytes5[(left >>> 8) & 0xf]
+              | pc2bytes6[(left >>> 4) & 0xf];
+      righttemp = pc2bytes7[right >>> 28] | pc2bytes8[(right >>> 24) & 0xf]
+                | pc2bytes9[(right >>> 20) & 0xf] | pc2bytes10[(right >>> 16) & 0xf]
+                | pc2bytes11[(right >>> 12) & 0xf] | pc2bytes12[(right >>> 8) & 0xf]
+                | pc2bytes13[(right >>> 4) & 0xf];
+      temp = ((righttemp >>> 16) ^ lefttemp) & 0x0000ffff; 
+      keys[n++] = lefttemp ^ temp; keys[n++] = righttemp ^ (temp << 16);
+    }
+  } //for each iterations
+  //return the keys we've created
+  return keys;
+} //end of des_createKeys
+
+
+function des_addPadding(message, padding) {
+    var padLength = 8 - (message.length % 8);
+    if ((padding == 2) && (padLength < 8)) {            //pad the message with spaces
+        message += "        ".substr(0, padLength);
+    }
+    else if (padding == 1) {                            //PKCS7 padding
+        message += String.fromCharCode(padLength, padLength, padLength, padLength, padLength, padLength, padLength, padLength).substr(0, padLength);
+    }
+    else if (!padding && (padLength < 8)) {             //pad the message out with null bytes
+        message += "\0\0\0\0\0\0\0\0".substr(0, padLength);
+    }
+    return message;
+}
+
+function des_removePadding(message, padding) {
+    if (padding == 2) {         // space padded
+        message = message.replace(/ *$/g, "");
+    }
+    else if (padding == 1) {    // PKCS7
+        var padCount = message.charCodeAt(message.length - 1);
+        message = message.substr(0, message.length - padCount);
+    }
+    else if (!padding) {        // null padding
+        message = message.replace(/\0*$/g, "");
+    }
+    return message;
+}
+
+/* Modified by Recurity Labs GmbH 
+ * 
+ * Cipher.js
+ * A block-cipher algorithm implementation on JavaScript
+ * See Cipher.readme.txt for further information.
+ *
+ * Copyright(c) 2009 Atsushi Oka [ http://oka.nu/ ]
+ * This script file is distributed under the LGPL
+ *
+ * ACKNOWLEDGMENT
+ *
+ *     The main subroutines are written by Michiel van Everdingen.
+ * 
+ *     Michiel van Everdingen
+ *     http://home.versatel.nl/MAvanEverdingen/index.html
+ * 
+ *     All rights for these routines are reserved to Michiel van Everdingen.
+ *
+ */
+
+// added by Recurity Labs
+function TFencrypt(block, key) {
+	var block_copy = [].concat(block);
+	var tf = createTwofish();
+	tf.open(util.str2bin(key),0);
+	var result = tf.encrypt(block_copy, 0);
+	tf.close();
+	return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Math
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var MAXINT = 0xFFFFFFFF;
+
+function rotb(b,n){ return ( b<<n | b>>>( 8-n) ) & 0xFF; }
+function rotw(w,n){ return ( w<<n | w>>>(32-n) ) & MAXINT; }
+function getW(a,i){ return a[i]|a[i+1]<<8|a[i+2]<<16|a[i+3]<<24; }
+function setW(a,i,w){ a.splice(i,4,w&0xFF,(w>>>8)&0xFF,(w>>>16)&0xFF,(w>>>24)&0xFF); }
+function setWInv(a,i,w){ a.splice(i,4,(w>>>24)&0xFF,(w>>>16)&0xFF,(w>>>8)&0xFF,w&0xFF); }
+function getB(x,n){ return (x>>>(n*8))&0xFF; }
+
+function getNrBits(i){ var n=0; while (i>0){ n++; i>>>=1; } return n; }
+function getMask(n){ return (1<<n)-1; }
+
+//added 2008/11/13 XXX MUST USE ONE-WAY HASH FUNCTION FOR SECURITY REASON
+function randByte() {
+ return Math.floor( Math.random() * 256 );
+}
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Twofish
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function createTwofish() {
+	//
+	var keyBytes = null;
+	var dataBytes = null;
+	var dataOffset = -1;
+	// var dataLength = -1;
+	var algorithmName = null;
+	// var idx2 = -1;
+	//
+
+	algorithmName = "twofish";
+
+	var tfsKey = [];
+	var tfsM = [ [], [], [], [] ];
+
+	function tfsInit(key) {
+		keyBytes = key;
+		var i, a, b, c, d, meKey = [], moKey = [], inKey = [];
+		var kLen;
+		var sKey = [];
+		var f01, f5b, fef;
+
+		var q0 = [ [ 8, 1, 7, 13, 6, 15, 3, 2, 0, 11, 5, 9, 14, 12, 10, 4 ],
+				[ 2, 8, 11, 13, 15, 7, 6, 14, 3, 1, 9, 4, 0, 10, 12, 5 ] ];
+		var q1 = [ [ 14, 12, 11, 8, 1, 2, 3, 5, 15, 4, 10, 6, 7, 0, 9, 13 ],
+				[ 1, 14, 2, 11, 4, 12, 3, 7, 6, 13, 10, 5, 15, 9, 0, 8 ] ];
+		var q2 = [ [ 11, 10, 5, 14, 6, 13, 9, 0, 12, 8, 15, 3, 2, 4, 7, 1 ],
+				[ 4, 12, 7, 5, 1, 6, 9, 10, 0, 14, 13, 8, 2, 11, 3, 15 ] ];
+		var q3 = [ [ 13, 7, 15, 4, 1, 2, 6, 14, 9, 11, 3, 0, 8, 5, 12, 10 ],
+				[ 11, 9, 5, 1, 12, 3, 13, 14, 6, 4, 7, 15, 2, 0, 8, 10 ] ];
+		var ror4 = [ 0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15 ];
+		var ashx = [ 0, 9, 2, 11, 4, 13, 6, 15, 8, 1, 10, 3, 12, 5, 14, 7 ];
+		var q = [ [], [] ];
+		var m = [ [], [], [], [] ];
+
+		function ffm5b(x) {
+			return x ^ (x >> 2) ^ [ 0, 90, 180, 238 ][x & 3];
+		}
+		function ffmEf(x) {
+			return x ^ (x >> 1) ^ (x >> 2) ^ [ 0, 238, 180, 90 ][x & 3];
+		}
+
+		function mdsRem(p, q) {
+			var i, t, u;
+			for (i = 0; i < 8; i++) {
+				t = q >>> 24;
+				q = ((q << 8) & MAXINT) | p >>> 24;
+				p = (p << 8) & MAXINT;
+				u = t << 1;
+				if (t & 128) {
+					u ^= 333;
+				}
+				q ^= t ^ (u << 16);
+				u ^= t >>> 1;
+				if (t & 1) {
+					u ^= 166;
+				}
+				q ^= u << 24 | u << 8;
+			}
+			return q;
+		}
+
+		function qp(n, x) {
+			var a, b, c, d;
+			a = x >> 4;
+			b = x & 15;
+			c = q0[n][a ^ b];
+			d = q1[n][ror4[b] ^ ashx[a]];
+			return q3[n][ror4[d] ^ ashx[c]] << 4 | q2[n][c ^ d];
+		}
+
+		function hFun(x, key) {
+			var a = getB(x, 0), b = getB(x, 1), c = getB(x, 2), d = getB(x, 3);
+			switch (kLen) {
+			case 4:
+				a = q[1][a] ^ getB(key[3], 0);
+				b = q[0][b] ^ getB(key[3], 1);
+				c = q[0][c] ^ getB(key[3], 2);
+				d = q[1][d] ^ getB(key[3], 3);
+			case 3:
+				a = q[1][a] ^ getB(key[2], 0);
+				b = q[1][b] ^ getB(key[2], 1);
+				c = q[0][c] ^ getB(key[2], 2);
+				d = q[0][d] ^ getB(key[2], 3);
+			case 2:
+				a = q[0][q[0][a] ^ getB(key[1], 0)] ^ getB(key[0], 0);
+				b = q[0][q[1][b] ^ getB(key[1], 1)] ^ getB(key[0], 1);
+				c = q[1][q[0][c] ^ getB(key[1], 2)] ^ getB(key[0], 2);
+				d = q[1][q[1][d] ^ getB(key[1], 3)] ^ getB(key[0], 3);
+			}
+			return m[0][a] ^ m[1][b] ^ m[2][c] ^ m[3][d];
+		}
+
+		keyBytes = keyBytes.slice(0, 32);
+		i = keyBytes.length;
+		while (i != 16 && i != 24 && i != 32)
+			keyBytes[i++] = 0;
+
+		for (i = 0; i < keyBytes.length; i += 4) {
+			inKey[i >> 2] = getW(keyBytes, i);
+		}
+		for (i = 0; i < 256; i++) {
+			q[0][i] = qp(0, i);
+			q[1][i] = qp(1, i);
+		}
+		for (i = 0; i < 256; i++) {
+			f01 = q[1][i];
+			f5b = ffm5b(f01);
+			fef = ffmEf(f01);
+			m[0][i] = f01 + (f5b << 8) + (fef << 16) + (fef << 24);
+			m[2][i] = f5b + (fef << 8) + (f01 << 16) + (fef << 24);
+			f01 = q[0][i];
+			f5b = ffm5b(f01);
+			fef = ffmEf(f01);
+			m[1][i] = fef + (fef << 8) + (f5b << 16) + (f01 << 24);
+			m[3][i] = f5b + (f01 << 8) + (fef << 16) + (f5b << 24);
+		}
+
+		kLen = inKey.length / 2;
+		for (i = 0; i < kLen; i++) {
+			a = inKey[i + i];
+			meKey[i] = a;
+			b = inKey[i + i + 1];
+			moKey[i] = b;
+			sKey[kLen - i - 1] = mdsRem(a, b);
+		}
+		for (i = 0; i < 40; i += 2) {
+			a = 0x1010101 * i;
+			b = a + 0x1010101;
+			a = hFun(a, meKey);
+			b = rotw(hFun(b, moKey), 8);
+			tfsKey[i] = (a + b) & MAXINT;
+			tfsKey[i + 1] = rotw(a + 2 * b, 9);
+		}
+		for (i = 0; i < 256; i++) {
+			a = b = c = d = i;
+			switch (kLen) {
+			case 4:
+				a = q[1][a] ^ getB(sKey[3], 0);
+				b = q[0][b] ^ getB(sKey[3], 1);
+				c = q[0][c] ^ getB(sKey[3], 2);
+				d = q[1][d] ^ getB(sKey[3], 3);
+			case 3:
+				a = q[1][a] ^ getB(sKey[2], 0);
+				b = q[1][b] ^ getB(sKey[2], 1);
+				c = q[0][c] ^ getB(sKey[2], 2);
+				d = q[0][d] ^ getB(sKey[2], 3);
+			case 2:
+				tfsM[0][i] = m[0][q[0][q[0][a] ^ getB(sKey[1], 0)]
+						^ getB(sKey[0], 0)];
+				tfsM[1][i] = m[1][q[0][q[1][b] ^ getB(sKey[1], 1)]
+						^ getB(sKey[0], 1)];
+				tfsM[2][i] = m[2][q[1][q[0][c] ^ getB(sKey[1], 2)]
+						^ getB(sKey[0], 2)];
+				tfsM[3][i] = m[3][q[1][q[1][d] ^ getB(sKey[1], 3)]
+						^ getB(sKey[0], 3)];
+			}
+		}
+	}
+
+	function tfsG0(x) {
+		return tfsM[0][getB(x, 0)] ^ tfsM[1][getB(x, 1)] ^ tfsM[2][getB(x, 2)]
+				^ tfsM[3][getB(x, 3)];
+	}
+	function tfsG1(x) {
+		return tfsM[0][getB(x, 3)] ^ tfsM[1][getB(x, 0)] ^ tfsM[2][getB(x, 1)]
+				^ tfsM[3][getB(x, 2)];
+	}
+
+	function tfsFrnd(r, blk) {
+		var a = tfsG0(blk[0]);
+		var b = tfsG1(blk[1]);
+		blk[2] = rotw(blk[2] ^ (a + b + tfsKey[4 * r + 8]) & MAXINT, 31);
+		blk[3] = rotw(blk[3], 1) ^ (a + 2 * b + tfsKey[4 * r + 9]) & MAXINT;
+		a = tfsG0(blk[2]);
+		b = tfsG1(blk[3]);
+		blk[0] = rotw(blk[0] ^ (a + b + tfsKey[4 * r + 10]) & MAXINT, 31);
+		blk[1] = rotw(blk[1], 1) ^ (a + 2 * b + tfsKey[4 * r + 11]) & MAXINT;
+	}
+
+	function tfsIrnd(i, blk) {
+		var a = tfsG0(blk[0]);
+		var b = tfsG1(blk[1]);
+		blk[2] = rotw(blk[2], 1) ^ (a + b + tfsKey[4 * i + 10]) & MAXINT;
+		blk[3] = rotw(blk[3] ^ (a + 2 * b + tfsKey[4 * i + 11]) & MAXINT, 31);
+		a = tfsG0(blk[2]);
+		b = tfsG1(blk[3]);
+		blk[0] = rotw(blk[0], 1) ^ (a + b + tfsKey[4 * i + 8]) & MAXINT;
+		blk[1] = rotw(blk[1] ^ (a + 2 * b + tfsKey[4 * i + 9]) & MAXINT, 31);
+	}
+
+	function tfsClose() {
+		tfsKey = [];
+		tfsM = [ [], [], [], [] ];
+	}
+
+	function tfsEncrypt(data, offset) {
+		dataBytes = data;
+		dataOffset = offset;
+		var blk = [ getW(dataBytes, dataOffset) ^ tfsKey[0],
+				getW(dataBytes, dataOffset + 4) ^ tfsKey[1],
+				getW(dataBytes, dataOffset + 8) ^ tfsKey[2],
+				getW(dataBytes, dataOffset + 12) ^ tfsKey[3] ];
+		for ( var j = 0; j < 8; j++) {
+			tfsFrnd(j, blk);
+		}
+		setW(dataBytes, dataOffset, blk[2] ^ tfsKey[4]);
+		setW(dataBytes, dataOffset + 4, blk[3] ^ tfsKey[5]);
+		setW(dataBytes, dataOffset + 8, blk[0] ^ tfsKey[6]);
+		setW(dataBytes, dataOffset + 12, blk[1] ^ tfsKey[7]);
+		dataOffset += 16;
+		return dataBytes;
+	}
+
+	function tfsDecrypt(data, offset) {
+		dataBytes = data;
+		dataOffset = offset;
+		var blk = [ getW(dataBytes, dataOffset) ^ tfsKey[4],
+				getW(dataBytes, dataOffset + 4) ^ tfsKey[5],
+				getW(dataBytes, dataOffset + 8) ^ tfsKey[6],
+				getW(dataBytes, dataOffset + 12) ^ tfsKey[7] ];
+		for ( var j = 7; j >= 0; j--) {
+			tfsIrnd(j, blk);
+		}
+		setW(dataBytes, dataOffset, blk[2] ^ tfsKey[0]);
+		setW(dataBytes, dataOffset + 4, blk[3] ^ tfsKey[1]);
+		setW(dataBytes, dataOffset + 8, blk[0] ^ tfsKey[2]);
+		setW(dataBytes, dataOffset + 12, blk[1] ^ tfsKey[3]);
+		dataOffset += 16;
+	}
+	
+	// added by Recurity Labs
+	function tfsFinal() {
+		return dataBytes;
+	}
+
+	return {
+		name : "twofish",
+		blocksize : 128 / 8,
+		open : tfsInit,
+		close : tfsClose,
+		encrypt : tfsEncrypt,
+		decrypt : tfsDecrypt,
+		// added by Recurity Labs
+		finalize: tfsFinal
+	};
+}
+
+JXG = {exists: (function(undefined){return function(v){return !(v===undefined || v===null);}})()};
+JXG.decompress = function(str) {return unescape((new JXG.Util.Unzip(JXG.Util.Base64.decodeAsArray(str))).unzip()[0][0]);};
+/*
+    Copyright 2008-2012
+        Matthias Ehmann,
+        Michael Gerhaeuser,
+        Carsten Miller,
+        Bianca Valentin,
+        Alfred Wassermann,
+        Peter Wilfahrt
+
+    This file is part of JSXGraph.
+    
+    Dual licensed under the Apache License Version 2.0, or LGPL Version 3 licenses.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with JSXCompressor.  If not, see <http://www.gnu.org/licenses/>.
+    
+    You should have received a copy of the Apache License along with JSXCompressor.  
+    If not, see <http://www.apache.org/licenses/>.
+
+*/
+
+/**
+  * @class Util class
+  * @classdesc Utilities for uncompressing and base64 decoding
+  * Class for gunzipping, unzipping and base64 decoding of files.
+  * It is used for reading GEONExT, Geogebra and Intergeo files.
+  *
+  * Only Huffman codes are decoded in gunzip.
+  * The code is based on the source code for gunzip.c by Pasi Ojala 
+  * {@link http://www.cs.tut.fi/~albert/Dev/gunzip/gunzip.c}
+  * {@link http://www.cs.tut.fi/~albert}
+  */
+JXG.Util = {};
+                                 
+/**
+ * Unzip zip files
+ */
+JXG.Util.Unzip = function (barray){
+    var outputArr = [],
+        output = "",
+        debug = false,
+        gpflags,
+        files = 0,
+        unzipped = [],
+        crc,
+        buf32k = new Array(32768),
+        bIdx = 0,
+        modeZIP=false,
+
+        CRC, SIZE,
+    
+        bitReverse = [
+        0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
+        0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
+        0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
+        0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
+        0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
+        0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
+        0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
+        0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
+        0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
+        0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
+        0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
+        0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
+        0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
+        0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
+        0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
+        0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
+        0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
+        0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
+        0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
+        0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
+        0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
+        0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
+        0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
+        0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
+        0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
+        0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
+        0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
+        0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
+        0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
+        0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
+        0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
+        0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff
+    ],
+    
+    cplens = [
+        3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
+        35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0
+    ],
+
+    cplext = [
+        0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
+        3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, 99, 99
+    ], /* 99==invalid */
+
+    cpdist = [
+        0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0007, 0x0009, 0x000d,
+        0x0011, 0x0019, 0x0021, 0x0031, 0x0041, 0x0061, 0x0081, 0x00c1,
+        0x0101, 0x0181, 0x0201, 0x0301, 0x0401, 0x0601, 0x0801, 0x0c01,
+        0x1001, 0x1801, 0x2001, 0x3001, 0x4001, 0x6001
+    ],
+
+    cpdext = [
+        0,  0,  0,  0,  1,  1,  2,  2,
+        3,  3,  4,  4,  5,  5,  6,  6,
+        7,  7,  8,  8,  9,  9, 10, 10,
+        11, 11, 12, 12, 13, 13
+    ],
+    
+    border = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15],
+    
+    bA = barray,
+
+    bytepos=0,
+    bitpos=0,
+    bb = 1,
+    bits=0,
+    
+    NAMEMAX = 256,
+    
+    nameBuf = [],
+    
+    fileout;
+    
+    function readByte(){
+        bits+=8;
+        if (bytepos<bA.length){
+            //if (debug)
+            //    document.write(bytepos+": "+bA[bytepos]+"<br>");
+            return bA[bytepos++];
+        } else
+            return -1;
+    };
+
+    function byteAlign(){
+        bb = 1;
+    };
+    
+    function readBit(){
+        var carry;
+        bits++;
+        carry = (bb & 1);
+        bb >>= 1;
+        if (bb==0){
+            bb = readByte();
+            carry = (bb & 1);
+            bb = (bb>>1) | 0x80;
+        }
+        return carry;
+    };
+
+    function readBits(a) {
+        var res = 0,
+            i = a;
+    
+        while(i--) {
+            res = (res<<1) | readBit();
+        }
+        if(a) {
+            res = bitReverse[res]>>(8-a);
+        }
+        return res;
+    };
+        
+    function flushBuffer(){
+        //document.write('FLUSHBUFFER:'+buf32k);
+        bIdx = 0;
+    };
+    function addBuffer(a){
+        SIZE++;
+        //CRC=updcrc(a,crc);
+        buf32k[bIdx++] = a;
+        outputArr.push(String.fromCharCode(a));
+        //output+=String.fromCharCode(a);
+        if(bIdx==0x8000){
+            //document.write('ADDBUFFER:'+buf32k);
+            bIdx=0;
+        }
+    };
+    
+    function HufNode() {
+        this.b0=0;
+        this.b1=0;
+        this.jump = null;
+        this.jumppos = -1;
+    };
+
+    var LITERALS = 288;
+    
+    var literalTree = new Array(LITERALS);
+    var distanceTree = new Array(32);
+    var treepos=0;
+    var Places = null;
+    var Places2 = null;
+    
+    var impDistanceTree = new Array(64);
+    var impLengthTree = new Array(64);
+    
+    var len = 0;
+    var fpos = new Array(17);
+    fpos[0]=0;
+    var flens;
+    var fmax;
+    
+    function IsPat() {
+        while (1) {
+            if (fpos[len] >= fmax)
+                return -1;
+            if (flens[fpos[len]] == len)
+                return fpos[len]++;
+            fpos[len]++;
+        }
+    };
+
+    function Rec() {
+        var curplace = Places[treepos];
+        var tmp;
+        if (debug)
+    		document.write("<br>len:"+len+" treepos:"+treepos);
+        if(len==17) { //war 17
+            return -1;
+        }
+        treepos++;
+        len++;
+    	
+        tmp = IsPat();
+        if (debug)
+        	document.write("<br>IsPat "+tmp);
+        if(tmp >= 0) {
+            curplace.b0 = tmp;    /* leaf cell for 0-bit */
+            if (debug)
+            	document.write("<br>b0 "+curplace.b0);
+        } else {
+        /* Not a Leaf cell */
+        curplace.b0 = 0x8000;
+        if (debug)
+        	document.write("<br>b0 "+curplace.b0);
+        if(Rec())
+            return -1;
+        }
+        tmp = IsPat();
+        if(tmp >= 0) {
+            curplace.b1 = tmp;    /* leaf cell for 1-bit */
+            if (debug)
+            	document.write("<br>b1 "+curplace.b1);
+            curplace.jump = null;    /* Just for the display routine */
+        } else {
+            /* Not a Leaf cell */
+            curplace.b1 = 0x8000;
+            if (debug)
+            	document.write("<br>b1 "+curplace.b1);
+            curplace.jump = Places[treepos];
+            curplace.jumppos = treepos;
+            if(Rec())
+                return -1;
+        }
+        len--;
+        return 0;
+    };
+
+    function CreateTree(currentTree, numval, lengths, show) {
+        var i;
+        /* Create the Huffman decode tree/table */
+        //document.write("<br>createtree<br>");
+        if (debug)
+        	document.write("currentTree "+currentTree+" numval "+numval+" lengths "+lengths+" show "+show);
+        Places = currentTree;
+        treepos=0;
+        flens = lengths;
+        fmax  = numval;
+        for (i=0;i<17;i++)
+            fpos[i] = 0;
+        len = 0;
+        if(Rec()) {
+            //fprintf(stderr, "invalid huffman tree\n");
+            if (debug)
+            	alert("invalid huffman tree\n");
+            return -1;
+        }
+        if (debug){
+        	document.write('<br>Tree: '+Places.length);
+        	for (var a=0;a<32;a++){
+            	document.write("Places["+a+"].b0="+Places[a].b0+"<br>");
+            	document.write("Places["+a+"].b1="+Places[a].b1+"<br>");
+        	}
+        }
+    
+        /*if(show) {
+            var tmp;
+            for(tmp=currentTree;tmp<Places;tmp++) {
+                fprintf(stdout, "0x%03x  0x%03x (0x%04x)",tmp-currentTree, tmp->jump?tmp->jump-currentTree:0,(tmp->jump?tmp->jump-currentTree:0)*6+0xcf0);
+                if(!(tmp.b0 & 0x8000)) {
+                    //fprintf(stdout, "  0x%03x (%c)", tmp->b0,(tmp->b0<256 && isprint(tmp->b0))?tmp->b0:'�');
+                }
+                if(!(tmp.b1 & 0x8000)) {
+                    if((tmp.b0 & 0x8000))
+                        fprintf(stdout, "           ");
+                    fprintf(stdout, "  0x%03x (%c)", tmp->b1,(tmp->b1<256 && isprint(tmp->b1))?tmp->b1:'�');
+                }
+                fprintf(stdout, "\n");
+            }
+        }*/
+        return 0;
+    };
+    
+    function DecodeValue(currentTree) {
+        var len, i,
+            xtreepos=0,
+            X = currentTree[xtreepos],
+            b;
+
+        /* decode one symbol of the data */
+        while(1) {
+            b=readBit();
+            if (debug)
+            	document.write("b="+b);
+            if(b) {
+                if(!(X.b1 & 0x8000)){
+                	if (debug)
+                    	document.write("ret1");
+                    return X.b1;    /* If leaf node, return data */
+                }
+                X = X.jump;
+                len = currentTree.length;
+                for (i=0;i<len;i++){
+                    if (currentTree[i]===X){
+                        xtreepos=i;
+                        break;
+                    }
+                }
+                //xtreepos++;
+            } else {
+                if(!(X.b0 & 0x8000)){
+                	if (debug)
+                    	document.write("ret2");
+                    return X.b0;    /* If leaf node, return data */
+                }
+                //X++; //??????????????????
+                xtreepos++;
+                X = currentTree[xtreepos];
+            }
+        }
+    };
+    
+    function DeflateLoop() {
+    var last, c, type, i, len;
+
+    do {
+        /*if((last = readBit())){
+            fprintf(errfp, "Last Block: ");
+        } else {
+            fprintf(errfp, "Not Last Block: ");
+        }*/
+        last = readBit();
+        type = readBits(2);
+        switch(type) {
+            case 0:
+            	if (debug)
+                	alert("Stored\n");
+                break;
+            case 1:
+            	if (debug)
+                	alert("Fixed Huffman codes\n");
+                break;
+            case 2:
+            	if (debug)
+                	alert("Dynamic Huffman codes\n");
+                break;
+            case 3:
+            	if (debug)
+                	alert("Reserved block type!!\n");
+                break;
+            default:
+            	if (debug)
+                	alert("Unexpected value %d!\n", type);
+                break;
+        }
+
+        if(type==0) {
+            var blockLen, cSum;
+
+            // Stored 
+            byteAlign();
+            blockLen = readByte();
+            blockLen |= (readByte()<<8);
+
+            cSum = readByte();
+            cSum |= (readByte()<<8);
+
+            if(((blockLen ^ ~cSum) & 0xffff)) {
+                document.write("BlockLen checksum mismatch\n");
+            }
+            while(blockLen--) {
+                c = readByte();
+                addBuffer(c);
+            }
+        } else if(type==1) {
+            var j;
+
+            /* Fixed Huffman tables -- fixed decode routine */
+            while(1) {
+            /*
+                256    0000000        0
+                :   :     :
+                279    0010111        23
+                0   00110000    48
+                :    :      :
+                143    10111111    191
+                280 11000000    192
+                :    :      :
+                287 11000111    199
+                144    110010000    400
+                :    :       :
+                255    111111111    511
+    
+                Note the bit order!
+                */
+
+            j = (bitReverse[readBits(7)]>>1);
+            if(j > 23) {
+                j = (j<<1) | readBit();    /* 48..255 */
+
+                if(j > 199) {    /* 200..255 */
+                    j -= 128;    /*  72..127 */
+                    j = (j<<1) | readBit();        /* 144..255 << */
+                } else {        /*  48..199 */
+                    j -= 48;    /*   0..151 */
+                    if(j > 143) {
+                        j = j+136;    /* 280..287 << */
+                        /*   0..143 << */
+                    }
+                }
+            } else {    /*   0..23 */
+                j += 256;    /* 256..279 << */
+            }
+            if(j < 256) {
+                addBuffer(j);
+                //document.write("out:"+String.fromCharCode(j));
+                /*fprintf(errfp, "@%d %02x\n", SIZE, j);*/
+            } else if(j == 256) {
+                /* EOF */
+                break;
+            } else {
+                var len, dist;
+
+                j -= 256 + 1;    /* bytes + EOF */
+                len = readBits(cplext[j]) + cplens[j];
+
+                j = bitReverse[readBits(5)]>>3;
+                if(cpdext[j] > 8) {
+                    dist = readBits(8);
+                    dist |= (readBits(cpdext[j]-8)<<8);
+                } else {
+                    dist = readBits(cpdext[j]);
+                }
+                dist += cpdist[j];
+
+                /*fprintf(errfp, "@%d (l%02x,d%04x)\n", SIZE, len, dist);*/
+                for(j=0;j<len;j++) {
+                    var c = buf32k[(bIdx - dist) & 0x7fff];
+                    addBuffer(c);
+                }
+            }
+            } // while
+        } else if(type==2) {
+            var j, n, literalCodes, distCodes, lenCodes;
+            var ll = new Array(288+32);    // "static" just to preserve stack
+    
+            // Dynamic Huffman tables 
+    
+            literalCodes = 257 + readBits(5);
+            distCodes = 1 + readBits(5);
+            lenCodes = 4 + readBits(4);
+            //document.write("<br>param: "+literalCodes+" "+distCodes+" "+lenCodes+"<br>");
+            for(j=0; j<19; j++) {
+                ll[j] = 0;
+            }
+    
+            // Get the decode tree code lengths
+    
+            //document.write("<br>");
+            for(j=0; j<lenCodes; j++) {
+                ll[border[j]] = readBits(3);
+                //document.write(ll[border[j]]+" ");
+            }
+            //fprintf(errfp, "\n");
+            //document.write('<br>ll:'+ll);
+            len = distanceTree.length;
+            for (i=0; i<len; i++)
+                distanceTree[i]=new HufNode();
+            if(CreateTree(distanceTree, 19, ll, 0)) {
+                flushBuffer();
+                return 1;
+            }
+            if (debug){
+            	document.write("<br>distanceTree");
+            	for(var a=0;a<distanceTree.length;a++){
+                	document.write("<br>"+distanceTree[a].b0+" "+distanceTree[a].b1+" "+distanceTree[a].jump+" "+distanceTree[a].jumppos);
+                	/*if (distanceTree[a].jumppos!=-1)
+                    	document.write(" "+distanceTree[a].jump.b0+" "+distanceTree[a].jump.b1);
+                	*/
+            	}
+            }
+            //document.write('<BR>tree created');
+    
+            //read in literal and distance code lengths
+            n = literalCodes + distCodes;
+            i = 0;
+            var z=-1;
+            if (debug)
+            	document.write("<br>n="+n+" bits: "+bits+"<br>");
+            while(i < n) {
+                z++;
+                j = DecodeValue(distanceTree);
+                if (debug)
+                	document.write("<br>"+z+" i:"+i+" decode: "+j+"    bits "+bits+"<br>");
+                if(j<16) {    // length of code in bits (0..15)
+                       ll[i++] = j;
+                } else if(j==16) {    // repeat last length 3 to 6 times 
+                       var l;
+                    j = 3 + readBits(2);
+                    if(i+j > n) {
+                        flushBuffer();
+                        return 1;
+                    }
+                    l = i ? ll[i-1] : 0;
+                    while(j--) {
+                        ll[i++] = l;
+                    }
+                } else {
+                    if(j==17) {        // 3 to 10 zero length codes
+                        j = 3 + readBits(3);
+                    } else {        // j == 18: 11 to 138 zero length codes 
+                        j = 11 + readBits(7);
+                    }
+                    if(i+j > n) {
+                        flushBuffer();
+                        return 1;
+                    }
+                    while(j--) {
+                        ll[i++] = 0;
+                    }
+                }
+            }
+            /*for(j=0; j<literalCodes+distCodes; j++) {
+                //fprintf(errfp, "%d ", ll[j]);
+                if ((j&7)==7)
+                    fprintf(errfp, "\n");
+            }
+            fprintf(errfp, "\n");*/
+            // Can overwrite tree decode tree as it is not used anymore
+            len = literalTree.length;
+            for (i=0; i<len; i++)
+                literalTree[i]=new HufNode();
+            if(CreateTree(literalTree, literalCodes, ll, 0)) {
+                flushBuffer();
+                return 1;
+            }
+            len = literalTree.length;
+            for (i=0; i<len; i++)
+                distanceTree[i]=new HufNode();
+            var ll2 = new Array();
+            for (i=literalCodes; i <ll.length; i++){
+                ll2[i-literalCodes]=ll[i];
+            }    
+            if(CreateTree(distanceTree, distCodes, ll2, 0)) {
+                flushBuffer();
+                return 1;
+            }
+            if (debug)
+           		document.write("<br>literalTree");
+            outer:
+            while(1) {
+                j = DecodeValue(literalTree);
+                if(j >= 256) {        // In C64: if carry set
+                    var len, dist;
+                    j -= 256;
+                    if(j == 0) {
+                        // EOF
+                        break;
+                    }
+                    j--;
+                    len = readBits(cplext[j]) + cplens[j];
+    
+                    j = DecodeValue(distanceTree);
+                    if(cpdext[j] > 8) {
+                        dist = readBits(8);
+                        dist |= (readBits(cpdext[j]-8)<<8);
+                    } else {
+                        dist = readBits(cpdext[j]);
+                    }
+                    dist += cpdist[j];
+                    while(len--) {
+                        if(bIdx - dist < 0) {
+                            break outer;
+                        }
+                        var c = buf32k[(bIdx - dist) & 0x7fff];
+                        addBuffer(c);
+                    }
+                } else {
+                    addBuffer(j);
+                }
+            }
+        }
+    } while(!last);
+    flushBuffer();
+
+    byteAlign();
+    return 0;
+};
+
+JXG.Util.Unzip.prototype.unzipFile = function(name) {
+    var i;
+	this.unzip();
+	//alert(unzipped[0][1]);
+	for (i=0;i<unzipped.length;i++){
+		if(unzipped[i][1]==name) {
+			return unzipped[i][0];
+		}
+	}
+	
+  };
+
+JXG.Util.Unzip.prototype.deflate = function() {
+    outputArr = [];
+    var tmp = [];
+    modeZIP = false;
+    DeflateLoop();
+    if (debug)
+        alert(outputArr.join(''));
+    unzipped[files] = new Array(2);
+    unzipped[files][0] = outputArr.join('');
+    unzipped[files][1] = "DEFLATE";
+    files++;
+    return unzipped;
+}    
+    
+JXG.Util.Unzip.prototype.unzip = function() {
+	//convertToByteArray(input);
+	if (debug)
+		alert(bA);
+	/*for (i=0;i<bA.length*8;i++){
+		document.write(readBit());
+		if ((i+1)%8==0)
+			document.write(" ");
+	}*/
+	/*for (i=0;i<bA.length;i++){
+		document.write(readByte()+" ");
+		if ((i+1)%8==0)
+			document.write(" ");
+	}
+	for (i=0;i<bA.length;i++){
+		document.write(bA[i]+" ");
+		if ((i+1)%16==0)
+			document.write("<br>");
+	}	
+	*/
+	//alert(bA);
+	nextFile();
+	return unzipped;
+  };
+    
+ function nextFile(){
+ 	if (debug)
+ 		alert("NEXTFILE");
+ 	outputArr = [];
+ 	var tmp = [];
+ 	modeZIP = false;
+	tmp[0] = readByte();
+	tmp[1] = readByte();
+	if (debug)
+		alert("type: "+tmp[0]+" "+tmp[1]);
+	if (tmp[0] == parseInt("78",16) && tmp[1] == parseInt("da",16)){ //GZIP
+		if (debug)
+			alert("GEONExT-GZIP");
+		DeflateLoop();
+		if (debug)
+			alert(outputArr.join(''));
+		unzipped[files] = new Array(2);
+    	unzipped[files][0] = outputArr.join('');
+    	unzipped[files][1] = "geonext.gxt";
+    	files++;
+	}
+	if (tmp[0] == parseInt("78",16) && tmp[1] == parseInt("9c",16)){ //ZLIB
+		if (debug)
+			alert("ZLIB");
+		DeflateLoop();
+		if (debug)
+			alert(outputArr.join(''));
+		unzipped[files] = new Array(2);
+    	unzipped[files][0] = outputArr.join('');
+    	unzipped[files][1] = "ZLIB";
+    	files++;
+	}
+	if (tmp[0] == parseInt("1f",16) && tmp[1] == parseInt("8b",16)){ //GZIP
+		if (debug)
+			alert("GZIP");
+		//DeflateLoop();
+		skipdir();
+		if (debug)
+			alert(outputArr.join(''));
+		unzipped[files] = new Array(2);
+    	unzipped[files][0] = outputArr.join('');
+    	unzipped[files][1] = "file";
+    	files++;
+	}
+	if (tmp[0] == parseInt("50",16) && tmp[1] == parseInt("4b",16)){ //ZIP
+		modeZIP = true;
+		tmp[2] = readByte();
+		tmp[3] = readByte();
+		if (tmp[2] == parseInt("3",16) && tmp[3] == parseInt("4",16)){
+			//MODE_ZIP
+			tmp[0] = readByte();
+			tmp[1] = readByte();
+			if (debug)
+				alert("ZIP-Version: "+tmp[1]+" "+tmp[0]/10+"."+tmp[0]%10);
+			
+			gpflags = readByte();
+			gpflags |= (readByte()<<8);
+			if (debug)
+				alert("gpflags: "+gpflags);
+			
+			var method = readByte();
+			method |= (readByte()<<8);
+			if (debug)
+				alert("method: "+method);
+			
+			readByte();
+			readByte();
+			readByte();
+			readByte();
+			
+			var crc = readByte();
+			crc |= (readByte()<<8);
+			crc |= (readByte()<<16);
+			crc |= (readByte()<<24);
+			
+			var compSize = readByte();
+			compSize |= (readByte()<<8);
+			compSize |= (readByte()<<16);
+			compSize |= (readByte()<<24);
+			
+			var size = readByte();
+			size |= (readByte()<<8);
+			size |= (readByte()<<16);
+			size |= (readByte()<<24);
+			
+			if (debug)
+				alert("local CRC: "+crc+"\nlocal Size: "+size+"\nlocal CompSize: "+compSize);
+			
+			var filelen = readByte();
+			filelen |= (readByte()<<8);
+			
+			var extralen = readByte();
+			extralen |= (readByte()<<8);
+			
+			if (debug)
+				alert("filelen "+filelen);
+			i = 0;
+			nameBuf = [];
+			while (filelen--){ 
+				var c = readByte();
+				if (c == "/" | c ==":"){
+					i = 0;
+				} else if (i < NAMEMAX-1)
+					nameBuf[i++] = String.fromCharCode(c);
+			}
+			if (debug)
+				alert("nameBuf: "+nameBuf);
+			
+			//nameBuf[i] = "\0";
+			if (!fileout)
+				fileout = nameBuf;
+			
+			var i = 0;
+			while (i < extralen){
+				c = readByte();
+				i++;
+			}
+				
+			CRC = 0xffffffff;
+			SIZE = 0;
+			
+			if (size == 0 && fileOut.charAt(fileout.length-1)=="/"){
+				//skipdir
+				if (debug)
+					alert("skipdir");
+			}
+			if (method == 8){
+				DeflateLoop();
+				if (debug)
+					alert(outputArr.join(''));
+				unzipped[files] = new Array(2);
+				unzipped[files][0] = outputArr.join('');
+    			unzipped[files][1] = nameBuf.join('');
+    			files++;
+				//return outputArr.join('');
+			}
+			skipdir();
+		}
+	}
+ };
+	
+function skipdir(){
+    var crc, 
+        tmp = [],
+        compSize, size, os, i, c;
+    
+	if ((gpflags & 8)) {
+		tmp[0] = readByte();
+		tmp[1] = readByte();
+		tmp[2] = readByte();
+		tmp[3] = readByte();
+		
+		if (tmp[0] == parseInt("50",16) && 
+            tmp[1] == parseInt("4b",16) && 
+            tmp[2] == parseInt("07",16) && 
+            tmp[3] == parseInt("08",16))
+        {
+            crc = readByte();
+            crc |= (readByte()<<8);
+            crc |= (readByte()<<16);
+            crc |= (readByte()<<24);
+		} else {
+			crc = tmp[0] | (tmp[1]<<8) | (tmp[2]<<16) | (tmp[3]<<24);
+		}
+		
+		compSize = readByte();
+		compSize |= (readByte()<<8);
+		compSize |= (readByte()<<16);
+		compSize |= (readByte()<<24);
+		
+		size = readByte();
+		size |= (readByte()<<8);
+		size |= (readByte()<<16);
+		size |= (readByte()<<24);
+		
+		if (debug)
+			alert("CRC:");
+	}
+
+	if (modeZIP)
+		nextFile();
+	
+	tmp[0] = readByte();
+	if (tmp[0] != 8) {
+		if (debug)
+			alert("Unknown compression method!");
+        return 0;	
+	}
+	
+	gpflags = readByte();
+	if (debug){
+		if ((gpflags & ~(parseInt("1f",16))))
+			alert("Unknown flags set!");
+	}
+	
+	readByte();
+	readByte();
+	readByte();
+	readByte();
+	
+	readByte();
+	os = readByte();
+	
+	if ((gpflags & 4)){
+		tmp[0] = readByte();
+		tmp[2] = readByte();
+		len = tmp[0] + 256*tmp[1];
+		if (debug)
+			alert("Extra field size: "+len);
+		for (i=0;i<len;i++)
+			readByte();
+	}
+	
+	if ((gpflags & 8)){
+		i=0;
+		nameBuf=[];
+		while (c=readByte()){
+			if(c == "7" || c == ":")
+				i=0;
+			if (i<NAMEMAX-1)
+				nameBuf[i++] = c;
+		}
+		//nameBuf[i] = "\0";
+		if (debug)
+			alert("original file name: "+nameBuf);
+	}
+		
+	if ((gpflags & 16)){
+		while (c=readByte()){
+			//FILE COMMENT
+		}
+	}
+	
+	if ((gpflags & 2)){
+		readByte();
+		readByte();
+	}
+	
+	DeflateLoop();
+	
+	crc = readByte();
+	crc |= (readByte()<<8);
+	crc |= (readByte()<<16);
+	crc |= (readByte()<<24);
+	
+	size = readByte();
+	size |= (readByte()<<8);
+	size |= (readByte()<<16);
+	size |= (readByte()<<24);
+	
+	if (modeZIP)
+		nextFile();
+	
+};
+
+};
+
+/**
+*  Base64 encoding / decoding
+*  {@link http://www.webtoolkit.info/}
+*/
+JXG.Util.Base64 = {
+
+    // private property
+    _keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+
+    // public method for encoding
+    encode : function (input) {
+        var output = [],
+            chr1, chr2, chr3, enc1, enc2, enc3, enc4,
+            i = 0;
+
+        input = JXG.Util.Base64._utf8_encode(input);
+
+        while (i < input.length) {
+
+            chr1 = input.charCodeAt(i++);
+            chr2 = input.charCodeAt(i++);
+            chr3 = input.charCodeAt(i++);
+
+            enc1 = chr1 >> 2;
+            enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+            enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+            enc4 = chr3 & 63;
+
+            if (isNaN(chr2)) {
+                enc3 = enc4 = 64;
+            } else if (isNaN(chr3)) {
+                enc4 = 64;
+            }
+
+            output.push([this._keyStr.charAt(enc1),
+                         this._keyStr.charAt(enc2),
+                         this._keyStr.charAt(enc3),
+                         this._keyStr.charAt(enc4)].join(''));
+        }
+
+        return output.join('');
+    },
+
+    // public method for decoding
+    decode : function (input, utf8) {
+        var output = [],
+            chr1, chr2, chr3,
+            enc1, enc2, enc3, enc4,
+            i = 0;
+
+        input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+
+        while (i < input.length) {
+
+            enc1 = this._keyStr.indexOf(input.charAt(i++));
+            enc2 = this._keyStr.indexOf(input.charAt(i++));
+            enc3 = this._keyStr.indexOf(input.charAt(i++));
+            enc4 = this._keyStr.indexOf(input.charAt(i++));
+
+            chr1 = (enc1 << 2) | (enc2 >> 4);
+            chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+            chr3 = ((enc3 & 3) << 6) | enc4;
+
+            output.push(String.fromCharCode(chr1));
+
+            if (enc3 != 64) {
+                output.push(String.fromCharCode(chr2));
+            }
+            if (enc4 != 64) {
+                output.push(String.fromCharCode(chr3));
+            }
+        }
+        
+        output = output.join(''); 
+        
+        if (utf8) {
+            output = JXG.Util.Base64._utf8_decode(output);
+        }
+        return output;
+
+    },
+
+    // private method for UTF-8 encoding
+    _utf8_encode : function (string) {
+        string = string.replace(/\r\n/g,"\n");
+        var utftext = "";
+
+        for (var n = 0; n < string.length; n++) {
+
+            var c = string.charCodeAt(n);
+
+            if (c < 128) {
+                utftext += String.fromCharCode(c);
+            }
+            else if((c > 127) && (c < 2048)) {
+                utftext += String.fromCharCode((c >> 6) | 192);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+            else {
+                utftext += String.fromCharCode((c >> 12) | 224);
+                utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+
+        }
+
+        return utftext;
+    },
+
+    // private method for UTF-8 decoding
+    _utf8_decode : function (utftext) {
+        var string = [],
+            i = 0,
+            c = 0, c2 = 0, c3 = 0;
+
+        while ( i < utftext.length ) {
+            c = utftext.charCodeAt(i);
+            if (c < 128) {
+                string.push(String.fromCharCode(c));
+                i++;
+            }
+            else if((c > 191) && (c < 224)) {
+                c2 = utftext.charCodeAt(i+1);
+                string.push(String.fromCharCode(((c & 31) << 6) | (c2 & 63)));
+                i += 2;
+            }
+            else {
+                c2 = utftext.charCodeAt(i+1);
+                c3 = utftext.charCodeAt(i+2);
+                string.push(String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63)));
+                i += 3;
+            }
+        }
+        return string.join('');
+    },
+    
+    _destrip: function (stripped, wrap){
+        var lines = [], lineno, i,
+            destripped = [];
+        
+        if (wrap==null) 
+            wrap = 76;
+            
+        stripped.replace(/ /g, "");
+        lineno = stripped.length / wrap;
+        for (i = 0; i < lineno; i++)
+            lines[i]=stripped.substr(i * wrap, wrap);
+        if (lineno != stripped.length / wrap)
+            lines[lines.length]=stripped.substr(lineno * wrap, stripped.length-(lineno * wrap));
+            
+        for (i = 0; i < lines.length; i++)
+            destripped.push(lines[i]);
+        return destripped.join('\n');
+    },
+    
+    decodeAsArray: function (input){
+        var dec = this.decode(input),
+            ar = [], i;
+        for (i=0;i<dec.length;i++){
+            ar[i]=dec.charCodeAt(i);
+        }
+        return ar;
+    },
+    
+    decodeGEONExT : function (input) {
+        return decodeAsArray(destrip(input),false);
+    }
+};
+
+/**
+ * @private
+ */
+JXG.Util.asciiCharCodeAt = function(str,i){
+	var c = str.charCodeAt(i);
+	if (c>255){
+    	switch (c) {
+			case 8364: c=128;
+	    	break;
+	    	case 8218: c=130;
+	    	break;
+	    	case 402: c=131;
+	    	break;
+	    	case 8222: c=132;
+	    	break;
+	    	case 8230: c=133;
+	    	break;
+	    	case 8224: c=134;
+	    	break;
+	    	case 8225: c=135;
+	    	break;
+	    	case 710: c=136;
+	    	break;
+	    	case 8240: c=137;
+	    	break;
+	    	case 352: c=138;
+	    	break;
+	    	case 8249: c=139;
+	    	break;
+	    	case 338: c=140;
+	    	break;
+	    	case 381: c=142;
+	    	break;
+	    	case 8216: c=145;
+	    	break;
+	    	case 8217: c=146;
+	    	break;
+	    	case 8220: c=147;
+	    	break;
+	    	case 8221: c=148;
+	    	break;
+	    	case 8226: c=149;
+	    	break;
+	    	case 8211: c=150;
+	    	break;
+	    	case 8212: c=151;
+	    	break;
+	    	case 732: c=152;
+	    	break;
+	    	case 8482: c=153;
+	    	break;
+	    	case 353: c=154;
+	    	break;
+	    	case 8250: c=155;
+	    	break;
+	    	case 339: c=156;
+	    	break;
+	    	case 382: c=158;
+	    	break;
+	    	case 376: c=159;
+	    	break;
+	    	default:
+	    	break;
+	    }
+	}
+	return c;
+};
+
+/**
+ * Decoding string into utf-8
+ * @param {String} string to decode
+ * @return {String} utf8 decoded string
+ */
+JXG.Util.utf8Decode = function(utftext) {
+  var string = [];
+  var i = 0;
+  var c = 0, c1 = 0, c2 = 0, c3;
+  if (!JXG.exists(utftext)) return '';
+  
+  while ( i < utftext.length ) {
+    c = utftext.charCodeAt(i);
+
+    if (c < 128) {
+      string.push(String.fromCharCode(c));
+      i++;
+    } else if((c > 191) && (c < 224)) {
+      c2 = utftext.charCodeAt(i+1);
+      string.push(String.fromCharCode(((c & 31) << 6) | (c2 & 63)));
+      i += 2;
+    } else {
+      c2 = utftext.charCodeAt(i+1);
+      c3 = utftext.charCodeAt(i+2);
+      string.push(String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63)));
+      i += 3;
+    }
+  };
+  return string.join('');
+};
+
+/**
+ * Generate a random uuid.
+ * http://www.broofa.com
+ * mailto:robert@broofa.com
+ *
+ * Copyright (c) 2010 Robert Kieffer
+ * Dual licensed under the MIT and GPL licenses.
+ *
+ * EXAMPLES:
+ *   >>> Math.uuid()
+ *   "92329D39-6F5C-4520-ABFC-AAB64544E172"
+ */
+JXG.Util.genUUID = function() {
+    // Private array of chars to use
+    var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split(''),
+        uuid = new Array(36), rnd=0, r;
+
+    for (var i = 0; i < 36; i++) {
+      if (i==8 || i==13 ||  i==18 || i==23) {
+        uuid[i] = '-';
+      } else if (i==14) {
+        uuid[i] = '4';
+      } else {
+        if (rnd <= 0x02) rnd = 0x2000000 + (Math.random()*0x1000000)|0;
+        r = rnd & 0xf;
+        rnd = rnd >> 4;
+        uuid[i] = chars[(i == 19) ? (r & 0x3) | 0x8 : r];
+      }
+    }
+
+    return uuid.join('');
+};
+
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ *
+ * This object contains configuration values and implements
+ * storing and retrieving configuration them from HTML5 local storage.
+ *
+ * This object can be accessed after calling openpgp.init()
+ * using openpgp.config
+ * Stored config parameters can be accessed using
+ * openpgp.config.config
+ * @class
+ * @classdesc Implementation of the GPG4Browsers config object
+ */
+function openpgp_config() {
+	/**
+	 * The variable with the actual configuration
+	 * @property {Integer} prefer_hash_algorithm
+	 * @property {Integer} encryption_cipher
+	 * @property {Integer} compression
+	 * @property {Boolean} show_version
+	 * @property {Boolean} show_comment
+	 * @property {Boolean} integrity_protect
+	 * @property {Integer} composition_behavior
+	 * @property {String} keyserver
+	 */
+	this.config = null;
+
+	/**
+	 * The default config object which is used if no
+	 * configuration was in place
+	 */
+	this.default_config = {
+			prefer_hash_algorithm: 8,
+			encryption_cipher: 9,
+			compression: 1,
+			show_version: true,
+			show_comment: true,
+			integrity_protect: true,
+			composition_behavior: 0,
+			keyserver: "keyserver.linux.it" // "pgp.mit.edu:11371"
+	};
+
+	this.versionstring ="OpenPGP.js v.1.20131208";
+	this.commentstring ="http://openpgpjs.org";
+	/**
+	 * Reads the config out of the HTML5 local storage
+	 * and initializes the object config.
+	 * if config is null the default config will be used
+	 */
+	function read() {
+		var cf = JSON.parse(window.localStorage.getItem("config"));
+		if (cf == null) {
+			this.config = this.default_config;
+			this.write();
+		}
+		else
+			this.config = cf;
+	}
+
+	/**
+	 * If enabled, debug messages will be printed
+	 */
+	this.debug = false;
+
+	/**
+	 * Writes the config to HTML5 local storage
+	 */
+	function write() {
+		window.localStorage.setItem("config",JSON.stringify(this.config));
+	}
+
+	this.read = read;
+	this.write = write;
+}
+/* OpenPGP radix-64/base64 string encoding/decoding
+ * Copyright 2005 Herbert Hanewinkel, www.haneWIN.de
+ * version 1.0, check www.haneWIN.de for the latest version
+ *
+ * This software is provided as-is, without express or implied warranty.  
+ * Permission to use, copy, modify, distribute or sell this software, with or
+ * without fee, for any purpose and by any individual or organization, is hereby
+ * granted, provided that the above copyright notice and this paragraph appear 
+ * in all copies. Distribution as a part of an application or binary must
+ * include the above copyright notice in the documentation and/or other materials
+ * provided with the application or distribution.
+ */
+
+var b64s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+function s2r(t) {
+	var a, c, n;
+	var r = '', l = 0, s = 0;
+	var tl = t.length;
+
+	for (n = 0; n < tl; n++) {
+		c = t.charCodeAt(n);
+		if (s == 0) {
+			r += b64s.charAt((c >> 2) & 63);
+			a = (c & 3) << 4;
+		} else if (s == 1) {
+			r += b64s.charAt((a | (c >> 4) & 15));
+			a = (c & 15) << 2;
+		} else if (s == 2) {
+			r += b64s.charAt(a | ((c >> 6) & 3));
+			l += 1;
+			if ((l % 60) == 0)
+				r += "\n";
+			r += b64s.charAt(c & 63);
+		}
+		l += 1;
+		if ((l % 60) == 0)
+			r += "\n";
+
+		s += 1;
+		if (s == 3)
+			s = 0;
+	}
+	if (s > 0) {
+		r += b64s.charAt(a);
+		l += 1;
+		if ((l % 60) == 0)
+			r += "\n";
+		r += '=';
+		l += 1;
+	}
+	if (s == 1) {
+		if ((l % 60) == 0)
+			r += "\n";
+		r += '=';
+	}
+  	if (r.charAt(r.length-1)==="\n")
+    		r=r.slice(0,-1);
+	return r;
+}
+
+function r2s(t) {
+	var c, n;
+	var r = '', s = 0, a = 0;
+	var tl = t.length;
+
+	for (n = 0; n < tl; n++) {
+		c = b64s.indexOf(t.charAt(n));
+		if (c >= 0) {
+			if (s)
+				r += String.fromCharCode(a | (c >> (6 - s)) & 255);
+			s = (s + 2) & 7;
+			a = (c << s) & 255;
+		}
+	}
+	return r;
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * DeArmor an OpenPGP armored message; verify the checksum and return 
+ * the encoded bytes
+ * @param {String} text OpenPGP armored message
+ * @returns {(Boolean|Object)} Either false in case of an error 
+ * or an object with attribute "text" containing the message text
+ * and an attribute "openpgp" containing the bytes.
+ */
+function openpgp_encoding_deArmor(text) {
+	var reSplit = /^-----[^-]+-----$\n/m;
+
+	text = text.replace(/\r/g, '');
+
+	var type = openpgp_encoding_get_type(text);
+
+	var splittedtext = text.split(reSplit);
+
+	// IE has a bug in split with a re. If the pattern matches the beginning of the
+	// string it doesn't create an empty array element 0. So we need to detect this
+	// so we know the index of the data we are interested in.
+	var indexBase = 1;
+
+	var result, checksum;
+
+	if (text.search(reSplit) != splittedtext[0].length) {
+		indexBase = 0;
+	}
+
+	if (type != 2) {
+		// splittedtext[indexBase] - the message and checksum
+
+		// chunks separated by blank lines
+		var msg = openpgp_encoding_split_headers(splittedtext[indexBase].replace(/^- /mg, ''));
+		var msg_sum = openpgp_encoding_split_checksum(msg.body);
+
+		result = { 
+			openpgp: openpgp_encoding_base64_decode(msg_sum.body),
+			type: type
+		};
+		checksum = msg_sum.checksum;
+	} else {
+		// splittedtext[indexBase] - the message
+		// splittedtext[indexBase + 1] - the signature and checksum
+
+		var msg = openpgp_encoding_split_headers(splittedtext[indexBase].replace(/^- /mg, '').replace(/[\t ]+\n/g, "\n"));
+		var sig = openpgp_encoding_split_headers(splittedtext[indexBase + 1].replace(/^- /mg, ''));
+		var sig_sum = openpgp_encoding_split_checksum(sig.body);
+
+		result = {
+			text:  msg.body.replace(/\n$/, "").replace(/\n/g, "\r\n"),
+			openpgp: openpgp_encoding_base64_decode(sig_sum.body),
+			type: type
+		};
+
+		checksum = sig_sum.checksum;
+	}
+
+	if (!verifyCheckSum(result.openpgp, checksum)) {
+		util.print_error("Ascii armor integrity check on message failed: '"
+			+ checksum
+			+ "' should be '"
+			+ getCheckSum(result) + "'");
+		return false;
+	} else {
+		return result;
+	}
+}
+
+/**
+ * Splits a message into two parts, the headers and the body. This is an internal function
+ * @param {String} text OpenPGP armored message part
+ * @returns {(Boolean|Object)} Either false in case of an error 
+ * or an object with attribute "headers" containing the headers and
+ * and an attribute "body" containing the body.
+ */
+function openpgp_encoding_split_headers(text) {
+	var reEmptyLine = /^[\t ]*\n/m;
+	var headers = "";
+	var body = text;
+
+	var matchResult = reEmptyLine.exec(text);
+
+	if (matchResult != null) {
+		headers = text.slice(0, matchResult.index);
+		body = text.slice(matchResult.index + matchResult[0].length);
+	}
+
+	return { headers: headers, body: body };
+}
+
+/**
+ * Splits a message into two parts, the body and the checksum. This is an internal function
+ * @param {String} text OpenPGP armored message part
+ * @returns {(Boolean|Object)} Either false in case of an error 
+ * or an object with attribute "body" containing the body
+ * and an attribute "checksum" containing the checksum.
+ */
+function openpgp_encoding_split_checksum(text) {
+	var reChecksumStart = /^=/m;
+	var body = text;
+	var checksum = "";
+
+	var matchResult = reChecksumStart.exec(text);
+
+	if (matchResult != null) {
+		body = text.slice(0, matchResult.index);
+		checksum = text.slice(matchResult.index + 1);
+	}
+
+	return { body: body, checksum: checksum };
+}
+
+/**
+ * Finds out which Ascii Armoring type is used. This is an internal function
+ * @param {String} text [String] ascii armored text
+ * @returns {Integer} 0 = MESSAGE PART n of m
+ *         1 = MESSAGE PART n
+ *         2 = SIGNED MESSAGE
+ *         3 = PGP MESSAGE
+ *         4 = PUBLIC KEY BLOCK
+ *         5 = PRIVATE KEY BLOCK
+ *         null = unknown
+ */
+function openpgp_encoding_get_type(text) {
+	var reHeader = /^-----([^-]+)-----$\n/m;
+
+	var header = text.match(reHeader);
+	// BEGIN PGP MESSAGE, PART X/Y
+	// Used for multi-part messages, where the armor is split amongst Y
+	// parts, and this is the Xth part out of Y.
+	if (header[1].match(/BEGIN PGP MESSAGE, PART \d+\/\d+/)) {
+		return 0;
+	} else
+		// BEGIN PGP MESSAGE, PART X
+		// Used for multi-part messages, where this is the Xth part of an
+		// unspecified number of parts. Requires the MESSAGE-ID Armor
+		// Header to be used.
+	if (header[1].match(/BEGIN PGP MESSAGE, PART \d+/)) {
+		return 1;
+
+	} else
+		// BEGIN PGP SIGNED MESSAGE
+		// Used for detached signatures, OpenPGP/MIME signatures, and
+		// cleartext signatures. Note that PGP 2.x uses BEGIN PGP MESSAGE
+		// for detached signatures.
+	if (header[1].match(/BEGIN PGP SIGNED MESSAGE/)) {
+		return 2;
+
+	} else
+  	    // BEGIN PGP MESSAGE
+	    // Used for signed, encrypted, or compressed files.
+	if (header[1].match(/BEGIN PGP MESSAGE/)) {
+		return 3;
+
+	} else
+		// BEGIN PGP PUBLIC KEY BLOCK
+		// Used for armoring public keys.
+	if (header[1].match(/BEGIN PGP PUBLIC KEY BLOCK/)) {
+		return 4;
+
+	} else
+		// BEGIN PGP PRIVATE KEY BLOCK
+		// Used for armoring private keys.
+	if (header[1].match(/BEGIN PGP PRIVATE KEY BLOCK/)) {
+		return 5;
+	}
+}
+
+/**
+ * Add additional information to the armor version of an OpenPGP binary
+ * packet block.
+ * @author  Alex
+ * @version 2011-12-16
+ * @returns {String} The header information
+ */
+function openpgp_encoding_armor_addheader() {
+    var result = "";
+	if (openpgp.config.config.show_version) {
+        result += "Version: "+openpgp.config.versionstring+'\r\n';
+    }
+	if (openpgp.config.config.show_comment) {
+        result += "Comment: "+openpgp.config.commentstring+'\r\n';
+    }
+    result += '\r\n';
+    return result;
+}
+
+/**
+ * Armor an OpenPGP binary packet block
+ * @param {Integer} messagetype type of the message
+ * @param data
+ * @param {Integer} partindex
+ * @param {Integer} parttotal
+ * @returns {String} Armored text
+ */
+function openpgp_encoding_armor(messagetype, data, partindex, parttotal) {
+	var result = "";
+	switch(messagetype) {
+	case 0:
+		result += "-----BEGIN PGP MESSAGE, PART "+partindex+"/"+parttotal+"-----\r\n";
+		result += openpgp_encoding_armor_addheader();
+		result += openpgp_encoding_base64_encode(data);
+		result += "\r\n="+getCheckSum(data)+"\r\n";
+		result += "-----END PGP MESSAGE, PART "+partindex+"/"+parttotal+"-----\r\n";
+		break;
+	case 1:
+		result += "-----BEGIN PGP MESSAGE, PART "+partindex+"-----\r\n";
+		result += openpgp_encoding_armor_addheader();
+		result += openpgp_encoding_base64_encode(data);
+		result += "\r\n="+getCheckSum(data)+"\r\n";
+		result += "-----END PGP MESSAGE, PART "+partindex+"-----\r\n";
+		break;
+	case 2:
+		result += "\r\n-----BEGIN PGP SIGNED MESSAGE-----\r\nHash: "+data.hash+"\r\n\r\n";
+		result += data.text.replace(/\n-/g,"\n- -");
+		result += "\r\n-----BEGIN PGP SIGNATURE-----\r\n";
+		result += openpgp_encoding_armor_addheader();
+		result += openpgp_encoding_base64_encode(data.openpgp);
+		result += "\r\n="+getCheckSum(data.openpgp)+"\r\n";
+		result += "-----END PGP SIGNATURE-----\r\n";
+		break;
+	case 3:
+		result += "-----BEGIN PGP MESSAGE-----\r\n";
+		result += openpgp_encoding_armor_addheader();
+		result += openpgp_encoding_base64_encode(data);
+		result += "\r\n="+getCheckSum(data)+"\r\n";
+		result += "-----END PGP MESSAGE-----\r\n";
+		break;
+	case 4:
+		result += "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n";
+		result += openpgp_encoding_armor_addheader();
+		result += openpgp_encoding_base64_encode(data);
+		result += "\r\n="+getCheckSum(data)+"\r\n";
+		result += "-----END PGP PUBLIC KEY BLOCK-----\r\n\r\n";
+		break;
+	case 5:
+		result += "-----BEGIN PGP PRIVATE KEY BLOCK-----\r\n";
+		result += openpgp_encoding_armor_addheader();
+		result += openpgp_encoding_base64_encode(data);
+		result += "\r\n="+getCheckSum(data)+"\r\n";
+		result += "-----END PGP PRIVATE KEY BLOCK-----\r\n";
+		break;
+	}
+
+	return result;
+}
+
+/**
+ * Calculates a checksum over the given data and returns it base64 encoded
+ * @param {String} data Data to create a CRC-24 checksum for
+ * @return {String} Base64 encoded checksum
+ */
+function getCheckSum(data) {
+	var c = createcrc24(data);
+	var str = "" + String.fromCharCode(c >> 16)+
+				   String.fromCharCode((c >> 8) & 0xFF)+
+				   String.fromCharCode(c & 0xFF);
+	return openpgp_encoding_base64_encode(str);
+}
+
+/**
+ * Calculates the checksum over the given data and compares it with the 
+ * given base64 encoded checksum
+ * @param {String} data Data to create a CRC-24 checksum for
+ * @param {String} checksum Base64 encoded checksum
+ * @return {Boolean} True if the given checksum is correct; otherwise false
+ */
+function verifyCheckSum(data, checksum) {
+	var c = getCheckSum(data);
+	var d = checksum;
+	return c[0] == d[0] && c[1] == d[1] && c[2] == d[2];
+}
+/**
+ * Internal function to calculate a CRC-24 checksum over a given string (data)
+ * @param {String} data Data to create a CRC-24 checksum for
+ * @return {Integer} The CRC-24 checksum as number
+ */
+var crc_table = [
+0x00000000, 0x00864cfb, 0x018ad50d, 0x010c99f6, 0x0393e6e1, 0x0315aa1a, 0x021933ec, 0x029f7f17, 0x07a18139, 0x0727cdc2, 0x062b5434, 0x06ad18cf, 0x043267d8, 0x04b42b23, 0x05b8b2d5, 0x053efe2e, 0x0fc54e89, 0x0f430272, 0x0e4f9b84, 0x0ec9d77f, 0x0c56a868, 0x0cd0e493, 0x0ddc7d65, 0x0d5a319e, 0x0864cfb0, 0x08e2834b, 0x09ee1abd, 0x09685646, 0x0bf72951, 0x0b7165aa, 0x0a7dfc5c, 0x0afbb0a7, 0x1f0cd1e9, 0x1f8a9d12, 0x1e8604e4, 0x1e00481f, 0x1c9f3708, 0x1c197bf3, 0x1d15e205, 0x1d93aefe, 0x18ad50d0, 0x182b1c2b, 0x192785dd, 0x19a1c926, 0x1b3eb631, 0x1bb8faca, 0x1ab4633c, 0x1a322fc7, 0x10c99f60, 0x104fd39b, 0x11434a6d, 0x11c50696, 0x135a7981, 0x13dc357a, 0x12d0ac8c, 0x1256e077, 0x17681e59, 0x17ee52a2, 0x16e2cb54, 0x166487af, 0x14fbf8b8, 0x147db443, 0x15712db5, 0x15f7614e, 0x3e19a3d2, 0x3e9fef29, 0x3f9376df, 0x3f153a24, 0x3d8a4533, 0x3d0c09c8, 0x3c00903e, 0x3c86dcc5, 0x39b822eb, 0x393e6e10, 0x3832f7e6, 0x38b4bb1d, 0x3a2bc40a, 0x3aad88f1, 0x3ba11107, 0x3b275dfc, 0x31dced5b, 0x315aa1a0,
+0x30563856, 0x30d074ad, 0x324f0bba, 0x32c94741, 0x33c5deb7, 0x3343924c, 0x367d6c62, 0x36fb2099, 0x37f7b96f, 0x3771f594, 0x35ee8a83, 0x3568c678, 0x34645f8e, 0x34e21375, 0x2115723b, 0x21933ec0, 0x209fa736, 0x2019ebcd, 0x228694da, 0x2200d821, 0x230c41d7, 0x238a0d2c, 0x26b4f302, 0x2632bff9, 0x273e260f, 0x27b86af4, 0x252715e3, 0x25a15918, 0x24adc0ee, 0x242b8c15, 0x2ed03cb2, 0x2e567049, 0x2f5ae9bf, 0x2fdca544, 0x2d43da53, 0x2dc596a8, 0x2cc90f5e, 0x2c4f43a5, 0x2971bd8b, 0x29f7f170, 0x28fb6886, 0x287d247d, 0x2ae25b6a, 0x2a641791, 0x2b688e67, 0x2beec29c, 0x7c3347a4, 0x7cb50b5f, 0x7db992a9, 0x7d3fde52, 0x7fa0a145, 0x7f26edbe, 0x7e2a7448, 0x7eac38b3, 0x7b92c69d, 0x7b148a66, 0x7a181390, 0x7a9e5f6b, 0x7801207c, 0x78876c87, 0x798bf571, 0x790db98a, 0x73f6092d, 0x737045d6, 0x727cdc20, 0x72fa90db, 0x7065efcc, 0x70e3a337, 0x71ef3ac1, 0x7169763a, 0x74578814, 0x74d1c4ef, 0x75dd5d19, 0x755b11e2, 0x77c46ef5, 0x7742220e, 0x764ebbf8, 0x76c8f703, 0x633f964d, 0x63b9dab6, 0x62b54340, 0x62330fbb,
+0x60ac70ac, 0x602a3c57, 0x6126a5a1, 0x61a0e95a, 0x649e1774, 0x64185b8f, 0x6514c279, 0x65928e82, 0x670df195, 0x678bbd6e, 0x66872498, 0x66016863, 0x6cfad8c4, 0x6c7c943f, 0x6d700dc9, 0x6df64132, 0x6f693e25, 0x6fef72de, 0x6ee3eb28, 0x6e65a7d3, 0x6b5b59fd, 0x6bdd1506, 0x6ad18cf0, 0x6a57c00b, 0x68c8bf1c, 0x684ef3e7, 0x69426a11, 0x69c426ea, 0x422ae476, 0x42aca88d, 0x43a0317b, 0x43267d80, 0x41b90297, 0x413f4e6c, 0x4033d79a, 0x40b59b61, 0x458b654f, 0x450d29b4, 0x4401b042, 0x4487fcb9, 0x461883ae, 0x469ecf55, 0x479256a3, 0x47141a58, 0x4defaaff, 0x4d69e604, 0x4c657ff2, 0x4ce33309, 0x4e7c4c1e, 0x4efa00e5, 0x4ff69913, 0x4f70d5e8, 0x4a4e2bc6, 0x4ac8673d, 0x4bc4fecb, 0x4b42b230, 0x49ddcd27, 0x495b81dc, 0x4857182a, 0x48d154d1, 0x5d26359f, 0x5da07964, 0x5cace092, 0x5c2aac69, 0x5eb5d37e, 0x5e339f85, 0x5f3f0673, 0x5fb94a88, 0x5a87b4a6, 0x5a01f85d, 0x5b0d61ab, 0x5b8b2d50, 0x59145247, 0x59921ebc, 0x589e874a, 0x5818cbb1, 0x52e37b16, 0x526537ed, 0x5369ae1b, 0x53efe2e0, 0x51709df7, 0x51f6d10c,
+0x50fa48fa, 0x507c0401, 0x5542fa2f, 0x55c4b6d4, 0x54c82f22, 0x544e63d9, 0x56d11cce, 0x56575035, 0x575bc9c3, 0x57dd8538];
+
+function createcrc24(input) {
+  var crc = 0xB704CE;
+  var index = 0;
+
+  while((input.length - index) > 16)  {
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+1)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+2)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+3)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+4)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+5)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+6)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+7)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+8)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+9)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+10)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+11)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+12)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+13)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+14)) & 0xff];
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index+15)) & 0xff];
+   index += 16;
+  }
+
+  for(var j = index; j < input.length; j++) {
+   crc = (crc << 8) ^ crc_table[((crc >> 16) ^ input.charCodeAt(index++)) & 0xff]
+  }
+  return crc & 0xffffff;
+}
+
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * Wrapper function for the base64 codec. 
+ * This function encodes a String (message) in base64 (radix-64)
+ * @param {String} message The message to encode
+ * @return {String} The base64 encoded data
+ */
+function openpgp_encoding_base64_encode(message) {
+	return s2r(message);
+}
+
+
+/**
+ * Wrapper function for the base64 codec.
+ * This function decodes a String(message) in base64 (radix-64)
+ * @param {String} message Base64 encoded data
+ * @return {String} Raw data after decoding
+ */
+function openpgp_encoding_base64_decode(message) {
+	return r2s(message);
+}
+
+/**
+ * Wrapper function for jquery library.
+ * This function escapes HTML characters within a string. This is used 
+ * to prevent XSS.
+ * @param {String} message Message to escape
+ * @return {String} Html encoded string
+ */
+function openpgp_encoding_html_encode(message) {
+	if (message == null)
+		return "";
+
+  return document.createElement('div')
+          .appendChild(document.createTextNode(message))
+          .parentNode
+          .innerHTML;
+}
+
+/**
+ * create a EME-PKCS1-v1_5 padding (See RFC4880 13.1.1)
+ * @param {String} message message to be padded
+ * @param {Integer} length Length to the resulting message
+ * @return {String} EME-PKCS1 padded message
+ */
+function openpgp_encoding_eme_pkcs1_encode(message, length) {
+	if (message.length > length-11)
+		return -1;
+	var result = "";
+	result += String.fromCharCode(0);
+	result += String.fromCharCode(2);
+	for (var i = 0; i < length - message.length - 3; i++) {
+		result += String.fromCharCode(openpgp_crypto_getPseudoRandom(1,255));
+	}
+	result += String.fromCharCode(0);
+	result += message;
+	return result;
+}
+
+/**
+ * decodes a EME-PKCS1-v1_5 padding (See RFC4880 13.1.2)
+ * @param {String} message EME-PKCS1 padded message
+ * @return {String} decoded message 
+ */
+function openpgp_encoding_eme_pkcs1_decode(message, len) {
+	if (message.length < len)
+	    message = String.fromCharCode(0)+message;
+	if (message.length < 12 || message.charCodeAt(0) != 0 || message.charCodeAt(1) != 2)
+		return -1;
+	var i = 2;
+	while (message.charCodeAt(i) != 0 && message.length > i)
+	    i++;
+	return message.substring(i+1, message.length);
+}
+/**
+ * ASN1 object identifiers for hashes (See RFC4880 5.2.2)
+ */
+hash_headers = new Array();
+hash_headers[1]  = [0x30,0x20,0x30,0x0c,0x06,0x08,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x02,0x05,0x05,0x00,0x04,0x10];
+hash_headers[3]  = [0x30,0x21,0x30,0x09,0x06,0x05,0x2B,0x24,0x03,0x02,0x01,0x05,0x00,0x04,0x14];
+hash_headers[2]  = [0x30,0x21,0x30,0x09,0x06,0x05,0x2b,0x0e,0x03,0x02,0x1a,0x05,0x00,0x04,0x14];
+hash_headers[8]  = [0x30,0x31,0x30,0x0d,0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x02,0x01,0x05,0x00,0x04,0x20];
+hash_headers[9]  = [0x30,0x41,0x30,0x0d,0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x02,0x02,0x05,0x00,0x04,0x30];
+hash_headers[10] = [0x30,0x51,0x30,0x0d,0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x02,0x03,0x05,0x00,0x04,0x40];
+hash_headers[11] = [0x30,0x31,0x30,0x0d,0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x02,0x04,0x05,0x00,0x04,0x1C];
+
+/**
+ * create a EMSA-PKCS1-v1_5 padding (See RFC4880 13.1.3)
+ * @param {Integer} algo Hash algorithm type used
+ * @param {String} data Data to be hashed
+ * @param {Integer} keylength Key size of the public mpi in bytes
+ * @returns {String} Hashcode with pkcs1padding as string
+ */
+function openpgp_encoding_emsa_pkcs1_encode(algo, data, keylength) {
+	var data2 = "";
+	data2 += String.fromCharCode(0x00);
+	data2 += String.fromCharCode(0x01);
+	for (var i = 0; i < (keylength - hash_headers[algo].length - 3 - openpgp_crypto_getHashByteLength(algo)); i++)
+		data2 += String.fromCharCode(0xff);
+	data2 += String.fromCharCode(0x00);
+	
+	for (var i = 0; i < hash_headers[algo].length; i++)
+		data2 += String.fromCharCode(hash_headers[algo][i]);
+	
+	data2 += openpgp_crypto_hashData(algo, data);
+	return new BigInteger(util.hexstrdump(data2),16);
+}
+
+/**
+ * extract the hash out of an EMSA-PKCS1-v1.5 padding (See RFC4880 13.1.3) 
+ * @param {String} data Hash in pkcs1 encoding
+ * @returns {String} The hash as string
+ */
+function openpgp_encoding_emsa_pkcs1_decode(algo, data) { 
+	var i = 0;
+	if (data.charCodeAt(0) == 0) i++;
+	else if (data.charCodeAt(0) != 1) return -1;
+	else i++;
+
+	while (data.charCodeAt(i) == 0xFF) i++;
+	if (data.charCodeAt(i++) != 0) return -1;
+	var j = 0;
+	for (j = 0; j < hash_headers[algo].length && j+i < data.length; j++) {
+		if (data.charCodeAt(j+i) != hash_headers[algo][j]) return -1;
+	}
+	i+= j;	
+	if (data.substring(i).length < openpgp_crypto_getHashByteLength(algo)) return -1;
+	return data.substring(i);
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @fileoverview The openpgp base class should provide all of the functionality 
+ * to consume the openpgp.js library. All additional classes are documented 
+ * for extending and developing on top of the base library.
+ */
+
+/**
+ * GPG4Browsers Core interface. A single instance is hold
+ * from the beginning. To use this library call "openpgp.init()"
+ * @alias openpgp
+ * @class
+ * @classdesc Main Openpgp.js class. Use this to initiate and make all calls to this library.
+ */
+function _openpgp () {
+	this.tostring = "";
+	
+	/**
+	 * initializes the library:
+	 * - reading the keyring from local storage
+	 * - reading the config from local storage
+	 */
+	function init() {
+		this.config = new openpgp_config();
+		this.config.read();
+		this.keyring = new openpgp_keyring();
+		this.keyring.init();
+	}
+	
+	/**
+	 * reads several publicKey objects from a ascii armored
+	 * representation an returns openpgp_msg_publickey packets
+	 * @param {String} armoredText OpenPGP armored text containing
+	 * the public key(s)
+	 * @return {openpgp_msg_publickey[]} on error the function
+	 * returns null
+	 */
+	function read_publicKey(armoredText) {
+		var mypos = 0;
+		var publicKeys = new Array();
+		var publicKeyCount = 0;
+		var input = openpgp_encoding_deArmor(armoredText.replace(/\r/g,'')).openpgp;
+		var l = input.length;
+		while (mypos != input.length) {
+			var first_packet = openpgp_packet.read_packet(input, mypos, l);
+			// public key parser
+			if (input.charCodeAt(mypos) == 0x99 || first_packet.tagType == 6) {
+				publicKeys[publicKeyCount] = new openpgp_msg_publickey();				
+				publicKeys[publicKeyCount].header = input.substring(mypos,mypos+3);
+				if (input.charCodeAt(mypos) == 0x99) {
+					// parse the length and read a tag6 packet
+					mypos++;
+					var l = (input.charCodeAt(mypos++) << 8)
+							| input.charCodeAt(mypos++);
+					publicKeys[publicKeyCount].publicKeyPacket = new openpgp_packet_keymaterial();
+					publicKeys[publicKeyCount].publicKeyPacket.header = publicKeys[publicKeyCount].header;
+					publicKeys[publicKeyCount].publicKeyPacket.read_tag6(input, mypos, l);
+					mypos += publicKeys[publicKeyCount].publicKeyPacket.packetLength;
+					mypos += publicKeys[publicKeyCount].read_nodes(publicKeys[publicKeyCount].publicKeyPacket, input, mypos, (input.length - mypos));
+				} else {
+					publicKeys[publicKeyCount] = new openpgp_msg_publickey();
+					publicKeys[publicKeyCount].publicKeyPacket = first_packet;
+					mypos += first_packet.headerLength+first_packet.packetLength;
+					mypos += publicKeys[publicKeyCount].read_nodes(first_packet, input, mypos, input.length -mypos);
+				}
+			} else {
+				util.print_error("no public key found!");
+				return null;
+			}
+			publicKeys[publicKeyCount].data = input.substring(0,mypos);
+			publicKeyCount++;
+		}
+		return publicKeys;
+	}
+	
+	/**
+	 * reads several privateKey objects from a ascii armored
+	 * representation an returns openpgp_msg_privatekey objects
+	 * @param {String} armoredText OpenPGP armored text containing
+	 * the private key(s)
+	 * @return {openpgp_msg_privatekey[]} on error the function
+	 * returns null
+	 */
+	function read_privateKey(armoredText) {
+		var privateKeys = new Array();
+		var privateKeyCount = 0;
+		var mypos = 0;
+		var input = openpgp_encoding_deArmor(armoredText.replace(/\r/g,'')).openpgp;
+		var l = input.length;
+		while (mypos != input.length) {
+			var first_packet = openpgp_packet.read_packet(input, mypos, l);
+			if (first_packet.tagType == 5) {
+				privateKeys[privateKeys.length] = new openpgp_msg_privatekey();
+				mypos += first_packet.headerLength+first_packet.packetLength;
+				mypos += privateKeys[privateKeyCount].read_nodes(first_packet, input, mypos, l);
+			// other blocks	            
+			} else {
+				util.print_error('no block packet found!');
+				return null;
+			}
+			privateKeys[privateKeyCount].data = input.substring(0,mypos);
+			privateKeyCount++;
+		}
+		return privateKeys;		
+	}
+
+	/**
+	 * reads message packets out of an OpenPGP armored text and
+	 * returns an array of message objects
+	 * @param {String} armoredText text to be parsed
+	 * @return {openpgp_msg_message[]} on error the function
+	 * returns null
+	 */
+	function read_message(armoredText) {
+		var dearmored;
+		try{
+    		dearmored = openpgp_encoding_deArmor(armoredText);
+		}
+		catch(e){
+    		util.print_error('no message found!');
+    		return null;
+		}
+		return read_messages_dearmored(dearmored);
+		}
+		
+	/**
+	 * reads message packets out of an OpenPGP armored text and
+	 * returns an array of message objects. Can be called externally or internally.
+	 * External call will parse a de-armored messaged and return messages found.
+	 * Internal will be called to read packets wrapped in other packets (i.e. compressed)
+	 * @param {String} input dearmored text of OpenPGP packets, to be parsed
+	 * @return {openpgp_msg_message[]} on error the function
+	 * returns null
+	 */
+	function read_messages_dearmored(input){
+		var messageString = input.openpgp;
+		var signatureText = input.text; //text to verify signatures against. Modified by Tag11.
+		var messages = new Array();
+		var messageCount = 0;
+		var mypos = 0;
+		var l = messageString.length;
+		while (mypos < messageString.length) {
+			var first_packet = openpgp_packet.read_packet(messageString, mypos, l);
+			if (!first_packet) {
+				break;
+			}
+			// public key parser (definition from the standard:)
+			// OpenPGP Message      :- Encrypted Message | Signed Message |
+			//                         Compressed Message | Literal Message.
+			// Compressed Message   :- Compressed Data Packet.
+			// 
+			// Literal Message      :- Literal Data Packet.
+			// 
+			// ESK                  :- Public-Key Encrypted Session Key Packet |
+			//                         Symmetric-Key Encrypted Session Key Packet.
+			// 
+			// ESK Sequence         :- ESK | ESK Sequence, ESK.
+			// 
+			// Encrypted Data       :- Symmetrically Encrypted Data Packet |
+			//                         Symmetrically Encrypted Integrity Protected Data Packet
+			// 
+			// Encrypted Message    :- Encrypted Data | ESK Sequence, Encrypted Data.
+			// 
+			// One-Pass Signed Message :- One-Pass Signature Packet,
+			//                         OpenPGP Message, Corresponding Signature Packet.
+
+			// Signed Message       :- Signature Packet, OpenPGP Message |
+			//                         One-Pass Signed Message.
+			if (first_packet.tagType ==  1 ||
+			    (first_packet.tagType == 2 && first_packet.signatureType < 16) ||
+			     first_packet.tagType ==  3 ||
+			     first_packet.tagType ==  4 ||
+				 first_packet.tagType ==  8 ||
+				 first_packet.tagType ==  9 ||
+				 first_packet.tagType == 10 ||
+				 first_packet.tagType == 11 ||
+				 first_packet.tagType == 18 ||
+				 first_packet.tagType == 19) {
+				messages[messages.length] = new openpgp_msg_message();
+				messages[messageCount].messagePacket = first_packet;
+				messages[messageCount].type = input.type;
+				// Encrypted Message
+				if (first_packet.tagType == 9 ||
+				    first_packet.tagType == 1 ||
+				    first_packet.tagType == 3 ||
+				    first_packet.tagType == 18) {
+					if (first_packet.tagType == 9) {
+						util.print_error("unexpected openpgp packet");
+						break;
+					} else if (first_packet.tagType == 1) {
+						util.print_debug("session key found:\n "+first_packet.toString());
+						var issessionkey = true;
+						messages[messageCount].sessionKeys = new Array();
+						var sessionKeyCount = 0;
+						while (issessionkey) {
+							messages[messageCount].sessionKeys[sessionKeyCount] = first_packet;
+							mypos += first_packet.packetLength + first_packet.headerLength;
+							l -= (first_packet.packetLength + first_packet.headerLength);
+							first_packet = openpgp_packet.read_packet(messageString, mypos, l);
+							
+							if (first_packet.tagType != 1 && first_packet.tagType != 3)
+								issessionkey = false;
+							sessionKeyCount++;
+						}
+						if (first_packet.tagType == 18 || first_packet.tagType == 9) {
+							util.print_debug("encrypted data found:\n "+first_packet.toString());
+							messages[messageCount].encryptedData = first_packet;
+							mypos += first_packet.packetLength+first_packet.headerLength;
+							l -= (first_packet.packetLength+first_packet.headerLength);
+							messageCount++;
+							
+						} else {
+							util.print_debug("something is wrong: "+first_packet.tagType);
+						}
+						
+					} else if (first_packet.tagType == 18) {
+						util.print_debug("symmetric encrypted data");
+						break;
+					}
+				} else 
+					if (first_packet.tagType == 2 && first_packet.signatureType < 3) {
+					// Signed Message
+						mypos += first_packet.packetLength + first_packet.headerLength;
+						l -= (first_packet.packetLength + first_packet.headerLength);
+						messages[messageCount].text = signatureText;
+						messages[messageCount].signature = first_packet;
+				        messageCount++;
+				} else 
+					// Signed Message
+					if (first_packet.tagType == 4) {
+						//TODO: Implement check
+						mypos += first_packet.packetLength + first_packet.headerLength;
+						l -= (first_packet.packetLength + first_packet.headerLength);
+				} else 
+					if (first_packet.tagType == 8) {
+					// Compressed Message
+						mypos += first_packet.packetLength + first_packet.headerLength;
+						l -= (first_packet.packetLength + first_packet.headerLength);
+				        var decompressedText = first_packet.decompress();
+				        messages = messages.concat(openpgp.read_messages_dearmored({text: decompressedText, openpgp: decompressedText}));
+				} else
+					// Marker Packet (Obsolete Literal Packet) (Tag 10)
+					// "Such a packet MUST be ignored when received." see http://tools.ietf.org/html/rfc4880#section-5.8
+					if (first_packet.tagType == 10) {
+						// reset messages
+						messages.length = 0;
+						// continue with next packet
+						mypos += first_packet.packetLength + first_packet.headerLength;
+						l -= (first_packet.packetLength + first_packet.headerLength);
+				} else 
+					if (first_packet.tagType == 11) {
+					// Literal Message -- work is already done in read_packet
+					mypos += first_packet.packetLength + first_packet.headerLength;
+					l -= (first_packet.packetLength + first_packet.headerLength);
+					signatureText = first_packet.data;
+					messages[messageCount].data = first_packet.data;
+					messageCount++;
+				} else 
+					if (first_packet.tagType == 19) {
+					// Modification Detect Code
+						mypos += first_packet.packetLength + first_packet.headerLength;
+						l -= (first_packet.packetLength + first_packet.headerLength);
+				}
+			} else {
+				util.print_error('no message found!');
+				return null;
+			}
+		}
+		
+		return messages;
+	}
+	
+	/**
+	 * creates a binary string representation of an encrypted and signed message.
+	 * The message will be encrypted with the public keys specified and signed
+	 * with the specified private key.
+	 * @param {Object} privatekey {obj: [openpgp_msg_privatekey]} Private key 
+	 * to be used to sign the message
+	 * @param {Object[]} publickeys An arraf of {obj: [openpgp_msg_publickey]}
+	 * - public keys to be used to encrypt the message 
+	 * @param {String} messagetext message text to encrypt and sign
+	 * @return {String} a binary string representation of the message which 
+	 * can be OpenPGP armored
+	 */
+	function write_signed_and_encrypted_message(privatekey, publickeys, messagetext) {
+		var result = "";
+		var literal = new openpgp_packet_literaldata().write_packet(messagetext.replace(/\r/g,'').replace(/\n/g,"\r\n"));
+		util.print_debug_hexstr_dump("literal_packet: |"+literal+"|\n",literal);
+		for (var i = 0; i < publickeys.length; i++) {
+			var onepasssignature = new openpgp_packet_onepasssignature();
+			var onepasssigstr = "";
+			if (i == 0)
+				onepasssigstr = onepasssignature.write_packet(1, openpgp.config.config.prefer_hash_algorithm,  privatekey, false);
+			else
+				onepasssigstr = onepasssignature.write_packet(1, openpgp.config.config.prefer_hash_algorithm,  privatekey, false);
+			util.print_debug_hexstr_dump("onepasssigstr: |"+onepasssigstr+"|\n",onepasssigstr);
+			var datasignature = new openpgp_packet_signature().write_message_signature(1, messagetext.replace(/\r\n/g,"\n").replace(/\n/g,"\r\n"), privatekey);
+			util.print_debug_hexstr_dump("datasignature: |"+datasignature.openpgp+"|\n",datasignature.openpgp);
+			if (i == 0) {
+				result = onepasssigstr+literal+datasignature.openpgp;
+			} else {
+				result = onepasssigstr+result+datasignature.openpgp;
+			}
+		}
+		
+		util.print_debug_hexstr_dump("signed packet: |"+result+"|\n",result);
+		// signatures done.. now encryption
+		var sessionkey = openpgp_crypto_generateSessionKey(openpgp.config.config.encryption_cipher); 
+		var result2 = "";
+		
+		// creating session keys for each recipient
+		for (var i = 0; i < publickeys.length; i++) {
+			var pkey = publickeys[i].getEncryptionKey();
+			if (pkey == null) {
+				util.print_error("no encryption key found! Key is for signing only.");
+				return null;
+			}
+			result2 += new openpgp_packet_encryptedsessionkey().
+					write_pub_key_packet(
+						pkey.getKeyId(),
+						pkey.MPIs,
+						pkey.publicKeyAlgorithm,
+						openpgp.config.config.encryption_cipher,
+						sessionkey);
+		}
+		if (openpgp.config.config.integrity_protect) {
+			result2 += new openpgp_packet_encryptedintegrityprotecteddata().write_packet(openpgp.config.config.encryption_cipher, sessionkey, result);
+		} else {
+			result2 += new openpgp_packet_encrypteddata().write_packet(openpgp.config.config.encryption_cipher, sessionkey, result);
+		}
+		return openpgp_encoding_armor(3,result2,null,null);
+	}
+	/**
+	 * creates a binary string representation of an encrypted message.
+	 * The message will be encrypted with the public keys specified 
+	 * @param {Object[]} publickeys An array of {obj: [openpgp_msg_publickey]}
+	 * -public keys to be used to encrypt the message 
+	 * @param {String} messagetext message text to encrypt
+	 * @return {String} a binary string representation of the message
+	 * which can be OpenPGP armored
+	 */
+	function write_encrypted_message(publickeys, messagetext) {
+		var result = "";
+		var literal = new openpgp_packet_literaldata().write_packet(messagetext.replace(/\r/g,'').replace(/\n/g,"\r\n"));
+		util.print_debug_hexstr_dump("literal_packet: |"+literal+"|\n",literal);
+		result = literal;
+		
+		// signatures done.. now encryption
+		var sessionkey = openpgp_crypto_generateSessionKey(openpgp.config.config.encryption_cipher); 
+		var result2 = "";
+		
+		// creating session keys for each recipient
+		for (var i = 0; i < publickeys.length; i++) {
+			var pkey = publickeys[i].getEncryptionKey();
+			if (pkey == null) {
+				util.print_error("no encryption key found! Key is for signing only.");
+				return null;
+			}
+			result2 += new openpgp_packet_encryptedsessionkey().
+					write_pub_key_packet(
+						pkey.getKeyId(),
+						pkey.MPIs,
+						pkey.publicKeyAlgorithm,
+						openpgp.config.config.encryption_cipher,
+						sessionkey);
+		}
+		if (openpgp.config.config.integrity_protect) {
+			result2 += new openpgp_packet_encryptedintegrityprotecteddata().write_packet(openpgp.config.config.encryption_cipher, sessionkey, result);
+		} else {
+			result2 += new openpgp_packet_encrypteddata().write_packet(openpgp.config.config.encryption_cipher, sessionkey, result);
+		}
+		return openpgp_encoding_armor(3,result2,null,null);
+	}
+	
+	/**
+	 * creates a binary string representation a signed message.
+	 * The message will be signed with the specified private key.
+	 * @param {Object} privatekey {obj: [openpgp_msg_privatekey]}
+	 * - the private key to be used to sign the message 
+	 * @param {String} messagetext message text to sign
+	 * @return {Object} {Object: text [String]}, openpgp: {String} a binary
+	 *  string representation of the message which can be OpenPGP
+	 *   armored(openpgp) and a text representation of the message (text). 
+	 * This can be directly used to OpenPGP armor the message
+	 */
+	function write_signed_message(privatekey, messagetext) {
+		var canonicalMsgText = messagetext.replace(/\r/g,'').replace(/[\t ]+\n/g, "\n").replace(/\n/g,"\r\n");
+		var sig = new openpgp_packet_signature().write_message_signature(1, canonicalMsgText, privatekey);
+		var result = {text: canonicalMsgText, openpgp: sig.openpgp, hash: sig.hash};
+		return openpgp_encoding_armor(2, result, null, null)
+	}
+	
+	/**
+	 * generates a new key pair for openpgp. Beta stage. Currently only 
+	 * supports RSA keys, and no subkeys.
+	 * @param {Integer} keyType to indicate what type of key to make. 
+	 * RSA is 1. Follows algorithms outlined in OpenPGP.
+	 * @param {Integer} numBits number of bits for the key creation. (should 
+	 * be 1024+, generally)
+	 * @param {String} userId assumes already in form of "User Name 
+	 * <username@email.com>"
+	 * @param {String} passphrase The passphrase used to encrypt the resulting private key
+	 * @return {Object} {privateKey: [openpgp_msg_privatekey], 
+	 * privateKeyArmored: [string], publicKeyArmored: [string]}
+	 */
+	function generate_key_pair(keyType, numBits, userId, passphrase){
+		var userIdPacket = new openpgp_packet_userid();
+		var userIdString = userIdPacket.write_packet(userId);
+		
+		var keyPair = openpgp_crypto_generateKeyPair(keyType,numBits, passphrase, openpgp.config.config.prefer_hash_algorithm, 3);
+		var privKeyString = keyPair.privateKey;
+		var privKeyPacket = new openpgp_packet_keymaterial().read_priv_key(privKeyString.string,3,privKeyString.string.length);
+		if(!privKeyPacket.decryptSecretMPIs(passphrase))
+		    util.print_error('Issue creating key. Unable to read resulting private key');
+		var privKey = new openpgp_msg_privatekey();
+		privKey.privateKeyPacket = privKeyPacket;
+		privKey.getPreferredSignatureHashAlgorithm = function(){return openpgp.config.config.prefer_hash_algorithm};//need to override this to solve catch 22 to generate signature. 8 is value for SHA256
+		
+		var publicKeyString = privKey.privateKeyPacket.publicKey.data;
+		userId = util.encode_utf8(userId); // needs same encoding as in userIdString
+		var hashData = String.fromCharCode(0x99)+ String.fromCharCode(((publicKeyString.length) >> 8) & 0xFF) 
+			+ String.fromCharCode((publicKeyString.length) & 0xFF) +publicKeyString+String.fromCharCode(0xB4) +
+			String.fromCharCode((userId.length) >> 24) +String.fromCharCode(((userId.length) >> 16) & 0xFF) 
+			+ String.fromCharCode(((userId.length) >> 8) & 0xFF) + String.fromCharCode((userId.length) & 0xFF) + userId
+		var signature = new openpgp_packet_signature();
+		signature = signature.write_message_signature(16,hashData, privKey);
+		var publicArmored = openpgp_encoding_armor(4, keyPair.publicKey.string + userIdString + signature.openpgp );
+
+		var privArmored = openpgp_encoding_armor(5,privKeyString.string+userIdString+signature.openpgp);
+		
+		return {privateKey : privKey, privateKeyArmored: privArmored, publicKeyArmored: publicArmored}
+	}
+	
+	this.generate_key_pair = generate_key_pair;
+	this.write_signed_message = write_signed_message; 
+	this.write_signed_and_encrypted_message = write_signed_and_encrypted_message;
+	this.write_encrypted_message = write_encrypted_message;
+	this.read_message = read_message;
+	this.read_messages_dearmored = read_messages_dearmored;
+	this.read_publicKey = read_publicKey;
+	this.read_privateKey = read_privateKey;
+	this.init = init;
+}
+
+var openpgp = new _openpgp();
+
+
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc The class that deals with storage of the keyring. Currently the only option is to use HTML5 local storage.
+ */
+function openpgp_keyring() {
+		
+	/**
+	 * Initialization routine for the keyring. This method reads the 
+	 * keyring from HTML5 local storage and initializes this instance.
+	 * This method is called by openpgp.init().
+	 */
+	function init() {
+		var sprivatekeys = JSON.parse(window.localStorage.getItem("privatekeys"));
+		var spublickeys = JSON.parse(window.localStorage.getItem("publickeys"));
+		if (sprivatekeys == null || sprivatekeys.length == 0) {
+			sprivatekeys = new Array();
+		}
+
+		if (spublickeys == null || spublickeys.length == 0) {
+			spublickeys = new Array();
+		}
+		this.publicKeys = new Array();
+		this.privateKeys = new Array();
+		var k = 0;
+		for (var i =0; i < sprivatekeys.length; i++) {
+			var r = openpgp.read_privateKey(sprivatekeys[i]);
+			this.privateKeys[k] = { armored: sprivatekeys[i], obj: r[0], keyId: r[0].getKeyId()};
+			k++;
+		}
+		k = 0;
+		for (var i =0; i < spublickeys.length; i++) {
+			var r = openpgp.read_publicKey(spublickeys[i]);
+			if (r[0] != null) {
+				this.publicKeys[k] = { armored: spublickeys[i], obj: r[0], keyId: r[0].getKeyId()};
+				k++;
+			}
+		}
+	}
+	this.init = init;
+
+	/**
+	 * Checks if at least one private key is in the keyring
+	 * @return {Boolean} True if there are private keys, else false.
+	 */
+	function hasPrivateKey() {
+		return this.privateKeys.length > 0;
+	}
+	this.hasPrivateKey = hasPrivateKey;
+
+	/**
+	 * Saves the current state of the keyring to HTML5 local storage.
+	 * The privateKeys array and publicKeys array gets Stringified using JSON
+	 */
+	function store() { 
+		var priv = new Array();
+		for (var i = 0; i < this.privateKeys.length; i++) {
+			priv[i] = this.privateKeys[i].armored;
+		}
+		var pub = new Array();
+		for (var i = 0; i < this.publicKeys.length; i++) {
+			pub[i] = this.publicKeys[i].armored;
+		}
+		window.localStorage.setItem("privatekeys",JSON.stringify(priv));
+		window.localStorage.setItem("publickeys",JSON.stringify(pub));
+	}
+	this.store = store;
+	/**
+	 * searches all public keys in the keyring matching the address or address part of the user ids
+	 * @param {String} email_address
+	 * @return {openpgp_msg_publickey[]} The public keys associated with provided email address.
+	 */
+	function getPublicKeyForAddress(email_address) {
+		var results = new Array();
+		var spl = email_address.split("<");
+		var email = "";
+		if (spl.length > 1) {
+			email = spl[1].split(">")[0];
+		} else {
+			email = email_address.trim();
+		}
+		email = email.toLowerCase();
+		if(!util.emailRegEx.test(email)){
+		    return results;
+		}
+		for (var i =0; i < this.publicKeys.length; i++) {
+			for (var j = 0; j < this.publicKeys[i].obj.userIds.length; j++) {
+				if (this.publicKeys[i].obj.userIds[j].text.toLowerCase().indexOf(email) >= 0)
+					results[results.length] = this.publicKeys[i];
+			}
+		}
+		return results;
+	}
+	this.getPublicKeyForAddress = getPublicKeyForAddress;
+
+	/**
+	 * Searches the keyring for a private key containing the specified email address
+	 * @param {String} email_address email address to search for
+	 * @return {openpgp_msg_privatekey[]} private keys found
+	 */
+	function getPrivateKeyForAddress(email_address) {
+		var results = new Array();
+		var spl = email_address.split("<");
+		var email = "";
+		if (spl.length > 1) {
+			email = spl[1].split(">")[0];
+		} else {
+			email = email_address.trim();
+		}
+		email = email.toLowerCase();
+		if(!util.emailRegEx.test(email)){
+		    return results;
+		}
+		for (var i =0; i < this.privateKeys.length; i++) {
+			for (var j = 0; j < this.privateKeys[i].obj.userIds.length; j++) {
+				if (this.privateKeys[i].obj.userIds[j].text.toLowerCase().indexOf(email) >= 0)
+					results[results.length] = this.privateKeys[i];
+			}
+		}
+		return results;
+	}
+
+	this.getPrivateKeyForAddress = getPrivateKeyForAddress;
+	/**
+	 * Searches the keyring for public keys having the specified key id
+	 * @param {String} keyId provided as string of hex number (lowercase)
+	 * @return {openpgp_msg_privatekey[]} public keys found
+	 */
+	function getPublicKeysForKeyId(keyId) {
+		var result = new Array();
+		for (var i=0; i < this.publicKeys.length; i++) {
+			var key = this.publicKeys[i];
+			if (keyId == key.obj.getKeyId())
+				result[result.length] = key;
+			else if (key.obj.subKeys != null) {
+				for (var j=0; j < key.obj.subKeys.length; j++) {
+					var subkey = key.obj.subKeys[j];
+					if (keyId == subkey.getKeyId()) {
+						result[result.length] = {
+								obj: key.obj.getSubKeyAsKey(j),
+								keyId: subkey.getKeyId()
+						}
+					}
+				}
+			}
+		}
+		return result;
+	}
+	this.getPublicKeysForKeyId = getPublicKeysForKeyId;
+	
+	/**
+	 * Searches the keyring for private keys having the specified key id
+	 * @param {String} keyId 8 bytes as string containing the key id to look for
+	 * @return {openpgp_msg_privatekey[]} private keys found
+	 */
+	function getPrivateKeyForKeyId(keyId) {
+		var result = new Array();
+		for (var i=0; i < this.privateKeys.length; i++) {
+			if (keyId == this.privateKeys[i].obj.getKeyId()) {
+				result[result.length] = { key: this.privateKeys[i], keymaterial: this.privateKeys[i].obj.privateKeyPacket};
+			}
+			if (this.privateKeys[i].obj.subKeys != null) {
+				var subkeyids = this.privateKeys[i].obj.getSubKeyIds();
+				for (var j=0; j < subkeyids.length; j++)
+					if (keyId == util.hexstrdump(subkeyids[j])) {
+						result[result.length] = { key: this.privateKeys[i], keymaterial: this.privateKeys[i].obj.subKeys[j]};
+					}
+			}
+		}
+		return result;
+	}
+	this.getPrivateKeyForKeyId = getPrivateKeyForKeyId;
+	
+	/**
+	 * Imports a public key from an exported ascii armored message 
+	 * @param {String} armored_text PUBLIC KEY BLOCK message to read the public key from
+	 */
+	function importPublicKey (armored_text) {
+		var result = openpgp.read_publicKey(armored_text);
+		for (var i = 0; i < result.length; i++) {
+			this.publicKeys[this.publicKeys.length] = {armored: armored_text, obj: result[i], keyId: result[i].getKeyId()};
+		}
+		return true;
+	}
+
+	/**
+	 * Imports a private key from an exported ascii armored message 
+	 * @param {String} armored_text PRIVATE KEY BLOCK message to read the private key from
+	 */
+	function importPrivateKey (armored_text, password) {
+		var result = openpgp.read_privateKey(armored_text);
+		if(!result[0].decryptSecretMPIs(password))
+		    return false;
+		for (var i = 0; i < result.length; i++) {
+			this.privateKeys[this.privateKeys.length] = {armored: armored_text, obj: result[i], keyId: result[i].getKeyId()};
+		}
+		return true;
+	}
+
+	this.importPublicKey = importPublicKey;
+	this.importPrivateKey = importPrivateKey;
+	
+	/**
+	 * returns the openpgp_msg_privatekey representation of the public key at public key ring index  
+	 * @param {Integer} index the index of the public key within the publicKeys array
+	 * @return {openpgp_msg_privatekey} the public key object
+	 */
+	function exportPublicKey(index) {
+		return this.publicKey[index];
+	}
+	this.exportPublicKey = exportPublicKey;
+		
+	
+	/**
+	 * Removes a public key from the public key keyring at the specified index 
+	 * @param {Integer} index the index of the public key within the publicKeys array
+	 * @return {openpgp_msg_privatekey} The public key object which has been removed
+	 */
+	function removePublicKey(index) {
+		var removed = this.publicKeys.splice(index,1);
+		this.store();
+		return removed;
+	}
+	this.removePublicKey = removePublicKey;
+
+	/**
+	 * returns the openpgp_msg_privatekey representation of the private key at private key ring index  
+	 * @param {Integer} index the index of the private key within the privateKeys array
+	 * @return {openpgp_msg_privatekey} the private key object
+	 */	
+	function exportPrivateKey(index) {
+		return this.privateKeys[index];
+	}
+	this.exportPrivateKey = exportPrivateKey;
+
+	/**
+	 * Removes a private key from the private key keyring at the specified index 
+	 * @param {Integer} index the index of the private key within the privateKeys array
+	 * @return {openpgp_msg_privatekey} The private key object which has been removed
+	 */
+	function removePrivateKey(index) {
+		var removed = this.privateKeys.splice(index,1);
+		this.store();
+		return removed;
+	}
+	this.removePrivateKey = removePrivateKey;
+
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @protected
+ * @class
+ * @classdesc Top-level message object. Contains information from one or more packets
+ */
+
+function openpgp_msg_message() {
+	
+	// -1 = no valid passphrase submitted
+	// -2 = no private key found
+	// -3 = decryption error
+	// text = valid decryption
+	this.text = "";
+	this.messagePacket = null;
+	this.type = null;
+	
+	/**
+	 * Decrypts a message and generates user interface message out of the found.
+	 * MDC will be verified as well as message signatures
+	 * @param {openpgp_msg_privatekey} private_key the private the message is encrypted with (corresponding to the session key)
+	 * @param {openpgp_packet_encryptedsessionkey} sessionkey the session key to be used to decrypt the message
+	 * @return {String} plaintext of the message or null on error
+	 */
+	function decrypt(private_key, sessionkey) {
+        return this.decryptAndVerifySignature(private_key, sessionkey).text;
+	}
+
+	/**
+	 * Decrypts a message and generates user interface message out of the found.
+	 * MDC will be verified as well as message signatures
+	 * @param {openpgp_msg_privatekey} private_key the private the message is encrypted with (corresponding to the session key)
+	 * @param {openpgp_packet_encryptedsessionkey} sessionkey the session key to be used to decrypt the message
+	 * @param {openpgp_msg_publickey} pubkey Array of public keys to check signature against. If not provided, checks local keystore.
+	 * @return {String} plaintext of the message or null on error
+	 */
+	function decryptAndVerifySignature(private_key, sessionkey, pubkey) {
+		if (private_key == null || sessionkey == null || sessionkey == "")
+			return null;
+		var decrypted = sessionkey.decrypt(this, private_key.keymaterial);
+		if (decrypted == null)
+			return null;
+		var packet;
+		var position = 0;
+		var len = decrypted.length;
+		var validSignatures = new Array();
+		util.print_debug_hexstr_dump("openpgp.msg.messge decrypt:\n",decrypted);
+		
+		var messages = openpgp.read_messages_dearmored({text: decrypted, openpgp: decrypted});
+		for(var m in messages){
+			if(messages[m].data){
+				this.text = messages[m].data;
+			}
+			if(messages[m].signature){
+			    validSignatures.push(messages[m].verifySignature(pubkey));
+			}
+		}
+		return {text:this.text, validSignatures:validSignatures};
+	}
+	
+	/**
+	 * Verifies a message signature. This function can be called after read_message if the message was signed only.
+	 * @param {openpgp_msg_publickey} pubkey Array of public keys to check signature against. If not provided, checks local keystore.
+	 * @return {boolean} true if the signature was correct; otherwise false
+	 */
+	function verifySignature(pubkey) {
+		var result = false;
+		if (this.signature.tagType == 2) {
+		    if (!pubkey || pubkey.length == 0) {
+			    var pubkey;
+			    if (this.signature.version == 4) {
+				    pubkey = openpgp.keyring.getPublicKeysForKeyId(this.signature.issuerKeyId);
+			    } else if (this.signature.version == 3) {
+				    pubkey = openpgp.keyring.getPublicKeysForKeyId(this.signature.keyId);
+			    } else {
+				    util.print_error("unknown signature type on message!");
+				    return false;
+			    }
+			}
+			if (pubkey.length == 0) {
+				util.print_warning("Unable to verify signature of issuer: "+util.hexstrdump(this.signature.issuerKeyId)+". Public key not found in keyring.");
+			} else {
+				for (var i = 0 ; i < pubkey.length; i++) {
+					if (this.signature.verify(this.text, pubkey[i])) {
+						util.print_info("Found Good Signature from "+pubkey[i].obj.userIds[0].text+" (0x"+util.hexstrdump(pubkey[i].obj.getKeyId()).substring(8)+")");
+						result = true;
+						break;
+					} else {
+						util.print_error("Signature verification failed: Bad Signature from "+pubkey[i].obj.userIds[0].text+" (0x"+util.hexstrdump(pubkey[0].obj.getKeyId()).substring(8)+")");
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
+	function toString() {
+		var result = "Session Keys:\n";
+		if (this.sessionKeys !=null)
+		for (var i = 0; i < this.sessionKeys.length; i++) {
+			result += this.sessionKeys[i].toString();
+		}
+		result += "\n\n EncryptedData:\n";
+		if(this.encryptedData != null)
+		result += this.encryptedData.toString();
+		
+		result += "\n\n Signature:\n";
+		if(this.signature != null)
+		result += this.signature.toString();
+		
+		result += "\n\n Text:\n"
+		if(this.signature != null)
+			result += this.text;
+		return result;
+	}
+	this.decrypt = decrypt;
+	this.decryptAndVerifySignature = decryptAndVerifySignature;
+	this.verifySignature = verifySignature;
+	this.toString = toString;
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Class that represents a decoded private key for internal openpgp.js use
+ */
+
+function openpgp_msg_privatekey() {
+	this.subKeys = new Array();
+	this.privateKeyPacket = null;
+	this.userIds = new Array();
+	this.userAttributes = new Array();
+	this.revocationSignatures = new Array();
+	this.subKeys = new Array();
+
+	/**
+	 * 
+	 * @return last position
+	 */
+	function read_nodes(parent_node, input, position, len) {
+		this.privateKeyPacket = parent_node;
+		
+		var pos = position;
+		while (input.length > pos) {
+			var result = openpgp_packet.read_packet(input, pos, input.length - pos);
+			if (result == null) {
+				util.print_error("openpgp.msg.messge decrypt:\n"+'[pub/priv_key]parsing ends here @:' + pos + " l:" + len);
+				break;
+			} else {
+				switch (result.tagType) {
+				case 2: // public key revocation signature
+					if (result.signatureType == 32)
+						this.revocationSignatures[this.revocationSignatures.length] = result;
+					else if (result.signatureType > 15 && result.signatureType < 20) {
+						if (this.certificationsignatures == null)
+							this.certificationSignatures = new Array();
+						this.certificationSignatures[this.certificationSignatures.length] = result;
+					} else
+						util.print_error("openpgp.msg.messge decrypt:\n"+"unknown signature type directly on key "+result.signatureType+" @"+pos);
+					pos += result.packetLength + result.headerLength;
+					break;
+				case 7: // PrivateSubkey Packet
+					this.subKeys[this.subKeys.length] = result;
+					pos += result.packetLength + result.headerLength;
+					pos += result.read_nodes(this.privateKeyPacket,input, pos, input.length - pos);
+					break;
+				case 17: // User Attribute Packet
+					this.userAttributes[this.userAttributes.length] = result;
+					pos += result.packetLength + result.headerLength;
+					pos += result.read_nodes(this.privateKeyPacket,input, pos, input.length - pos);
+					break;
+				case 13: // User ID Packet
+					this.userIds[this.userIds.length] = result;
+					pos += result.packetLength + result.headerLength;
+					pos += result.read_nodes(this.privateKeyPacket, input, pos, input.length - pos);
+					break;
+				default:
+					this.position = position - this.privateKeyPacket.packetLength - this.privateKeyPacket.headerLength;
+					this.len = pos - position;
+					return this.len;
+				}
+			}
+		}
+		this.position = position - this.privateKeyPacket.packetLength - this.privateKeyPacket.headerLength;
+		this.len = pos - position;
+		
+		return this.len;
+	}
+	
+	function getKeyId() {
+		return this.privateKeyPacket.publicKey.getKeyId();
+	}
+	
+	
+	function getSubKeyIds() {
+		if (this.privateKeyPacket.publicKey.version == 4) // V3 keys MUST NOT have subkeys.
+		var result = new Array();
+		for (var i = 0; i < this.subKeys.length; i++) {
+			result[i] = str_sha1(this.subKeys[i].publicKey.header+this.subKeys[i].publicKey.data).substring(12,20);
+		}
+		return result;
+	}
+	
+	
+	function getSigningKey() {
+		if ((this.privateKeyPacket.publicKey.publicKeyAlgorithm == 17 ||
+			 this.privateKeyPacket.publicKey.publicKeyAlgorithm != 2)
+			&& this.privateKeyPacket.publicKey.verifyKey() == 3)
+			return this.privateKeyPacket;
+		else if (this.privateKeyPacket.publicKey.version == 4) // V3 keys MUST NOT have subkeys.
+			for (var j = 0; j < this.privateKeyPacket.subKeys.length; j++) {
+				if ((this.privateKeyPacket.subKeys[j].publicKey.publicKeyAlgorithm == 17 ||
+					 this.privateKeyPacket.subKeys[j].publicKey.publicKeyAlgorithm != 2) &&
+					 this.privateKeyPacket.subKeys[j].publicKey.verifyKey() == 3)
+					return this.privateKeyPacket.subKeys[j];
+			}
+		return null;
+	}
+	
+	function getPreferredSignatureHashAlgorithm() {
+		var pkey = this.getSigningKey();
+		if (pkey == null) {
+			util.print_error("private key is for encryption only! Cannot create a signature.")
+			return null;
+		}
+		if (pkey.publicKey.publicKeyAlgorithm == 17) {
+			var dsa = new DSA();
+			return dsa.select_hash_algorithm(pkey.publicKey.MPIs[1].toBigInteger()); // q
+		}
+		//TODO implement: https://tools.ietf.org/html/rfc4880#section-5.2.3.8
+		//separate private key preference from digest preferences
+		return openpgp.config.config.prefer_hash_algorithm;
+			
+	}
+
+	function decryptSecretMPIs(str_passphrase) {
+		return this.privateKeyPacket.decryptSecretMPIs(str_passphrase);
+	}
+	
+	function getFingerprint() {
+		return this.privateKeyPacket.publicKey.getFingerprint();
+	}
+
+	// TODO need to implement this
+	function revoke() {
+		
+	}
+
+	/**
+	 * extracts the public key part
+	 * @return {String} OpenPGP armored text containing the public key
+	 *                  returns null if no sufficient data to extract public key
+	 */
+	function extractPublicKey() {
+		// add public key
+		var key = this.privateKeyPacket.publicKey.header + this.privateKeyPacket.publicKey.data;
+		for (var i = 0; i < this.userIds.length; i++) {
+			// verify userids
+			if (this.userIds[i].certificationSignatures.length === 0) {
+				util.print_error("extractPublicKey - missing certification signatures");
+				return null;
+			}
+			var userIdPacket = new openpgp_packet_userid();
+			// add userids
+			key += userIdPacket.write_packet(this.userIds[i].text);
+			for (var j = 0; j < this.userIds[i].certificationSignatures.length; j++) {
+				var certSig = this.userIds[i].certificationSignatures[j];
+				// add signatures
+				key += openpgp_packet.write_packet_header(2, certSig.data.length) + certSig.data;
+			}
+		}
+		for (var k = 0; k < this.subKeys.length; k++) {
+			var pubSubKey = this.subKeys[k].publicKey;
+			// add public subkey package
+			key += openpgp_packet.write_old_packet_header(14, pubSubKey.data.length) + pubSubKey.data;
+			var subKeySig = this.subKeys[k].subKeySignature;
+			if (subKeySig !== null) {
+				// add subkey signature
+				key += openpgp_packet.write_packet_header(2, subKeySig.data.length) + subKeySig.data;
+			} else {
+				util.print_error("extractPublicKey - missing subkey signature");
+				return null;
+			}
+		}
+		var publicArmored = openpgp_encoding_armor(4, key);
+		return publicArmored;
+	}
+
+	this.extractPublicKey = extractPublicKey;
+	this.getSigningKey = getSigningKey;
+	this.getFingerprint = getFingerprint;
+	this.getPreferredSignatureHashAlgorithm = getPreferredSignatureHashAlgorithm;
+	this.read_nodes = read_nodes;
+	this.decryptSecretMPIs = decryptSecretMPIs;
+	this.getSubKeyIds = getSubKeyIds;
+	this.getKeyId = getKeyId;
+	
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Decoded public key object for internal openpgp.js use
+ */
+function openpgp_msg_publickey() {
+	this.tostring = "OPENPGP PUBLIC KEY\n";
+	this.bindingSignature = null;
+	this.publicKeyPacket = null;
+	this.userIds = new Array();
+	this.userAttributes = new Array();
+	this.revocationSignatures = new Array();
+	this.subKeys = new Array();
+	this.arbitraryPacket = new Array();
+	this.directSignatures = new Array();
+	/**
+	 * 
+	 * @return last position
+	 */
+	function read_nodes(parent_node, input, position, len) {
+		this.publicKeyPacket = parent_node;
+		var exit = false;
+		var pos = position;
+		var l = len;
+		while (input.length != pos) {
+			var result = openpgp_packet.read_packet(input, pos, input.length - pos);
+			if (result == null) {
+				util.print_error("openpgp.msg.publickey read_nodes:\n"+'[pub_key]parsing ends here @:' + pos + " l:" + l);
+				break;
+			} else {
+				switch (result.tagType) {
+				case 2: // public key revocation signature
+					if (result.signatureType == 32)
+						this.revocationSignatures[this.revocationSignatures.length] = result;
+					else if (result.signatureType == 16 || result.signatureType == 17 || result.signatureType == 18  || result.signatureType == 19)
+						this.certificationSignature = result;
+					else if (result.signatureType == 25) {
+						this.bindingSignature = result;
+					} else if (result.signatureType == 31) {
+						this.directSignatures[this.directSignatures.length] = result;
+					} else
+						util.print_error("openpgp.msg.publickey read_nodes:\n"+"unknown signature type directly on key "+result.signatureType);
+					pos += result.packetLength + result.headerLength;
+					break;
+				case 14: // Public-Subkey Packet
+					this.subKeys[this.subKeys.length] = result;
+					pos += result.packetLength + result.headerLength;
+					pos += result.read_nodes(this.publicKeyPacket,input, pos, input.length - pos);
+					break;
+				case 17: // User Attribute Packet
+					this.userAttributes[this.userAttributes.length] = result;
+					pos += result.packetLength + result.headerLength;
+					pos += result.read_nodes(this.publicKeyPacket,input, pos, input.length - pos);
+					break;
+				case 13: // User ID Packet
+					this.userIds[this.userIds.length] = result;
+					pos += result.packetLength + result.headerLength;
+					pos += result.read_nodes(this.publicKeyPacket, input, pos, input.length - pos);
+					break;
+				default:
+					this.data = input;
+					this.position = position - this.publicKeyPacket.packetLength - this.publicKeyPacket.headerLength;
+					this.len = pos - position;
+					return this.len;
+				}
+			}
+		}
+		this.data = input;
+		this.position = position - (this.publicKeyPacket.packetLength - this.publicKeyPacket.headerLength);
+		this.len = pos - position;
+		return this.len;
+	}
+
+	function write() {
+
+	}
+
+	function getKeyId() {
+		return this.publicKeyPacket.getKeyId();
+	}
+	
+	function getFingerprint() {
+		return this.publicKeyPacket.getFingerprint();
+	}
+
+
+	
+	function validate() {
+		// check revocation keys
+		for (var i = 0; i < this.revocationSignatures.length; i++) {
+			var tohash = this.publicKeyPacket.header+this.publicKeyPacket.data;
+			if (this.revocationSignatures[i].verify(tohash, this.publicKeyPacket))
+				return false;
+		}
+		
+		if (this.subKeys.length != 0) {
+			// search for a valid subkey
+			var found = false;
+			for (var i = 0; i < this.subKeys.length; i++)
+				if (this.subKeys[i].verifyKey() == 3) {
+					found = true;
+					break;
+				}
+			if (!found)
+				return false;
+		}
+		// search for one valid userid
+		found = false;
+		for (var i = 0; i < this.userIds.length; i++)
+			if (this.userIds[i].verify(this.publicKeyPacket) == 0) {
+				found = true;
+				break;
+			}
+		if (!found)
+			return false;
+		return true;
+	}
+	
+	/**
+	 * verifies all signatures
+	 * @return a 2 dimensional array. the first dimension corresponds to the userids available
+	 */
+	function verifyCertificationSignatures() {
+		var result = new Array();
+		for (var i = 0; i < this.userIds.length; i++) {
+			result[i] = this.userIds[i].verifyCertificationSignatures(this.publicKeyPacket);
+		}
+		return result;
+	}
+	this.verifyCertificationSignatures = verifyCertificationSignatures;
+	
+	/**
+	 * verifies:
+	 *  - revocation certificates directly on key
+	 *  - self signatures
+	 *  - subkey binding and revocation certificates
+	 *  
+	 *  This is useful for validating the key
+	 *  @returns {Boolean} true if the basic signatures are all valid
+	 */
+	function verifyBasicSignatures() {
+		for (var i = 0; i < this.revocationSignatures.length; i++) {
+			var tohash = this.publicKeyPacket.header+this.publicKeyPacket.data;
+			if (this.revocationSignatures[i].verify(tohash, this.publicKeyPacket))
+				return false;
+		}
+		
+		if (this.subKeys.length != 0) {
+			// search for a valid subkey
+			var found = false;
+			for (var i = 0; i < this.subKeys.length; i++) {
+				if (this.subKeys[i] == null)
+					continue;
+				var result = this.subKeys[i].verifyKey();
+				if (result == 3) {
+					found = true;
+					break;
+				} 
+			}
+			if (!found)
+				return false;
+		}
+		var keyId = this.getKeyId();
+		for (var i = 0; i < this.userIds.length; i++) {
+			for (var j = 0; j < this.userIds[i].certificationRevocationSignatures.length; j++) {
+				if (this.userIds[i].certificationSignatures[j].getIssuer == keyId &&
+					this.userIds[i].certificationSignatures[j].verifyBasic(this.publicKeyPacket) != 4)
+					return false;
+			}
+		}
+		return true;
+	}
+	
+	function toString() {
+		var result = " OPENPGP Public Key\n    length: "+this.len+"\n";
+		result += "    Revocation Signatures:\n"
+		for (var i=0; i < this.revocationSignatures.length; i++) {
+			result += "    "+this.revocationSignatures[i].toString(); 
+		}
+		result += "    User Ids:\n";
+		for (var i=0; i < this.userIds.length; i++) {
+			result += "    "+this.userIds[i].toString(); 
+		}
+		result += "    User Attributes:\n";
+		for (var i=0; i < this.userAttributes.length; i++) {
+			result += "    "+this.userAttributes[i].toString(); 
+		}
+		result += "    Public Key SubKeys:\n";
+		for (var i=0; i < this.subKeys.length; i++) {
+			result += "    "+this.subKeys[i].toString(); 
+		}
+		return result;
+	}
+	
+	/**
+	 * finds an encryption key for this public key
+	 * @returns null if no encryption key has been found
+	 */
+	function getEncryptionKey() {
+		// V4: by convention subkeys are prefered for encryption service
+		// V3: keys MUST NOT have subkeys
+		for (var j = 0; j < this.subKeys.length; j++)
+				if (this.subKeys[j].publicKeyAlgorithm != 17 &&
+						this.subKeys[j].publicKeyAlgorithm != 3 &&
+						this.subKeys[j].verifyKey()) {
+					return this.subKeys[j];
+				}
+		// if no valid subkey for encryption, use primary key
+		if (this.publicKeyPacket.publicKeyAlgorithm != 17 && this.publicKeyPacket.publicKeyAlgorithm != 3
+			&& this.publicKeyPacket.verifyKey()) {
+			return this.publicKeyPacket;	
+		}
+		return null;
+	}
+	
+	function getSigningKey() {
+		if ((this.publicKeyPacket.publicKeyAlgorithm == 17 ||
+			 this.publicKeyPacket.publicKeyAlgorithm != 2))
+			return this.publicKeyPacket;
+		else if (this.publicKeyPacket.version == 4) // V3 keys MUST NOT have subkeys.
+			for (var j = 0; j < this.subKeys.length; j++) {
+				if ((this.subKeys[j].publicKeyAlgorithm == 17 ||
+					 this.subKeys[j].publicKeyAlgorithm != 2) &&
+					 this.subKeys[j].verifyKey())
+					return this.subKeys[j];
+			}
+		return null;
+	}
+
+        /* Returns the i-th subKey as a openpgp_msg_publickey object */
+	function getSubKeyAsKey(i) {
+		var ret = new openpgp_msg_publickey();
+		ret.userIds = this.userIds;
+		ret.userAttributes = this.userAttributes;
+		ret.publicKeyPacket = this.subKeys[i];
+		return ret;
+	}
+
+	this.getEncryptionKey = getEncryptionKey;
+	this.getSigningKey = getSigningKey;
+	this.read_nodes = read_nodes;
+	this.write = write;
+	this.toString = toString;
+	this.validate = validate;
+	this.getFingerprint = getFingerprint;
+	this.getKeyId = getKeyId;
+	this.verifyBasicSignatures = verifyBasicSignatures;
+	this.getSubKeyAsKey = getSubKeyAsKey;
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the Compressed Data Packet (Tag 8)
+ * 
+ * RFC4880 5.6:
+ * The Compressed Data packet contains compressed data.  Typically, this
+ * packet is found as the contents of an encrypted packet, or following
+ * a Signature or One-Pass Signature packet, and contains a literal data
+ * packet.
+ */   
+function openpgp_packet_compressed() {
+	this.tagType = 8;
+	this.decompressedData = null;
+	
+	/**
+	 * Parsing function for the packet.
+	 * @param {String} input Payload of a tag 8 packet
+	 * @param {Integer} position Position to start reading from the input string
+	 * @param {Integer} len Length of the packet or the remaining length of 
+	 * input at position
+	 * @return {openpgp_packet_compressed} Object representation
+	 */
+	function read_packet (input, position, len) {
+		this.packetLength = len;
+		var mypos = position;
+		// One octet that gives the algorithm used to compress the packet.
+		this.type = input.charCodeAt(mypos++);
+		// Compressed data, which makes up the remainder of the packet.
+		this.compressedData = input.substring(position+1, position+len);
+		return this;
+	}
+	/**
+	 * Decompression method for decompressing the compressed data
+	 * read by read_packet
+	 * @return {String} The decompressed data
+	 */
+	function decompress() {
+		if (this.decompressedData != null)
+			return this.decompressedData;
+
+		if (this.type == null)
+			return null;
+
+		switch (this.type) {
+		case 0: // - Uncompressed
+			this.decompressedData = this.compressedData;
+			break;
+		case 1: // - ZIP [RFC1951]
+			util.print_info('Decompressed packet [Type 1-ZIP]: ' + this.toString());
+			var compData = this.compressedData;
+			var radix = s2r(compData).replace(/\n/g,"");
+			// no header in this case, directly call deflate
+			var jxg_obj = new JXG.Util.Unzip(JXG.Util.Base64.decodeAsArray(radix));
+			this.decompressedData = unescape(jxg_obj.deflate()[0][0]);
+			break;
+		case 2: // - ZLIB [RFC1950]
+			util.print_info('Decompressed packet [Type 2-ZLIB]: ' + this.toString());
+			var compressionMethod = this.compressedData.charCodeAt(0) % 0x10; //RFC 1950. Bits 0-3 Compression Method
+			//Bits 4-7 RFC 1950 are LZ77 Window. Generally this value is 7 == 32k window size.
+			//2nd Byte in RFC 1950 is for "FLAGs" Allows for a Dictionary (how is this defined). Basic checksum, and compression level.
+			if (compressionMethod == 8) { //CM 8 is for DEFLATE, RFC 1951
+				// remove 4 bytes ADLER32 checksum from the end
+				var compData = this.compressedData.substring(0, this.compressedData.length - 4);
+				var radix = s2r(compData).replace(/\n/g,"");
+				//TODO check ADLER32 checksum
+				this.decompressedData = JXG.decompress(radix);
+				break;
+			} else {
+				util.print_error("Compression algorithm ZLIB only supports DEFLATE compression method.");
+			}
+			break;
+		case 3: //  - BZip2 [BZ2]
+			// TODO: need to implement this
+			util.print_error("Compression algorithm BZip2 [BZ2] is not implemented.");
+			break;
+		default:
+			util.print_error("Compression algorithm unknown :"+this.type);
+			break;
+		}
+		util.print_debug("decompressed:"+util.hexstrdump(this.decompressedData));
+		return this.decompressedData; 
+	}
+
+	/**
+	 * Compress the packet data (member decompressedData)
+	 * @param {Integer} type Algorithm to be used // See RFC 4880 9.3
+	 * @param {String} data Data to be compressed
+	 * @return {String} The compressed data stored in attribute compressedData
+	 */
+	function compress(type, data) {
+		this.type = type;
+		this.decompressedData = data;
+		switch (this.type) {
+		case 0: // - Uncompressed
+			this.compressedData = this.decompressedData;
+			break;
+		case 1: // - ZIP [RFC1951]
+			util.print_error("Compression algorithm ZIP [RFC1951] is not implemented.");
+			break;
+		case 2: // - ZLIB [RFC1950]
+			// TODO: need to implement this
+			util.print_error("Compression algorithm ZLIB [RFC1950] is not implemented.");
+			break;
+		case 3: //  - BZip2 [BZ2]
+			// TODO: need to implement this
+			util.print_error("Compression algorithm BZip2 [BZ2] is not implemented.");
+			break;
+		default:
+			util.print_error("Compression algorithm unknown :"+this.type);
+			break;
+		}
+		this.packetLength = this.compressedData.length +1;
+		return this.compressedData; 
+	}
+	
+	/**
+	 * Creates a string representation of the packet
+	 * @param {Integer} algorithm Algorithm to be used // See RFC 4880 9.3
+	 * @param {String} data Data to be compressed
+	 * @return {String} String-representation of the packet
+	 */
+	function write_packet(algorithm, data) {
+		this.decompressedData = data;
+		if (algorithm == null) {
+			this.type = 1;
+		}
+		var result = String.fromCharCode(this.type)+this.compress(this.type);
+		return openpgp_packet.write_packet_header(8, result.length)+result;
+	}
+	
+	/**
+	 * Pretty printing the packet (useful for debug purposes)
+	 * @return {String}
+	 */
+	function toString() {
+		return '5.6.  Compressed Data Packet (Tag 8)\n'+
+		   '    length:  '+this.packetLength+'\n'+
+			   '    Compression Algorithm = '+this.type+'\n'+
+		       '    Compressed Data: Byte ['+util.hexstrdump(this.compressedData)+']\n';
+	}
+	
+	this.read_packet = read_packet;
+	this.toString = toString;
+	this.compress = compress;
+	this.decompress = decompress;
+	this.write_packet = write_packet;
+};
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the Symmetrically Encrypted Data Packet (Tag 9)
+ * 
+ * RFC4880 5.7: The Symmetrically Encrypted Data packet contains data encrypted
+ * with a symmetric-key algorithm. When it has been decrypted, it contains other
+ * packets (usually a literal data packet or compressed data packet, but in
+ * theory other Symmetrically Encrypted Data packets or sequences of packets
+ * that form whole OpenPGP messages).
+ */
+
+function openpgp_packet_encrypteddata() {
+	this.tagType = 9;
+	this.packetLength = null;
+	this.encryptedData = null;
+	this.decryptedData = null;
+
+	/**
+	 * Parsing function for the packet.
+	 * 
+	 * @param {String} input Payload of a tag 9 packet
+	 * @param {Integer} position Position to start reading from the input string
+	 * @param {Integer} len Length of the packet or the remaining length of
+	 *            input at position
+	 * @return {openpgp_packet_encrypteddata} Object representation
+	 */
+	function read_packet(input, position, len) {
+		var mypos = position;
+		this.packetLength = len;
+		// - Encrypted data, the output of the selected symmetric-key cipher
+		// operating in OpenPGP's variant of Cipher Feedback (CFB) mode.
+		this.encryptedData = input.substring(position, position + len);
+		return this;
+	}
+
+	/**
+	 * Symmetrically decrypt the packet data
+	 * 
+	 * @param {Integer} symmetric_algorithm_type
+	 *             Symmetric key algorithm to use // See RFC4880 9.2
+	 * @param {String} key
+	 *             Key as string with the corresponding length to the
+	 *            algorithm
+	 * @return The decrypted data;
+	 */
+	function decrypt_sym(symmetric_algorithm_type, key) {
+		this.decryptedData = openpgp_crypto_symmetricDecrypt(
+				symmetric_algorithm_type, key, this.encryptedData, true);
+		util.print_debug("openpgp.packet.encryptedintegrityprotecteddata.js\n"+
+				"data: "+util.hexstrdump(this.decryptedData));
+		return this.decryptedData;
+	}
+
+	/**
+	 * Creates a string representation of the packet
+	 * 
+	 * @param {Integer} algo Symmetric key algorithm to use // See RFC4880 9.2
+	 * @param {String} key Key as string with the corresponding length to the
+	 *            algorithm
+	 * @param {String} data Data to be
+	 * @return {String} String-representation of the packet
+	 */
+	function write_packet(algo, key, data) {
+		var result = "";
+		result += openpgp_crypto_symmetricEncrypt(
+				openpgp_crypto_getPrefixRandom(algo), algo, key, data, true);
+		result = openpgp_packet.write_packet_header(9, result.length) + result;
+		return result;
+	}
+
+	function toString() {
+		return '5.7.  Symmetrically Encrypted Data Packet (Tag 9)\n'
+				+ '    length:  ' + this.packetLength + '\n'
+				+ '    Used symmetric algorithm: ' + this.algorithmType + '\n'
+				+ '    encrypted data: Bytes ['
+				+ util.hexstrdump(this.encryptedData) + ']\n';
+	}
+	this.decrypt_sym = decrypt_sym;
+	this.toString = toString;
+	this.read_packet = read_packet;
+	this.write_packet = write_packet;
+};
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the Sym. Encrypted Integrity Protected Data 
+ * Packet (Tag 18)
+ * 
+ * RFC4880 5.13: The Symmetrically Encrypted Integrity Protected Data packet is
+ * a variant of the Symmetrically Encrypted Data packet. It is a new feature
+ * created for OpenPGP that addresses the problem of detecting a modification to
+ * encrypted data. It is used in combination with a Modification Detection Code
+ * packet.
+ */
+
+function openpgp_packet_encryptedintegrityprotecteddata() {
+	this.tagType = 18;
+	this.version = null; // integer == 1
+	this.packetLength = null; // integer
+	this.encryptedData = null; // string
+	this.decrytpedData = null; // string
+	this.hash = null; // string
+	/**
+	 * Parsing function for the packet.
+	 * 
+	 * @param {String} input Payload of a tag 18 packet
+	 * @param {Integer} position
+	 *             position to start reading from the input string
+	 * @param {Integer} len Length of the packet or the remaining length of
+	 *            input at position
+	 * @return {openpgp_packet_encryptedintegrityprotecteddata} object
+	 *         representation
+	 */
+	function read_packet(input, position, len) {
+		this.packetLength = len;
+		// - A one-octet version number. The only currently defined value is
+		// 1.
+		this.version = input.charCodeAt(position);
+		if (this.version != 1) {
+			util
+					.print_error('openpgp.packet.encryptedintegrityprotecteddata.js\nunknown encrypted integrity protected data packet version: '
+							+ this.version
+							+ " , @ "
+							+ position
+							+ "hex:"
+							+ util.hexstrdump(input));
+			return null;
+		}
+		// - Encrypted data, the output of the selected symmetric-key cipher
+		//   operating in Cipher Feedback mode with shift amount equal to the
+		//   block size of the cipher (CFB-n where n is the block size).
+		this.encryptedData = input.substring(position + 1, position + 1 + len);
+		util.print_debug("openpgp.packet.encryptedintegrityprotecteddata.js\n"
+				+ this.toString());
+		return this;
+	}
+
+	/**
+	 * Creates a string representation of a Sym. Encrypted Integrity Protected
+	 * Data Packet (tag 18) (see RFC4880 5.13)
+	 * 
+	 * @param {Integer} symmetric_algorithm
+	 *            The selected symmetric encryption algorithm to be used
+	 * @param {String} key The key of cipher blocksize length to be used
+	 * @param {String} data
+	 *            Plaintext data to be encrypted within the packet
+	 * @return {String} A string representation of the packet
+	 */
+	function write_packet(symmetric_algorithm, key, data) {
+
+		var prefixrandom = openpgp_crypto_getPrefixRandom(symmetric_algorithm);
+		var prefix = prefixrandom
+				+ prefixrandom.charAt(prefixrandom.length - 2)
+				+ prefixrandom.charAt(prefixrandom.length - 1);
+		var tohash = data;
+		tohash += String.fromCharCode(0xD3);
+		tohash += String.fromCharCode(0x14);
+		util.print_debug_hexstr_dump("data to be hashed:"
+				, prefix + tohash);
+		tohash += str_sha1(prefix + tohash);
+		util.print_debug_hexstr_dump("hash:"
+				, tohash.substring(tohash.length - 20,
+						tohash.length));
+		var result = openpgp_crypto_symmetricEncrypt(prefixrandom,
+				symmetric_algorithm, key, tohash, false).substring(0,
+				prefix.length + tohash.length);
+		var header = openpgp_packet.write_packet_header(18, result.length + 1)
+				+ String.fromCharCode(1);
+		this.encryptedData = result;
+		return header + result;
+	}
+
+	/**
+	 * Decrypts the encrypted data contained in this object read_packet must
+	 * have been called before
+	 * 
+	 * @param {Integer} symmetric_algorithm_type
+	 *            The selected symmetric encryption algorithm to be used
+	 * @param {String} key The key of cipher blocksize length to be used
+	 * @return {String} The decrypted data of this packet
+	 */
+	function decrypt(symmetric_algorithm_type, key) {
+		this.decryptedData = openpgp_crypto_symmetricDecrypt(
+				symmetric_algorithm_type, key, this.encryptedData, false);
+		// there must be a modification detection code packet as the
+		// last packet and everything gets hashed except the hash itself
+		this.hash = str_sha1(openpgp_crypto_MDCSystemBytes(
+				symmetric_algorithm_type, key, this.encryptedData)
+				+ this.decryptedData.substring(0,
+						this.decryptedData.length - 20));
+		util.print_debug_hexstr_dump("calc hash = ", this.hash);
+		if (this.hash == this.decryptedData.substring(
+				this.decryptedData.length - 20, this.decryptedData.length))
+			return this.decryptedData;
+		else
+			util
+					.print_error("Decryption stopped: discovered a modification of encrypted data.");
+		return null;
+	}
+
+	function toString() {
+	    var data = '';
+	    if(openpgp.config.debug)
+	        data = '    data: Bytes ['
+				+ util.hexstrdump(this.encryptedData) + ']';
+	    
+		return '5.13.  Sym. Encrypted Integrity Protected Data Packet (Tag 18)\n'
+				+ '    length:  '
+				+ this.packetLength
+				+ '\n'
+				+ '    version: '
+				+ this.version
+				+ '\n'
+				+ data;
+	}
+
+	this.write_packet = write_packet;
+	this.read_packet = read_packet;
+	this.toString = toString;
+	this.decrypt = decrypt;
+};
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Public-Key Encrypted Session Key Packets (Tag 1)
+ * 
+ * RFC4880 5.1: A Public-Key Encrypted Session Key packet holds the session key
+ * used to encrypt a message. Zero or more Public-Key Encrypted Session Key
+ * packets and/or Symmetric-Key Encrypted Session Key packets may precede a
+ * Symmetrically Encrypted Data Packet, which holds an encrypted message. The
+ * message is encrypted with the session key, and the session key is itself
+ * encrypted and stored in the Encrypted Session Key packet(s). The
+ * Symmetrically Encrypted Data Packet is preceded by one Public-Key Encrypted
+ * Session Key packet for each OpenPGP key to which the message is encrypted.
+ * The recipient of the message finds a session key that is encrypted to their
+ * public key, decrypts the session key, and then uses the session key to
+ * decrypt the message.
+ */
+function openpgp_packet_encryptedsessionkey() {
+
+	/**
+	 * Parsing function for a publickey encrypted session key packet (tag 1).
+	 * 
+	 * @param {String} input Payload of a tag 1 packet
+	 * @param {Integer} position Position to start reading from the input string
+	 * @param {Integer} len Length of the packet or the remaining length of
+	 *            input at position
+	 * @return {openpgp_packet_encrypteddata} Object representation
+	 */
+	function read_pub_key_packet(input, position, len) {
+		this.tagType = 1;
+		this.packetLength = len;
+		var mypos = position;
+		if (len < 10) {
+			util
+					.print_error("openpgp.packet.encryptedsessionkey.js\n" + 'invalid length');
+			return null;
+		}
+
+		this.version = input.charCodeAt(mypos++);
+		this.keyId = new openpgp_type_keyid();
+		this.keyId.read_packet(input, mypos);
+		mypos += 8;
+		this.publicKeyAlgorithmUsed = input.charCodeAt(mypos++);
+
+		switch (this.publicKeyAlgorithmUsed) {
+		case 1:
+		case 2: // RSA
+			this.MPIs = new Array();
+			this.MPIs[0] = new openpgp_type_mpi();
+			this.MPIs[0].read(input, mypos, mypos - position);
+			break;
+		case 16: // Elgamal
+			this.MPIs = new Array();
+			this.MPIs[0] = new openpgp_type_mpi();
+			this.MPIs[0].read(input, mypos, mypos - position);
+			mypos += this.MPIs[0].packetLength;
+			this.MPIs[1] = new openpgp_type_mpi();
+			this.MPIs[1].read(input, mypos, mypos - position);
+			break;
+		default:
+			util.print_error("openpgp.packet.encryptedsessionkey.js\n"
+					+ "unknown public key packet algorithm type "
+					+ this.publicKeyAlgorithmType);
+			break;
+		}
+		return this;
+	}
+
+	/**
+	 * Create a string representation of a tag 1 packet
+	 * 
+	 * @param {String} publicKeyId
+	 *             The public key id corresponding to publicMPIs key as string
+	 * @param {openpgp_type_mpi[]} publicMPIs
+	 *            Multiprecision integer objects describing the public key
+	 * @param {Integer} pubalgo
+	 *            The corresponding public key algorithm // See RFC4880 9.1
+	 * @param {Integer} symmalgo
+	 *            The symmetric cipher algorithm used to encrypt the data 
+	 *            within an encrypteddatapacket or encryptedintegrity-
+	 *            protecteddatapacket 
+	 *            following this packet //See RFC4880 9.2
+	 * @param {String} sessionkey
+	 *            A string of randombytes representing the session key
+	 * @return {String} The string representation
+	 */
+	function write_pub_key_packet(publicKeyId, publicMPIs, pubalgo, symmalgo,
+			sessionkey) {
+		var result = String.fromCharCode(3);
+		var data = String.fromCharCode(symmalgo);
+		data += sessionkey;
+		var checksum = util.calc_checksum(sessionkey);
+		data += String.fromCharCode((checksum >> 8) & 0xFF);
+		data += String.fromCharCode((checksum) & 0xFF);
+		result += publicKeyId;
+		result += String.fromCharCode(pubalgo);
+		var mpi = new openpgp_type_mpi();
+		var mpiresult = openpgp_crypto_asymetricEncrypt(pubalgo, publicMPIs,
+				mpi.create(openpgp_encoding_eme_pkcs1_encode(data,
+						publicMPIs[0].mpiByteLength)));
+		for ( var i = 0; i < mpiresult.length; i++) {
+			result += mpiresult[i];
+		}
+		result = openpgp_packet.write_packet_header(1, result.length) + result;
+		return result;
+	}
+
+	/**
+	 * Parsing function for a symmetric encrypted session key packet (tag 3).
+	 * 
+	 * @param {String} input Payload of a tag 1 packet
+	 * @param {Integer} position Position to start reading from the input string
+	 * @param {Integer} len
+	 *            Length of the packet or the remaining length of
+	 *            input at position
+	 * @return {openpgp_packet_encrypteddata} Object representation
+	 */
+	function read_symmetric_key_packet(input, position, len) {
+		this.tagType = 3;
+		var mypos = position;
+		// A one-octet version number. The only currently defined version is 4.
+		this.version = input[mypos++];
+
+		// A one-octet number describing the symmetric algorithm used.
+		this.symmetricKeyAlgorithmUsed = input[mypos++];
+		// A string-to-key (S2K) specifier, length as defined above.
+		this.s2k = new openpgp_type_s2k();
+		this.s2k.read(input, mypos);
+
+		// Optionally, the encrypted session key itself, which is decrypted
+		// with the string-to-key object.
+		if ((s2k.s2kLength + mypos) < len) {
+			this.encryptedSessionKey = new Array();
+			for ( var i = (mypos - position); i < len; i++) {
+				this.encryptedSessionKey[i] = input[mypos++];
+			}
+		}
+		return this;
+	}
+	/**
+	 * Decrypts the session key (only for public key encrypted session key
+	 * packets (tag 1)
+	 * 
+	 * @param {openpgp_msg_message} msg
+	 *            The message object (with member encryptedData
+	 * @param {openpgp_msg_privatekey} key
+	 *            Private key with secMPIs unlocked
+	 * @return {String} The unencrypted session key
+	 */
+	function decrypt(msg, key) {
+		if (this.tagType == 1) {
+			var result = openpgp_crypto_asymetricDecrypt(
+					this.publicKeyAlgorithmUsed, key.publicKey.MPIs,
+					key.secMPIs, this.MPIs).toMPI();
+			var checksum = ((result.charCodeAt(result.length - 2) << 8) + result
+					.charCodeAt(result.length - 1));
+			var decoded = openpgp_encoding_eme_pkcs1_decode(result.substring(2, result.length - 2), key.publicKey.MPIs[0].getByteLength());
+			var sesskey = decoded.substring(1);
+			var algo = decoded.charCodeAt(0);
+			if (msg.encryptedData.tagType == 18)
+				return msg.encryptedData.decrypt(algo, sesskey);
+			else
+				return msg.encryptedData.decrypt_sym(algo, sesskey);
+		} else if (this.tagType == 3) {
+			util
+					.print_error("Symmetric encrypted sessionkey is not supported!");
+			return null;
+		}
+	}
+
+	/**
+	 * Creates a string representation of this object (useful for debug
+	 * purposes)
+	 * 
+	 * @return {String} The string containing a openpgp description
+	 */
+	function toString() {
+		if (this.tagType == 1) {
+			var result = '5.1.  Public-Key Encrypted Session Key Packets (Tag 1)\n'
+					+ '    KeyId:  '
+					+ this.keyId.toString()
+					+ '\n'
+					+ '    length: '
+					+ this.packetLength
+					+ '\n'
+					+ '    version:'
+					+ this.version
+					+ '\n'
+					+ '    pubAlgUs:'
+					+ this.publicKeyAlgorithmUsed + '\n';
+			for ( var i = 0; i < this.MPIs.length; i++) {
+				result += this.MPIs[i].toString();
+			}
+			return result;
+		} else
+			return '5.3 Symmetric-Key Encrypted Session Key Packets (Tag 3)\n'
+					+ '    KeyId:  ' + this.keyId.toString() + '\n'
+					+ '    length: ' + this.packetLength + '\n'
+					+ '    version:' + this.version + '\n' + '    symKeyA:'
+					+ this.symmetricKeyAlgorithmUsed + '\n' + '    s2k:    '
+					+ this.s2k + '\n';
+	}
+
+	this.read_pub_key_packet = read_pub_key_packet;
+	this.read_symmetric_key_packet = read_symmetric_key_packet;
+	this.write_pub_key_packet = write_pub_key_packet;
+	this.toString = toString;
+	this.decrypt = decrypt;
+};
+
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Parent openpgp packet class. Operations focus on determining 
+ * packet types and packet header.
+ */
+function _openpgp_packet() {
+	/**
+	 * Encodes a given integer of length to the openpgp length specifier to a
+	 * string
+	 * 
+	 * @param {Integer} length The length to encode
+	 * @return {String} String with openpgp length representation
+	 */
+	function encode_length(length) {
+		result = "";
+		if (length < 192) {
+			result += String.fromCharCode(length);
+		} else if (length > 191 && length < 8384) {
+			/*
+			 * let a = (total data packet length) - 192 let bc = two octet
+			 * representation of a let d = b + 192
+			 */
+			result += String.fromCharCode(((length - 192) >> 8) + 192);
+			result += String.fromCharCode((length - 192) & 0xFF);
+		} else {
+			result += String.fromCharCode(255);
+			result += String.fromCharCode((length >> 24) & 0xFF);
+			result += String.fromCharCode((length >> 16) & 0xFF);
+			result += String.fromCharCode((length >> 8) & 0xFF);
+			result += String.fromCharCode(length & 0xFF);
+		}
+		return result;
+	}
+	this.encode_length = encode_length;
+
+	/**
+	 * Writes a packet header version 4 with the given tag_type and length to a
+	 * string
+	 * 
+	 * @param {Integer} tag_type Tag type
+	 * @param {Integer} length Length of the payload
+	 * @return {String} String of the header
+	 */
+	function write_packet_header(tag_type, length) {
+		/* we're only generating v4 packet headers here */
+		var result = "";
+		result += String.fromCharCode(0xC0 | tag_type);
+		result += encode_length(length);
+		return result;
+	}
+
+	/**
+	 * Writes a packet header Version 3 with the given tag_type and length to a
+	 * string
+	 * 
+	 * @param {Integer} tag_type Tag type
+	 * @param {Integer} length Length of the payload
+	 * @return {String} String of the header
+	 */
+	function write_old_packet_header(tag_type, length) {
+		var result = "";
+		if (length < 256) {
+			result += String.fromCharCode(0x80 | (tag_type << 2));
+			result += String.fromCharCode(length);
+		} else if (length < 65536) {
+			result += String.fromCharCode(0x80 | (tag_type << 2) | 1);
+			result += String.fromCharCode(length >> 8);
+			result += String.fromCharCode(length & 0xFF);
+		} else {
+			result += String.fromCharCode(0x80 | (tag_type << 2) | 2);
+			result += String.fromCharCode((length >> 24) & 0xFF);
+			result += String.fromCharCode((length >> 16) & 0xFF);
+			result += String.fromCharCode((length >> 8) & 0xFF);
+			result += String.fromCharCode(length & 0xFF);
+		}
+		return result;
+	}
+	this.write_old_packet_header = write_old_packet_header;
+	this.write_packet_header = write_packet_header;
+	/**
+	 * Generic static Packet Parser function
+	 * 
+	 * @param {String} input Input stream as string
+	 * @param {integer} position Position to start parsing
+	 * @param {integer} len Length of the input from position on
+	 * @return {Object} Returns a parsed openpgp_packet
+	 */
+	function read_packet(input, position, len) {
+		// some sanity checks
+		if (input == null || input.length <= position
+				|| input.substring(position).length < 2
+				|| (input.charCodeAt(position) & 0x80) == 0) {
+			util
+					.print_error("Error during parsing. This message / key is probably not containing a valid OpenPGP format.");
+			return null;
+		}
+		var mypos = position;
+		var tag = -1;
+		var format = -1;
+
+		format = 0; // 0 = old format; 1 = new format
+		if ((input.charCodeAt(mypos) & 0x40) != 0) {
+			format = 1;
+		}
+
+		var packet_length_type;
+		if (format) {
+			// new format header
+			tag = input.charCodeAt(mypos) & 0x3F; // bit 5-0
+		} else {
+			// old format header
+			tag = (input.charCodeAt(mypos) & 0x3F) >> 2; // bit 5-2
+			packet_length_type = input.charCodeAt(mypos) & 0x03; // bit 1-0
+		}
+
+		// header octet parsing done
+		mypos++;
+
+		// parsed length from length field
+		var bodydata = null;
+
+		// used for partial body lengths
+		var real_packet_length = -1;
+		if (!format) {
+			// 4.2.1. Old Format Packet Lengths
+			switch (packet_length_type) {
+			case 0: // The packet has a one-octet length. The header is 2 octets
+				// long.
+				packet_length = input.charCodeAt(mypos++);
+				break;
+			case 1: // The packet has a two-octet length. The header is 3 octets
+				// long.
+				packet_length = (input.charCodeAt(mypos++) << 8)
+						| input.charCodeAt(mypos++);
+				break;
+			case 2: // The packet has a four-octet length. The header is 5
+				// octets long.
+				packet_length = (input.charCodeAt(mypos++) << 24)
+						| (input.charCodeAt(mypos++) << 16)
+						| (input.charCodeAt(mypos++) << 8)
+						| input.charCodeAt(mypos++);
+				break;
+			default:
+				// 3 - The packet is of indeterminate length. The header is 1
+				// octet long, and the implementation must determine how long
+				// the packet is. If the packet is in a file, this means that
+				// the packet extends until the end of the file. In general, 
+				// an implementation SHOULD NOT use indeterminate-length 
+				// packets except where the end of the data will be clear 
+				// from the context, and even then it is better to use a 
+				// definite length, or a new format header. The new format 
+				// headers described below have a mechanism for precisely
+				// encoding data of indeterminate length.
+				packet_length = len;
+				break;
+			}
+
+		} else // 4.2.2. New Format Packet Lengths
+		{
+
+			// 4.2.2.1. One-Octet Lengths
+			if (input.charCodeAt(mypos) < 192) {
+				packet_length = input.charCodeAt(mypos++);
+				util.print_debug("1 byte length:" + packet_length);
+				// 4.2.2.2. Two-Octet Lengths
+			} else if (input.charCodeAt(mypos) >= 192
+					&& input.charCodeAt(mypos) < 224) {
+				packet_length = ((input.charCodeAt(mypos++) - 192) << 8)
+						+ (input.charCodeAt(mypos++)) + 192;
+				util.print_debug("2 byte length:" + packet_length);
+				// 4.2.2.4. Partial Body Lengths
+			} else if (input.charCodeAt(mypos) > 223
+					&& input.charCodeAt(mypos) < 255) {
+				packet_length = 1 << (input.charCodeAt(mypos++) & 0x1F);
+				util.print_debug("4 byte length:" + packet_length);
+				// EEEK, we're reading the full data here...
+				var mypos2 = mypos + packet_length;
+				bodydata = input.substring(mypos, mypos + packet_length);
+				while (true) {
+					if (input.charCodeAt(mypos2) < 192) {
+						var tmplen = input.charCodeAt(mypos2++);
+						packet_length += tmplen;
+						bodydata += input.substring(mypos2, mypos2 + tmplen);
+						mypos2 += tmplen;
+						break;
+					} else if (input.charCodeAt(mypos2) >= 192
+							&& input.charCodeAt(mypos2) < 224) {
+						var tmplen = ((input.charCodeAt(mypos2++) - 192) << 8)
+								+ (input.charCodeAt(mypos2++)) + 192;
+						packet_length += tmplen;
+						bodydata += input.substring(mypos2, mypos2 + tmplen);
+						mypos2 += tmplen;
+						break;
+					} else if (input.charCodeAt(mypos2) > 223
+							&& input.charCodeAt(mypos2) < 255) {
+						var tmplen = 1 << (input.charCodeAt(mypos2++) & 0x1F);
+						packet_length += tmplen;
+						bodydata += input.substring(mypos2, mypos2 + tmplen);
+						mypos2 += tmplen;
+					} else {
+						mypos2++;
+						var tmplen = (input.charCodeAt(mypos2++) << 24)
+								| (input.charCodeAt(mypos2++) << 16)
+								| (input.charCodeAt(mypos2++) << 8)
+								| input.charCodeAt(mypos2++);
+						bodydata += input.substring(mypos2, mypos2 + tmplen);
+						packet_length += tmplen;
+						mypos2 += tmplen;
+						break;
+					}
+				}
+				real_packet_length = mypos2;
+				// 4.2.2.3. Five-Octet Lengths
+			} else {
+				mypos++;
+				packet_length = (input.charCodeAt(mypos++) << 24)
+						| (input.charCodeAt(mypos++) << 16)
+						| (input.charCodeAt(mypos++) << 8)
+						| input.charCodeAt(mypos++);
+			}
+		}
+
+		// if there was'nt a partial body length: use the specified
+		// packet_length
+		if (real_packet_length == -1) {
+			real_packet_length = packet_length;
+		}
+
+		if (bodydata == null) {
+			bodydata = input.substring(mypos, mypos + real_packet_length);
+		}
+
+		// alert('tag type: '+this.tag+' length: '+packet_length);
+		var version = 1; // (old format; 2= new format)
+		// if (input.charCodeAt(mypos++) > 15)
+		// version = 2;
+
+		switch (tag) {
+		case 0: // Reserved - a packet tag MUST NOT have this value
+			break;
+		case 1: // Public-Key Encrypted Session Key Packet
+			var result = new openpgp_packet_encryptedsessionkey();
+			if (result.read_pub_key_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 2: // Signature Packet
+			var result = new openpgp_packet_signature();
+			if (result.read_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 3: // Symmetric-Key Encrypted Session Key Packet
+			var result = new openpgp_packet_encryptedsessionkey();
+			if (result.read_symmetric_key_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 4: // One-Pass Signature Packet
+			var result = new openpgp_packet_onepasssignature();
+			if (result.read_packet(bodydata, 0, packet_length)) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 5: // Secret-Key Packet
+			var result = new openpgp_packet_keymaterial();
+			result.header = input.substring(position, mypos);
+			if (result.read_tag5(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 6: // Public-Key Packet
+			var result = new openpgp_packet_keymaterial();
+			result.header = input.substring(position, mypos);
+			if (result.read_tag6(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 7: // Secret-Subkey Packet
+			var result = new openpgp_packet_keymaterial();
+			if (result.read_tag7(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 8: // Compressed Data Packet
+			var result = new openpgp_packet_compressed();
+			if (result.read_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 9: // Symmetrically Encrypted Data Packet
+			var result = new openpgp_packet_encrypteddata();
+			if (result.read_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 10: // Marker Packet = PGP (0x50, 0x47, 0x50)
+			var result = new openpgp_packet_marker();
+			if (result.read_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 11: // Literal Data Packet
+			var result = new openpgp_packet_literaldata();
+			if (result.read_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.header = input.substring(position, mypos);
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 12: // Trust Packet
+			// TODO: to be implemented
+			break;
+		case 13: // User ID Packet
+			var result = new openpgp_packet_userid();
+			if (result.read_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 14: // Public-Subkey Packet
+			var result = new openpgp_packet_keymaterial();
+			result.header = input.substring(position, mypos);
+			if (result.read_tag14(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 17: // User Attribute Packet
+			var result = new openpgp_packet_userattribute();
+			if (result.read_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 18: // Sym. Encrypted and Integrity Protected Data Packet
+			var result = new openpgp_packet_encryptedintegrityprotecteddata();
+			if (result.read_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		case 19: // Modification Detection Code Packet
+			var result = new openpgp_packet_modificationdetectioncode();
+			if (result.read_packet(bodydata, 0, packet_length) != null) {
+				result.headerLength = mypos - position;
+				result.packetLength = real_packet_length;
+				return result;
+			}
+			break;
+		default:
+			util.print_error("openpgp.packet.js\n"
+					+ "[ERROR] openpgp_packet: failed to parse packet @:"
+					+ mypos + "\nchar:'"
+					+ util.hexstrdump(input.substring(mypos)) + "'\ninput:"
+					+ util.hexstrdump(input));
+			return null;
+			break;
+		}
+	}
+
+	this.read_packet = read_packet;
+}
+
+var openpgp_packet = new _openpgp_packet();
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the Key Material Packet (Tag 5,6,7,14)
+ *   
+ * RFC4480 5.5:
+ * A key material packet contains all the information about a public or
+ * private key.  There are four variants of this packet type, and two
+ * major versions.  Consequently, this section is complex.
+ */
+function openpgp_packet_keymaterial() {
+	// members:
+	this.publicKeyAlgorithm = null;
+	this.tagType = null;
+	this.creationTime = null;
+	this.version = null;
+	this.expiration  = null;// V3
+	this.MPIs = null;
+	this.secMPIs = null;
+	this.publicKey = null;
+	this.symmetricEncryptionAlgorithm = null;
+	this.s2kUsageConventions = null;
+	this.IVLength  = null;
+    this.encryptedMPIData = null;
+    this.hasUnencryptedSecretKeyData = null;
+    this.checksum = null;
+    this.parentNode = null;
+	this.subKeySignature = null;
+	this.subKeyRevocationSignature = null;
+
+	// 5.5.1. Key Packet Variants
+	
+	// 5.5.1.3. Secret-Key Packet (Tag 5)
+	/**
+	 * This function reads the payload of a secret key packet (Tag 5)
+	 * and initializes the openpgp_packet_keymaterial
+	 * @param {String} input Input string to read the packet from
+	 * @param {Integer} position Start position for the parser
+	 * @param {Intefer} len Length of the packet or remaining length of input
+	 * @return {openpgp_packet_keymaterial}
+	 */
+	function read_tag5(input, position, len) {
+		this.tagType = 5;
+		this.read_priv_key(input, position, len);
+		return this;
+	}
+
+	// 5.5.1.1. Public-Key Packet (Tag 6)
+	/**
+	 * This function reads the payload of a public key packet (Tag 6)
+	 * and initializes the openpgp_packet_keymaterial
+	 * @param {String} input Input string to read the packet from
+	 * @param {Integer} position Start position for the parser
+	 * @param {Integer} len Length of the packet or remaining length of input
+	 * @return {openpgp_packet_keymaterial}
+	 */
+	function read_tag6(input, position, len) {
+		// A Public-Key packet starts a series of packets that forms an OpenPGP
+		// key (sometimes called an OpenPGP certificate).
+		this.tagType = 6;
+		this.packetLength = len;
+		this.read_pub_key(input, position,len);
+		
+		return this;
+	}
+
+	// 5.5.1.4. Secret-Subkey Packet (Tag 7)
+	/**
+	 * This function reads the payload of a secret key sub packet (Tag 7)
+	 * and initializes the openpgp_packet_keymaterial
+	 * @param {String} input Input string to read the packet from
+	 * @param {Integer} position Start position for the parser
+	 * @param {Integer} len Length of the packet or remaining length of input
+	 * @return {openpgp_packet_keymaterial}
+	 */
+	function read_tag7(input, position, len) {
+		this.tagType = 7;
+		this.packetLength = len;
+		return this.read_priv_key(input, position, len);
+	}
+
+	// 5.5.1.2. Public-Subkey Packet (Tag 14)
+	/**
+	 * This function reads the payload of a public key sub packet (Tag 14)
+	 * and initializes the openpgp_packet_keymaterial
+	 * @param {String} input Input string to read the packet from
+	 * @param {Integer} position Start position for the parser
+	 * @param {Integer} len Length of the packet or remaining length of input
+	 * @return {openpgp_packet_keymaterial}
+	 */
+	function read_tag14(input, position, len) {
+		this.subKeySignature = null;
+		this.subKeyRevocationSignature = new Array();
+		this.tagType = 14;
+		this.packetLength = len;
+		this.read_pub_key(input, position,len);
+		return this;
+	}
+	
+	/**
+	 * Internal Parser for public keys as specified in RFC 4880 section 
+	 * 5.5.2 Public-Key Packet Formats
+	 * called by read_tag&lt;num&gt;
+	 * @param {String} input Input string to read the packet from
+	 * @param {Integer} position Start position for the parser
+	 * @param {Integer} len Length of the packet or remaining length of input
+	 * @return {Object} This object with attributes set by the parser
+	 */  
+	function read_pub_key(input, position, len) {
+		var mypos = position;
+		// A one-octet version number (3 or 4).
+		this.version = input.charCodeAt(mypos++);
+		if (this.version == 3) {
+			// A four-octet number denoting the time that the key was created.
+			this.creationTime = new Date(((input.charCodeAt(mypos++) << 24) |
+				(input.charCodeAt(mypos++) << 16) |
+				(input.charCodeAt(mypos++) <<  8) |
+				(input.charCodeAt(mypos++)))*1000);
+			
+		    // - A two-octet number denoting the time in days that this key is
+		    //   valid.  If this number is zero, then it does not expire.
+			this.expiration = (input.charCodeAt(mypos++) << 8) | input.charCodeAt(mypos++);
+	
+		    // - A one-octet number denoting the public-key algorithm of this key.
+			this.publicKeyAlgorithm = input.charCodeAt(mypos++);
+			var mpicount = 0;
+		    // - A series of multiprecision integers comprising the key material:
+			//   Algorithm-Specific Fields for RSA public keys:
+		    //       - a multiprecision integer (MPI) of RSA public modulus n;
+		    //       - an MPI of RSA public encryption exponent e.
+			if (this.publicKeyAlgorithm > 0 && this.publicKeyAlgorithm < 4)
+				mpicount = 2;
+			//   Algorithm-Specific Fields for Elgamal public keys:
+			//     - MPI of Elgamal prime p;
+			//     - MPI of Elgamal group generator g;
+			//     - MPI of Elgamal public key value y (= g**x mod p where x  is secret).
+
+			else if (this.publicKeyAlgorithm == 16)
+				mpicount = 3;
+			//   Algorithm-Specific Fields for DSA public keys:
+			//       - MPI of DSA prime p;
+			//       - MPI of DSA group order q (q is a prime divisor of p-1);
+			//       - MPI of DSA group generator g;
+			//       - MPI of DSA public-key value y (= g**x mod p where x  is secret).
+			else if (this.publicKeyAlgorithm == 17)
+				mpicount = 4;
+
+			this.MPIs = new Array();
+			for (var i = 0; i < mpicount; i++) {
+				this.MPIs[i] = new openpgp_type_mpi();
+				if (this.MPIs[i].read(input, mypos, (mypos-position)) != null && 
+						!this.packetLength < (mypos-position)) {
+					mypos += this.MPIs[i].packetLength;
+				} else {
+					util.print_error("openpgp.packet.keymaterial.js\n"+'error reading MPI @:'+mypos);
+				}
+			}
+			this.packetLength = mypos-position;
+		} else if (this.version == 4) {
+			// - A four-octet number denoting the time that the key was created.
+			this.creationTime = new Date(((input.charCodeAt(mypos++) << 24) |
+			(input.charCodeAt(mypos++) << 16) |
+			(input.charCodeAt(mypos++) <<  8) |
+			(input.charCodeAt(mypos++)))*1000);
+			
+			// - A one-octet number denoting the public-key algorithm of this key.
+			this.publicKeyAlgorithm = input.charCodeAt(mypos++);
+			var mpicount = 0;
+		    // - A series of multiprecision integers comprising the key material:
+			//   Algorithm-Specific Fields for RSA public keys:
+		    //       - a multiprecision integer (MPI) of RSA public modulus n;
+		    //       - an MPI of RSA public encryption exponent e.
+			if (this.publicKeyAlgorithm > 0 && this.publicKeyAlgorithm < 4)
+					mpicount = 2;
+			//   Algorithm-Specific Fields for Elgamal public keys:
+			//     - MPI of Elgamal prime p;
+			//     - MPI of Elgamal group generator g;
+			//     - MPI of Elgamal public key value y (= g**x mod p where x  is secret).
+			else if (this.publicKeyAlgorithm == 16)
+				mpicount = 3;
+
+			//   Algorithm-Specific Fields for DSA public keys:
+			//       - MPI of DSA prime p;
+			//       - MPI of DSA group order q (q is a prime divisor of p-1);
+			//       - MPI of DSA group generator g;
+			//       - MPI of DSA public-key value y (= g**x mod p where x  is secret).
+			else if (this.publicKeyAlgorithm == 17)
+				mpicount = 4;
+
+			this.MPIs = new Array();
+			var i = 0;
+			for (var i = 0; i < mpicount; i++) {
+				this.MPIs[i] = new openpgp_type_mpi();
+				if (this.MPIs[i].read(input, mypos, (mypos-position)) != null &&
+						!this.packetLength < (mypos-position)) {
+					mypos += this.MPIs[i].packetLength;
+				} else {
+					util.print_error("openpgp.packet.keymaterial.js\n"+'error reading MPI @:'+mypos);
+				}
+			}
+			this.packetLength = mypos-position;
+		} else {
+			return null;
+		}
+		this.data = input.substring(position, mypos);
+		this.packetdata = input.substring(position, mypos);
+		return this;
+	}
+	
+	// 5.5.3.  Secret-Key Packet Formats
+	
+	/**
+	 * Internal parser for private keys as specified in RFC 4880 section 5.5.3
+	 * @param {String} input Input string to read the packet from
+	 * @param {Integer} position Start position for the parser
+	 * @param {Integer} len Length of the packet or remaining length of input
+	 * @return {Object} This object with attributes set by the parser
+	 */
+	function read_priv_key(input,position, len) {
+	    // - A Public-Key or Public-Subkey packet, as described above.
+	    this.publicKey = new openpgp_packet_keymaterial();
+		if (this.publicKey.read_pub_key(input,position, len) == null) {
+			util.print_error("openpgp.packet.keymaterial.js\n"+"Failed reading public key portion of a private key: "+input.charCodeAt(position)+" "+position+" "+len+"\n Aborting here...");
+			return null;
+		}
+		this.publicKey.header = openpgp_packet.write_old_packet_header(6,this.publicKey.packetLength);
+		// this.publicKey.header = String.fromCharCode(0x99) + String.fromCharCode(this.publicKey.packetLength >> 8 & 0xFF)+String.fromCharCode(this.publicKey.packetLength & 0xFF);
+		var mypos = position + this.publicKey.data.length;
+		this.packetLength = len;
+		
+	    // - One octet indicating string-to-key usage conventions.  Zero
+	    //   indicates that the secret-key data is not encrypted.  255 or 254
+	    //   indicates that a string-to-key specifier is being given.  Any
+	    //   other value is a symmetric-key encryption algorithm identifier.
+	    this.s2kUsageConventions = input.charCodeAt(mypos++);
+	    
+	    if (this.s2kUsageConventions == 0)
+	    	this.hasUnencryptedSecretKeyData = true;
+	   
+	    // - [Optional] If string-to-key usage octet was 255 or 254, a one-
+	    //   octet symmetric encryption algorithm.
+	    if (this.s2kUsageConventions == 255 || this.s2kUsageConventions == 254) {
+	    	this.symmetricEncryptionAlgorithm = input.charCodeAt(mypos++);
+	    }
+	     
+	    // - [Optional] If string-to-key usage octet was 255 or 254, a
+	    //   string-to-key specifier.  The length of the string-to-key
+	    //   specifier is implied by its type, as described above.
+	    if (this.s2kUsageConventions == 255 || this.s2kUsageConventions == 254) {
+	    	this.s2k = new openpgp_type_s2k();
+	    	this.s2k.read(input, mypos);
+	    	mypos +=this.s2k.s2kLength;
+	    }
+	    
+	    // - [Optional] If secret data is encrypted (string-to-key usage octet
+	    //   not zero), an Initial Vector (IV) of the same length as the
+	    //   cipher's block size.
+	    this.symkeylength = 0;
+	    if (this.s2kUsageConventions != 0 && this.s2kUsageConventions != 255 &&
+	    		this.s2kUsageConventions != 254) {
+	    	this.symmetricEncryptionAlgorithm = this.s2kUsageConventions;
+	    }
+	    if (this.s2kUsageConventions != 0 && this.s2k.type != 1001) {
+	    	this.hasIV = true;
+	    	switch (this.symmetricEncryptionAlgorithm) {
+		    case  1: // - IDEA [IDEA]
+		    	util.print_error("openpgp.packet.keymaterial.js\n"+"symmetric encrytryption algorithim: IDEA is not implemented");
+		    	return null;
+	    	case  2: // - TripleDES (DES-EDE, [SCHNEIER] [HAC] - 168 bit key derived from 192)
+	    	case  3: // - CAST5 (128 bit key, as per [RFC2144])
+	    		this.IVLength = 8;
+		    	break;
+		    case  4: // - Blowfish (128 bit key, 16 rounds) [BLOWFISH]
+		    case  7: // - AES with 128-bit key [AES]
+	    	case  8: // - AES with 192-bit key
+	    	case  9: // - AES with 256-bit key
+	    		this.IVLength = 16;
+		    	break;
+	    	case 10: // - Twofish with 256-bit key [TWOFISH]
+	    		this.IVLength = 32;	    		
+		    	break;
+	    	case  5: // - Reserved
+	    	case  6: // - Reserved
+	    	default:
+	    		util.print_error("openpgp.packet.keymaterial.js\n"+"unknown encryption algorithm for secret key :"+this.symmetricEncryptionAlgorithm);
+	    		return null;
+	    	}
+	    	mypos++; 
+	    	this.IV = input.substring(mypos, mypos+this.IVLength);
+	    	mypos += this.IVLength;
+	    }
+	    // - Plain or encrypted multiprecision integers comprising the secret
+	    //   key data.  These algorithm-specific fields are as described
+	    //   below.
+
+      // s2k type 1001 corresponds to GPG specific extension without primary key secrets
+      // http://www.gnupg.org/faq/GnuPG-FAQ.html#how-can-i-use-gnupg-in-an-automated-environment
+	    if (this.s2kUsageConventions != 0 && this.s2k.type == 1001) {
+	    	this.secMPIs = null;
+	    	this.encryptedMPIData = null;
+	    } else if (!this.hasUnencryptedSecretKeyData) {
+	    	this.encryptedMPIData = input.substring(mypos, len);
+	    	mypos += this.encryptedMPIData.length;
+	    } else {
+	    	if (this.publicKey.publicKeyAlgorithm > 0 && this.publicKey.publicKeyAlgorithm < 4) {
+	    		//   Algorithm-Specific Fields for RSA secret keys:
+	    		//   - multiprecision integer (MPI) of RSA secret exponent d.
+	    		//   - MPI of RSA secret prime value p.
+	    		//   - MPI of RSA secret prime value q (p < q).
+	    		//   - MPI of u, the multiplicative inverse of p, mod q.
+	    		this.secMPIs = new Array();
+	    		this.secMPIs[0] = new openpgp_type_mpi();
+	    		this.secMPIs[0].read(input, mypos, len-2- (mypos - position));
+	    		mypos += this.secMPIs[0].packetLength;
+	    		this.secMPIs[1] = new openpgp_type_mpi();
+	    		this.secMPIs[1].read(input, mypos, len-2- (mypos - position));
+	    		mypos += this.secMPIs[1].packetLength;
+	    		this.secMPIs[2] = new openpgp_type_mpi();
+	    		this.secMPIs[2].read(input, mypos, len-2- (mypos - position));
+	    		mypos += this.secMPIs[2].packetLength;
+	    		this.secMPIs[3] = new openpgp_type_mpi();
+	    		this.secMPIs[3].read(input, mypos, len-2- (mypos - position));
+	    		mypos += this.secMPIs[3].packetLength;
+	    	} else if (this.publicKey.publicKeyAlgorithm == 16) {
+	    		// Algorithm-Specific Fields for Elgamal secret keys:
+	    		//   - MPI of Elgamal secret exponent x.
+	    		this.secMPIs = new Array();
+	    		this.secMPIs[0] = new openpgp_type_mpi();
+	    		this.secMPIs[0].read(input, mypos, len-2- (mypos - position));
+	    		mypos += this.secMPIs[0].packetLength;
+	    	} else if (this.publicKey.publicKeyAlgorithm == 17) {
+	    		// Algorithm-Specific Fields for DSA secret keys:
+	    		//   - MPI of DSA secret exponent x.
+	    		this.secMPIs = new Array();
+	    		this.secMPIs[0] = new openpgp_type_mpi();
+	    		this.secMPIs[0].read(input, mypos, len-2- (mypos - position));
+	    		mypos += this.secMPIs[0].packetLength;
+	    	}
+	    	// checksum because s2k usage convention is 0
+	        this.checksum = new Array(); 
+		    this.checksum[0] = input.charCodeAt(mypos++);
+		    this.checksum[1] = input.charCodeAt(mypos++);
+	    }
+	    return this;
+	}
+	
+
+	/**
+	 * Decrypts the private key MPIs which are needed to use the key.
+	 * openpgp_packet_keymaterial.hasUnencryptedSecretKeyData should be 
+	 * false otherwise
+	 * a call to this function is not needed
+	 * 
+	 * @param {String} str_passphrase The passphrase for this private key 
+	 * as string
+	 * @return {Boolean} True if the passphrase was correct; false if not
+	 */
+	function decryptSecretMPIs(str_passphrase) {
+		if (this.hasUnencryptedSecretKeyData)
+			return this.secMPIs;
+		// creating a key out of the passphrase
+		var key = this.s2k.produce_key(str_passphrase);
+		var cleartextMPIs = "";
+    	switch (this.symmetricEncryptionAlgorithm) {
+	    case  1: // - IDEA [IDEA]
+	    	util.print_error("openpgp.packet.keymaterial.js\n"+"symmetric encryption algorithim: IDEA is not implemented");
+	    	return false;
+    	case  2: // - TripleDES (DES-EDE, [SCHNEIER] [HAC] - 168 bit key derived from 192)
+    		cleartextMPIs = normal_cfb_decrypt(function(block, key) {
+    			return des(key, block,1,null,0);
+    		}, this.IVLength, key, this.encryptedMPIData, this.IV);
+    		break;
+    	case  3: // - CAST5 (128 bit key, as per [RFC2144])
+    		cleartextMPIs = normal_cfb_decrypt(function(block, key) {
+        		var cast5 = new openpgp_symenc_cast5();
+        		cast5.setKey(key);
+        		return cast5.encrypt(util.str2bin(block)); 
+    		}, this.IVLength, util.str2bin(key.substring(0,16)), this.encryptedMPIData, this.IV);
+    		break;
+	    case  4: // - Blowfish (128 bit key, 16 rounds) [BLOWFISH]
+	    	cleartextMPIs = normal_cfb_decrypt(function(block, key) {
+    			var blowfish = new Blowfish(key);
+        		return blowfish.encrypt(block); 
+    		}, this.IVLength, key, this.encryptedMPIData, this.IV);
+    		break;
+	    case  7: // - AES with 128-bit key [AES]
+    	case  8: // - AES with 192-bit key
+    	case  9: // - AES with 256-bit key
+    	    var numBytes = 16;
+            //This is a weird way to achieve this. If's within a switch is probably not ideal.
+    	    if(this.symmetricEncryptionAlgorithm == 8){
+    	        numBytes = 24;
+    	        key = this.s2k.produce_key(str_passphrase,numBytes);
+    	    }
+    	    if(this.symmetricEncryptionAlgorithm == 9){
+    	        numBytes = 32;
+    	        key = this.s2k.produce_key(str_passphrase,numBytes);
+    	    }
+    		cleartextMPIs = normal_cfb_decrypt(function(block,key){
+    		    return AESencrypt(util.str2bin(block),key);
+    		},
+    				this.IVLength, keyExpansion(key.substring(0,numBytes)), this.encryptedMPIData, this.IV);
+	    	break;
+    	case 10: // - Twofish with 256-bit key [TWOFISH]
+    		util.print_error("openpgp.packet.keymaterial.js\n"+"Key material is encrypted with twofish: not implemented");   		
+	    	return false;
+    	case  5: // - Reserved
+    	case  6: // - Reserved
+    	default:
+    		util.print_error("openpgp.packet.keymaterial.js\n"+"unknown encryption algorithm for secret key :"+this.symmetricEncryptionAlgorithm);
+    		return false;
+    	}
+    	
+    	if (cleartextMPIs == null) {
+    		util.print_error("openpgp.packet.keymaterial.js\n"+"cleartextMPIs was null");
+    		return false;
+    	}
+    	
+    	var cleartextMPIslength = cleartextMPIs.length;
+
+    	if (this.s2kUsageConventions == 254 &&
+    			str_sha1(cleartextMPIs.substring(0,cleartextMPIs.length - 20)) == 
+    				cleartextMPIs.substring(cleartextMPIs.length - 20)) {
+    		cleartextMPIslength -= 20;
+    	} else if (this.s2kUsageConventions != 254 && util.calc_checksum(cleartextMPIs.substring(0,cleartextMPIs.length - 2)) == 
+    			(cleartextMPIs.charCodeAt(cleartextMPIs.length -2) << 8 | cleartextMPIs.charCodeAt(cleartextMPIs.length -1))) {
+    		cleartextMPIslength -= 2;
+    	} else {
+    		return false;
+    	}
+
+    	if (this.publicKey.publicKeyAlgorithm > 0 && this.publicKey.publicKeyAlgorithm < 4) {
+    		//   Algorithm-Specific Fields for RSA secret keys:
+    		//   - multiprecision integer (MPI) of RSA secret exponent d.
+    		//   - MPI of RSA secret prime value p.
+    		//   - MPI of RSA secret prime value q (p < q).
+    		//   - MPI of u, the multiplicative inverse of p, mod q.
+    		var mypos = 0;
+    		this.secMPIs = new Array();
+    		this.secMPIs[0] = new openpgp_type_mpi();
+    		this.secMPIs[0].read(cleartextMPIs, 0, cleartextMPIslength);
+    		mypos += this.secMPIs[0].packetLength;
+    		this.secMPIs[1] = new openpgp_type_mpi();
+    		this.secMPIs[1].read(cleartextMPIs, mypos, cleartextMPIslength-mypos);
+    		mypos += this.secMPIs[1].packetLength;
+    		this.secMPIs[2] = new openpgp_type_mpi();
+    		this.secMPIs[2].read(cleartextMPIs, mypos, cleartextMPIslength-mypos);
+    		mypos += this.secMPIs[2].packetLength;
+    		this.secMPIs[3] = new openpgp_type_mpi();
+    		this.secMPIs[3].read(cleartextMPIs, mypos, cleartextMPIslength-mypos);
+    		mypos += this.secMPIs[3].packetLength;
+    	} else if (this.publicKey.publicKeyAlgorithm == 16) {
+    		// Algorithm-Specific Fields for Elgamal secret keys:
+    		//   - MPI of Elgamal secret exponent x.
+    		this.secMPIs = new Array();
+    		this.secMPIs[0] = new openpgp_type_mpi();
+    		this.secMPIs[0].read(cleartextMPIs, 0, cleartextMPIs);
+    	} else if (this.publicKey.publicKeyAlgorithm == 17) {
+    		// Algorithm-Specific Fields for DSA secret keys:
+    		//   - MPI of DSA secret exponent x.
+    		this.secMPIs = new Array();
+    		this.secMPIs[0] = new openpgp_type_mpi();
+    		this.secMPIs[0].read(cleartextMPIs, 0, cleartextMPIslength);
+    	}
+    	return true;
+	}
+	
+	/**
+	 * Generates Debug output
+	 * @return String which gives some information about the keymaterial
+	 */
+	function toString() {
+		var result = "";
+		switch (this.tagType) {
+		case 6:
+			 result += '5.5.1.1. Public-Key Packet (Tag 6)\n'+
+			   '    length:             '+this.packetLength+'\n'+
+			   '    version:            '+this.version+'\n'+
+			   '    creation time:      '+this.creationTime+'\n'+
+			   '    expiration time:    '+this.expiration+'\n'+
+			   '    publicKeyAlgorithm: '+this.publicKeyAlgorithm+'\n';
+			break;
+		case 14:
+			result += '5.5.1.2. Public-Subkey Packet (Tag 14)\n'+
+			   '    length:             '+this.packetLength+'\n'+
+			   '    version:            '+this.version+'\n'+
+			   '    creation time:      '+this.creationTime+'\n'+
+			   '    expiration time:    '+this.expiration+'\n'+
+			   '    publicKeyAlgorithm: '+this.publicKeyAlgorithm+'\n';
+			break;
+		case 5:
+			result +='5.5.1.3. Secret-Key Packet (Tag 5)\n'+
+			   '    length:             '+this.packetLength+'\n'+
+			   '    version:            '+this.publicKey.version+'\n'+
+			   '    creation time:      '+this.publicKey.creationTime+'\n'+
+			   '    expiration time:    '+this.publicKey.expiration+'\n'+
+			   '    publicKeyAlgorithm: '+this.publicKey.publicKeyAlgorithm+'\n';
+			break;
+		case 7:
+			result += '5.5.1.4. Secret-Subkey Packet (Tag 7)\n'+
+			   '    length:             '+this.packetLength+'\n'+
+			   '    version[1]:         '+(this.version == 4)+'\n'+
+			   '    creationtime[4]:    '+this.creationTime+'\n'+
+			   '    expiration[2]:      '+this.expiration+'\n'+
+			   '    publicKeyAlgorithm: '+this.publicKeyAlgorithm+'\n';
+			break;
+		default:
+			result += 'unknown key material packet\n';
+		}
+		if (this.MPIs != null) {
+			result += "Public Key MPIs:\n";
+			for (var i = 0; i < this.MPIs.length; i++) {
+      	  	result += this.MPIs[i].toString();
+        	}
+		}
+		if (this.publicKey != null && this.publicKey.MPIs != null) {
+			result += "Public Key MPIs:\n";
+			for (var i = 0; i < this.publicKey.MPIs.length; i++) {
+	      	  	result += this.publicKey.MPIs[i].toString();
+        	}
+		}
+		if (this.secMPIs != null) {
+			result += "Secret Key MPIs:\n";
+			for (var i = 0; i < this.secMPIs.length; i++) {
+		      	  result += this.secMPIs[i].toString();
+		        }
+		}
+		
+		if (this.subKeySignature != null)
+			result += "subKey Signature:\n"+this.subKeySignature.toString();
+		
+		if (this.subKeyRevocationSignature != null )
+			result += "subKey Revocation Signature:\n"+this.subKeyRevocationSignature.toString();
+        return result;
+	}
+	
+	/**
+	 * Continue parsing packets belonging to the key material such as signatures
+	 * @param {Object} parent_node The parent object
+	 * @param {String} input Input string to read the packet(s) from
+	 * @param {Integer} position Start position for the parser
+	 * @param {Integer} len Length of the packet(s) or remaining length of input
+	 * @return {Integer} Length of nodes read
+	 */
+	function read_nodes(parent_node, input, position, len) {
+		this.parentNode = parent_node;
+		if (this.tagType == 14) { // public sub-key packet
+			var pos = position;
+			var result = null;
+			while (input.length != pos) {
+				var l = input.length - pos;
+				result = openpgp_packet.read_packet(input, pos, l);
+				if (result == null) {
+					util.print_error("openpgp.packet.keymaterial.js\n"+'[user_keymat_pub]parsing ends here @:' + pos + " l:" + l);
+					break;
+				} else {
+					
+					switch (result.tagType) {
+					case 2: // Signature Packet certification signature
+						if (result.signatureType == 24)  { // subkey binding signature
+							this.subKeySignature = result;
+							pos += result.packetLength + result.headerLength;
+							break;
+						} else if (result.signatureType == 40) { // subkey revocation signature
+							this.subKeyRevocationSignature[this.subKeyRevocationSignature.length] = result;
+							pos += result.packetLength + result.headerLength;
+							break;
+						} else {
+							util.print_error("openpgp.packet.keymaterial.js\nunknown signature:"+result.toString());
+						}
+						
+					default:
+						this.data = input;
+						this.position = position - this.parentNode.packetLength;
+						this.len = pos - position;
+						return this.len;
+						break;
+					}
+				}
+			}
+			this.data = input;
+			this.position = position - this.parentNode.packetLength;
+			this.len = pos - position;
+			return this.len;
+		} else if (this.tagType == 7) { // private sub-key packet
+			var pos = position;
+			while (input.length != pos) {
+				var result = openpgp_packet.read_packet(input, pos, len - (pos - position));
+				if (result == null) {
+					util.print_error("openpgp.packet.keymaterial.js\n"+'[user_keymat_priv] parsing ends here @:' + pos);
+					break;
+				} else {
+					switch (result.tagType) {
+					case 2: // Signature Packet certification signature
+						if (result.signatureType == 24) // subkey embedded signature
+							this.subKeySignature = result; 
+						else if (result.signatureType == 40) // subkey revocation signature
+							this.subKeyRevocationSignature[this.subKeyRevocationSignature.length] = result;
+						pos += result.packetLength + result.headerLength;
+						break;
+					default:
+						this.data = input;
+						this.position = position - this.parentNode.packetLength;
+						this.len = pos - position;
+						return this.len;
+					}
+				}
+			}
+			this.data = input;
+			this.position = position - this.parentNode.packetLength;
+			this.len = pos - position;
+			return this.len;
+		} else {
+			util.print_error("openpgp.packet.keymaterial.js\n"+"unknown parent node for a key material packet "+parent_node.tagType);
+		}
+	}
+
+	/**
+	 * Checks the validity for usage of this (sub)key
+	 * @return {Integer} 0 = bad key, 1 = expired, 2 = revoked, 3 = valid
+	 */
+	function verifyKey() {
+		if (this.tagType == 14) {
+			if (this.subKeySignature == null) {
+				return 0;
+			}
+			if (this.subKeySignature.version == 4 &&
+				this.subKeySignature.keyNeverExpires != null &&
+				!this.subKeySignature.keyNeverExpires &&
+				new Date((this.subKeySignature.keyExpirationTime*1000)+ this.creationTime.getTime()) < new Date()) {
+				    return 1;
+				}
+			var hashdata = String.fromCharCode(0x99)+this.parentNode.header.substring(1)+this.parentNode.data+
+			String.fromCharCode(0x99)+this.header.substring(1)+this.packetdata;
+			if (!this.subKeySignature.verify(hashdata,this.parentNode)) {
+				return 0;
+			}
+			for (var i = 0; i < this.subKeyRevocationSignature.length; i++) {
+			    if (this.getKeyId() == this.subKeyRevocationSignature[i].keyId){
+			        return 2;
+			    }
+			}
+		}
+		return 3;
+	}
+
+	/**
+	 * Calculates the key id of they key 
+	 * @return {String} A 8 byte key id
+	 */
+	function getKeyId() {
+		if (this.version == 4) {
+			var f = this.getFingerprint();
+			return f.substring(12,20);
+		} else if (this.version == 3 && this.publicKeyAlgorithm > 0 && this.publicKeyAlgorithm < 4) {
+			var key_id = this.MPIs[0].MPI.substring((this.MPIs[0].mpiByteLength-8));
+			util.print_debug("openpgp.msg.publickey read_nodes:\n"+"V3 key ID: "+key_id);
+			return key_id;
+		}
+	}
+	
+	/**
+	 * Calculates the fingerprint of the key
+	 * @return {String} A string containing the fingerprint
+	 */
+	function getFingerprint() {
+		if (this.version == 4) {
+			tohash = String.fromCharCode(0x99)+ String.fromCharCode(((this.packetdata.length) >> 8) & 0xFF) 
+				+ String.fromCharCode((this.packetdata.length) & 0xFF)+this.packetdata;
+			util.print_debug("openpgp.msg.publickey creating subkey fingerprint by hashing:"+util.hexstrdump(tohash)+"\npublickeyalgorithm: "+this.publicKeyAlgorithm);
+			return str_sha1(tohash, tohash.length);
+		} else if (this.version == 3 && this.publicKeyAlgorithm > 0 && this.publicKeyAlgorithm < 4) {
+			return MD5(this.MPIs[0].MPI);
+		}
+	}
+	
+	/*
+     * Creates an OpenPGP key packet for the given key. much 
+	 * TODO in regards to s2k, subkeys.
+     * @param {Integer} keyType Follows the OpenPGP algorithm standard, 
+	 * IE 1 corresponds to RSA.
+     * @param {RSA.keyObject} key
+     * @param password
+     * @param s2kHash
+     * @param symmetricEncryptionAlgorithm
+     * @param timePacket
+     * @return {Object} {body: [string]OpenPGP packet body contents, 
+		header: [string] OpenPGP packet header, string: [string] header+body}
+     */
+    function write_private_key(keyType, key, password, s2kHash, symmetricEncryptionAlgorithm, timePacket){
+        this.symmetricEncryptionAlgorithm = symmetricEncryptionAlgorithm;
+		var tag = 5;
+		var body = String.fromCharCode(4);
+		body += timePacket;
+		switch(keyType){
+		case 1:
+		    body += String.fromCharCode(keyType);//public key algo
+		    body += key.n.toMPI();
+		    body += key.ee.toMPI();
+		    var algorithmStart = body.length;
+		    //below shows ske/s2k
+		    if(password){
+		        body += String.fromCharCode(254); //octet of 254 indicates s2k with SHA1
+		        //if s2k == 255,254 then 1 octet symmetric encryption algo
+		        body += String.fromCharCode(this.symmetricEncryptionAlgorithm);
+		        //if s2k == 255,254 then s2k specifier
+		        body += String.fromCharCode(3); //s2k salt+iter
+		        body += String.fromCharCode(s2kHash);
+		        //8 octet salt value
+		        //1 octet count
+		        var cleartextMPIs = key.d.toMPI() + key.p.toMPI() + key.q.toMPI() + key.u.toMPI();
+		        var sha1Hash = str_sha1(cleartextMPIs);
+   		        util.print_debug_hexstr_dump('write_private_key sha1: ',sha1Hash);
+		        var salt = openpgp_crypto_getRandomBytes(8);
+		        util.print_debug_hexstr_dump('write_private_key Salt: ',salt);
+		        body += salt;
+		        var c = 96; //c of 96 translates to count of 65536
+		        body += String.fromCharCode(c);
+		        util.print_debug('write_private_key c: '+ c);
+		        var s2k = new openpgp_type_s2k();
+		        var hashKey = s2k.write(3, s2kHash, password, salt, c);
+		        //if s2k, IV of same length as cipher's block
+		        switch(this.symmetricEncryptionAlgorithm){
+		        case 3:
+		            this.IVLength = 8;
+		            this.IV = openpgp_crypto_getRandomBytes(this.IVLength);
+            		ciphertextMPIs = normal_cfb_encrypt(function(block, key) {
+                		var cast5 = new openpgp_symenc_cast5();
+                		cast5.setKey(key);
+                		return cast5.encrypt(util.str2bin(block)); 
+            		}, this.IVLength, util.str2bin(hashKey.substring(0,16)), cleartextMPIs + sha1Hash, this.IV);
+            		body += this.IV + ciphertextMPIs;
+		            break;
+		        case 7:
+		        case 8:
+		        case 9:
+		            this.IVLength = 16;
+		            this.IV = openpgp_crypto_getRandomBytes(this.IVLength);
+		            ciphertextMPIs = normal_cfb_encrypt(AESencrypt,
+            				this.IVLength, hashKey, cleartextMPIs + sha1Hash, this.IV);
+            		body += this.IV + ciphertextMPIs;
+	            	break;
+		        }
+		    }
+		    else{
+		        body += String.fromCharCode(0);//1 octet -- s2k, 0 for no s2k
+		        body += key.d.toMPI() + key.p.toMPI() + key.q.toMPI() + key.u.toMPI();
+		        var checksum = util.calc_checksum(key.d.toMPI() + key.p.toMPI() + key.q.toMPI() + key.u.toMPI());
+        		body += String.fromCharCode(checksum/0x100) + String.fromCharCode(checksum%0x100);//DEPRECATED:s2k == 0, 255: 2 octet checksum, sum all octets%65536
+        		util.print_debug_hexstr_dump('write_private_key basic checksum: '+ checksum);
+		    }
+		    break;
+		default :
+			body = "";
+			util.print_error("openpgp.packet.keymaterial.js\n"+'error writing private key, unknown type :'+keyType);
+        }
+		var header = openpgp_packet.write_packet_header(tag,body.length);
+		return {string: header+body , header: header, body: body};
+    }
+	
+	/*
+     * Same as write_private_key, but has less information because of 
+	 * public key.
+     * @param {Integer} keyType Follows the OpenPGP algorithm standard, 
+	 * IE 1 corresponds to RSA.
+     * @param {RSA.keyObject} key
+     * @param timePacket
+     * @return {Object} {body: [string]OpenPGP packet body contents, 
+	 * header: [string] OpenPGP packet header, string: [string] header+body}
+     */
+    function write_public_key(keyType, key, timePacket){
+        var tag = 6;
+        var body = String.fromCharCode(4);
+        body += timePacket;
+		switch(keyType){
+		case 1:
+		    body += String.fromCharCode(1);//public key algo
+		    body += key.n.toMPI();
+		    body += key.ee.toMPI();
+		    break;
+	    default:
+	    	util.print_error("openpgp.packet.keymaterial.js\n"+'error writing private key, unknown type :'+keyType);
+	    }
+        var header = openpgp_packet.write_packet_header(tag,body.length);
+        return {string: header+body , header: header, body: body};
+        }
+
+	
+	this.read_tag5 = read_tag5;
+	this.read_tag6 = read_tag6;
+	this.read_tag7 = read_tag7;
+	this.read_tag14 = read_tag14;
+	this.toString = toString;
+	this.read_pub_key = read_pub_key;
+	this.read_priv_key = read_priv_key;
+	this.decryptSecretMPIs = decryptSecretMPIs;
+	this.read_nodes = read_nodes;
+	this.verifyKey = verifyKey;
+	this.getKeyId = getKeyId;
+	this.getFingerprint = getFingerprint;
+	this.write_private_key = write_private_key;
+	this.write_public_key = write_public_key;
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the Literal Data Packet (Tag 11)
+ * 
+ * RFC4880 5.9: A Literal Data packet contains the body of a message; data that
+ * is not to be further interpreted.
+ */
+function openpgp_packet_literaldata() {
+	this.tagType = 11;
+
+	
+	/**
+	 * Set the packet data to a javascript native string or a squence of 
+	 * bytes. Conversion to a proper utf8 encoding takes place when the 
+	 * packet is written.
+	 * @param {String} str Any native javascript string
+	 * @param {openpgp_packet_literaldata.formats} format 
+	 */
+	this.set_data = function(str, format) {
+		this.format = format;
+		this.data = str;
+	}
+
+	/**
+	 * Set the packet data to value represented by the provided string
+	 * of bytes together with the appropriate conversion format.
+	 * @param {String} bytes The string of bytes
+	 * @param {openpgp_packet_literaldata.formats} format
+	 */
+	this.set_data_bytes = function(bytes, format) {
+		this.format = format;
+
+		if(format == openpgp_packet_literaldata.formats.utf8)
+			bytes = util.decode_utf8(bytes);
+
+		this.data = bytes;
+	}
+
+	/**
+	 * Get the byte sequence representing the literal packet data
+	 * @returns {String} A sequence of bytes
+	 */
+	this.get_data_bytes = function() {
+		if(this.format == openpgp_packet_literaldata.formats.utf8)
+			return util.encode_utf8(this.data);
+		else
+			return this.data;
+	}
+	
+	
+
+	/**
+	 * Parsing function for a literal data packet (tag 11).
+	 * 
+	 * @param {String} input Payload of a tag 11 packet
+	 * @param {Integer} position
+	 *            Position to start reading from the input string
+	 * @param {Integer} len
+	 *            Length of the packet or the remaining length of
+	 *            input at position
+	 * @return {openpgp_packet_encrypteddata} object representation
+	 */
+	this.read_packet = function(input, position, len) {
+		this.packetLength = len;
+		// - A one-octet field that describes how the data is formatted.
+
+		var format = input[position];
+
+		this.filename = util.decode_utf8(input.substr(position + 2, input
+				.charCodeAt(position + 1)));
+
+		this.date = new Date(parseInt(input.substr(position + 2
+				+ input.charCodeAt(position + 1), 4)) * 1000);
+
+		var bytes = input.substring(position + 6
+				+ input.charCodeAt(position + 1));
+	
+		this.set_data_bytes(bytes, format);
+		return this;
+	}
+
+	/**
+	 * Creates a string representation of the packet
+	 * 
+	 * @param {String} data The data to be inserted as body
+	 * @return {String} string-representation of the packet
+	 */
+	this.write_packet = function(data) {
+		this.set_data(data, openpgp_packet_literaldata.formats.utf8);
+		this.filename = util.encode_utf8("msg.txt");
+		this.date = new Date();
+
+		data = this.get_data_bytes();
+
+		var result = openpgp_packet.write_packet_header(11, data.length + 6
+				+ this.filename.length);
+		result += this.format;
+		result += String.fromCharCode(this.filename.length);
+		result += this.filename;
+		result += String
+				.fromCharCode((Math.round(this.date.getTime() / 1000) >> 24) & 0xFF);
+		result += String
+				.fromCharCode((Math.round(this.date.getTime() / 1000) >> 16) & 0xFF);
+		result += String
+				.fromCharCode((Math.round(this.date.getTime() / 1000) >> 8) & 0xFF);
+		result += String
+				.fromCharCode(Math.round(this.date.getTime() / 1000) & 0xFF);
+		result += data;
+		return result;
+	}
+
+	/**
+	 * Generates debug output (pretty print)
+	 * 
+	 * @return {String} String which gives some information about the keymaterial
+	 */
+	this.toString = function() {
+		return '5.9.  Literal Data Packet (Tag 11)\n' + '    length: '
+				+ this.packetLength + '\n' + '    format: ' + this.format
+				+ '\n' + '    filename:' + this.filename + '\n'
+				+ '    date:   ' + this.date + '\n' + '    data:  |'
+				+ this.data + '|\n' + '    rdata: |' + this.real_data + '|\n';
+	}
+}
+
+/**
+ * Data types in the literal packet
+ * @readonly
+ * @enum {String}
+ */
+openpgp_packet_literaldata.formats = {
+	/** Binary data */
+	binary: 'b',
+	/** Text data */
+	text: 't',
+	/** Utf8 data */
+	utf8: 'u'
+};
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the strange "Marker packet" (Tag 10)
+ * 
+ * RFC4880 5.8: An experimental version of PGP used this packet as the Literal
+ * packet, but no released version of PGP generated Literal packets with this
+ * tag. With PGP 5.x, this packet has been reassigned and is reserved for use as
+ * the Marker packet.
+ * 
+ * Such a packet MUST be ignored when received.
+ */
+function openpgp_packet_marker() {
+	this.tagType = 10;
+	/**
+	 * Parsing function for a literal data packet (tag 10).
+	 * 
+	 * @param {String} input Payload of a tag 10 packet
+	 * @param {Integer} position
+	 *            Position to start reading from the input string
+	 * @param {Integer} len
+	 *            Length of the packet or the remaining length of
+	 *            input at position
+	 * @return {openpgp_packet_encrypteddata} Object representation
+	 */
+	function read_packet(input, position, len) {
+		this.packetLength = 3;
+		if (input.charCodeAt(position) == 0x50 && // P
+				input.charCodeAt(position + 1) == 0x47 && // G
+				input.charCodeAt(position + 2) == 0x50) // P
+			return this;
+		// marker packet does not contain "PGP"
+		return null;
+	}
+
+	/**
+	 * Generates Debug output
+	 * 
+	 * @return {String} String which gives some information about the 
+	 * keymaterial
+	 */
+	function toString() {
+		return "5.8.  Marker Packet (Obsolete Literal Packet) (Tag 10)\n"
+				+ "     packet reads: \"PGP\"\n";
+	}
+
+	this.read_packet = read_packet;
+	this.toString = toString;
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the Modification Detection Code Packet (Tag 19)
+ * 
+ * RFC4880 5.14: The Modification Detection Code packet contains a SHA-1 hash of
+ * plaintext data, which is used to detect message modification. It is only used
+ * with a Symmetrically Encrypted Integrity Protected Data packet. The
+ * Modification Detection Code packet MUST be the last packet in the plaintext
+ * data that is encrypted in the Symmetrically Encrypted Integrity Protected
+ * Data packet, and MUST appear in no other place.
+ */
+
+function openpgp_packet_modificationdetectioncode() {
+	this.tagType = 19;
+	this.hash = null;
+	/**
+	 * parsing function for a modification detection code packet (tag 19).
+	 * 
+	 * @param {String} input payload of a tag 19 packet
+	 * @param {Integer} position
+	 *            position to start reading from the input string
+	 * @param {Integer} len
+	 *            length of the packet or the remaining length of
+	 *            input at position
+	 * @return {openpgp_packet_encrypteddata} object representation
+	 */
+	function read_packet(input, position, len) {
+		this.packetLength = len;
+
+		if (len != 20) {
+			util
+					.print_error("openpgp.packet.modificationdetectioncode.js\n"
+							+ 'invalid length for a modification detection code packet!'
+							+ len);
+			return null;
+		}
+		// - A 20-octet SHA-1 hash of the preceding plaintext data of the
+		// Symmetrically Encrypted Integrity Protected Data packet,
+		// including prefix data, the tag octet, and length octet of the
+		// Modification Detection Code packet.
+		this.hash = input.substring(position, position + 20);
+		return this;
+	}
+
+	/*
+	 * this packet is created within the encryptedintegrityprotected packet
+	 * function write_packet(data) { }
+	 */
+
+	/**
+	 * generates debug output (pretty print)
+	 * 
+	 * @return {String} String which gives some information about the 
+	 * modification detection code
+	 */
+	function toString() {
+		return '5.14 Modification detection code packet\n' + '    bytes ('
+				+ this.hash.length + '): [' + util.hexstrdump(this.hash) + ']';
+	}
+	this.read_packet = read_packet;
+	this.toString = toString;
+};
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the One-Pass Signature Packets (Tag 4)
+ * 
+ * RFC4880 5.4:
+ * The One-Pass Signature packet precedes the signed data and contains
+ * enough information to allow the receiver to begin calculating any
+ * hashes needed to verify the signature.  It allows the Signature
+ * packet to be placed at the end of the message, so that the signer
+ * can compute the entire signed message in one pass.
+ */
+function openpgp_packet_onepasssignature() {
+	this.tagType = 4;
+	this.version = null; // A one-octet version number.  The current version is 3.
+	this.type = null; 	 // A one-octet signature type.  Signature types are described in RFC4880 Section 5.2.1.
+	this.hashAlgorithm = null; 	   // A one-octet number describing the hash algorithm used. (See RFC4880 9.4)
+	this.publicKeyAlgorithm = null;	     // A one-octet number describing the public-key algorithm used. (See RFC4880 9.1)
+	this.signingKeyId = null; // An eight-octet number holding the Key ID of the signing key.
+	this.flags = null; 	//  A one-octet number holding a flag showing whether the signature is nested.  A zero value indicates that the next packet is another One-Pass Signature packet that describes another signature to be applied to the same message data.
+
+	/**
+	 * parsing function for a one-pass signature packet (tag 4).
+	 * @param {String} input payload of a tag 4 packet
+	 * @param {Integer} position position to start reading from the input string
+	 * @param {Integer} len length of the packet or the remaining length of input at position
+	 * @return {openpgp_packet_encrypteddata} object representation
+	 */
+	function read_packet(input, position, len) {
+		this.packetLength = len;
+		var mypos = position;
+		// A one-octet version number.  The current version is 3.
+		this.version = input.charCodeAt(mypos++);
+
+	     // A one-octet signature type.  Signature types are described in
+	     //   Section 5.2.1.
+		this.type = input.charCodeAt(mypos++);
+
+	     // A one-octet number describing the hash algorithm used.
+		this.hashAlgorithm = input.charCodeAt(mypos++);
+
+	     // A one-octet number describing the public-key algorithm used.
+		this.publicKeyAlgorithm = input.charCodeAt(mypos++);
+	     // An eight-octet number holding the Key ID of the signing key.
+		this.signingKeyId = new openpgp_type_keyid();
+		this.signingKeyId.read_packet(input,mypos);
+		mypos += 8;
+		
+	     // A one-octet number holding a flag showing whether the signature
+	     //   is nested.  A zero value indicates that the next packet is
+	     //   another One-Pass Signature packet that describes another
+	     //   signature to be applied to the same message data.
+		this.flags = input.charCodeAt(mypos++);
+		return this;
+	}
+
+	/**
+	 * creates a string representation of a one-pass signature packet
+	 * @param {Integer} type Signature types as described in RFC4880 Section 5.2.1.
+	 * @param {Integer} hashalgorithm the hash algorithm used within the signature
+	 * @param {openpgp_msg_privatekey} privatekey the private key used to generate the signature
+	 * @param {Integer} length length of data to be signed
+	 * @param {boolean} nested boolean showing whether the signature is nested. 
+	 *  "true" indicates that the next packet is another One-Pass Signature packet
+	 *   that describes another signature to be applied to the same message data. 
+	 * @return {String} a string representation of a one-pass signature packet
+	 */
+	function write_packet(type, hashalgorithm, privatekey,length, nested) {
+		var result =""; 
+		
+		result += openpgp_packet.write_packet_header(4,13);
+		result += String.fromCharCode(3);
+		result += String.fromCharCode(type);
+		result += String.fromCharCode(hashalgorithm);
+		result += String.fromCharCode(privatekey.privateKeyPacket.publicKey.publicKeyAlgorithm);
+		result += privatekey.getKeyId();
+		if (nested)
+			result += String.fromCharCode(0);
+		else
+			result += String.fromCharCode(1);
+		
+		return result;
+	}
+	
+	/**
+	 * generates debug output (pretty print)
+	 * @return {String} String which gives some information about the one-pass signature packet
+	 */
+	function toString() {
+		return '5.4.  One-Pass Signature Packets (Tag 4)\n'+
+			   '    length: '+this.packetLength+'\n'+
+			   '    type:   '+this.type+'\n'+
+			   '    keyID:  '+this.signingKeyId.toString()+'\n'+
+			   '    hashA:  '+this.hashAlgorithm+'\n'+
+			   '    pubKeyA:'+this.publicKeyAlgorithm+'\n'+
+			   '    flags:  '+this.flags+'\n'+
+			   '    version:'+this.version+'\n';
+	}
+	
+	this.read_packet = read_packet;
+	this.toString = toString;
+	this.write_packet = write_packet;
+};
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the Signature Packet (Tag 2)
+ * 
+ * RFC4480 5.2:
+ * A Signature packet describes a binding between some public key and
+ * some data.  The most common signatures are a signature of a file or a
+ * block of text, and a signature that is a certification of a User ID.
+ */
+function openpgp_packet_signature() {
+	this.tagType = 2;
+	this.signatureType = null;
+	this.creationTime = null;
+	this.keyId = null;
+	this.signatureData = null;
+	this.signatureExpirationTime = null;
+	this.signatureNeverExpires = null;
+	this.signedHashValue = null;
+	this.MPIs = null;
+	this.publicKeyAlgorithm = null; 
+	this.hashAlgorithm = null;
+	this.exportable = null;
+	this.trustLevel = null;
+	this.trustAmount = null;
+	this.regular_expression = null;
+	this.revocable = null;
+	this.keyExpirationTime = null;
+	this.keyNeverExpires = null;
+	this.preferredSymmetricAlgorithms = null;
+	this.revocationKeyClass = null;
+	this.revocationKeyAlgorithm = null;
+	this.revocationKeyFingerprint = null;
+	this.issuerKeyId = null;
+	this.notationFlags = null; 
+	this.notationName = null;
+	this.notationValue = null;
+	this.preferredHashAlgorithms = null;
+	this.preferredCompressionAlgorithms = null;
+	this.keyServerPreferences = null;
+	this.preferredKeyServer = null;
+	this.isPrimaryUserID = null;
+	this.policyURI = null;
+	this.keyFlags = null;
+	this.signersUserId = null;
+	this.reasonForRevocationFlag = null;
+	this.reasonForRevocationString = null;
+	this.signatureTargetPublicKeyAlgorithm = null;
+	this.signatureTargetHashAlgorithm = null;
+	this.signatureTargetHash = null;
+	this.embeddedSignature = null;
+	this.verified = false;
+	
+
+	/**
+	 * parsing function for a signature packet (tag 2).
+	 * @param {String} input payload of a tag 2 packet
+	 * @param {Integer} position position to start reading from the input string
+	 * @param {Integer} len length of the packet or the remaining length of input at position
+	 * @return {openpgp_packet_encrypteddata} object representation
+	 */
+	function read_packet(input, position, len) {
+		this.data = input.substring	(position, position+len);
+		if (len < 0) {
+			util.print_debug("openpgp.packet.signature.js\n"+"openpgp_packet_signature read_packet length < 0 @:"+position);
+			return null;
+		}
+		var mypos = position;
+		this.packetLength = len;
+		// alert('starting parsing signature: '+position+' '+this.packetLength);
+		this.version = input.charCodeAt(mypos++);
+		// switch on version (3 and 4)
+		switch (this.version) {
+		case 3:
+			// One-octet length of following hashed material. MUST be 5.
+			if (input.charCodeAt(mypos++) != 5)
+				util.print_debug("openpgp.packet.signature.js\n"+'invalid One-octet length of following hashed material.  MUST be 5. @:'+(mypos-1));
+			var sigpos = mypos;
+			// One-octet signature type.
+			this.signatureType = input.charCodeAt(mypos++);
+
+			// Four-octet creation time.
+			this.creationTime = new Date(((input.charCodeAt(mypos++)) << 24 |
+					(input.charCodeAt(mypos++) << 16) | (input.charCodeAt(mypos++) << 8) |
+					input.charCodeAt(mypos++))* 1000);
+			
+			// storing data appended to data which gets verified
+			this.signatureData = input.substring(sigpos, mypos);
+			
+			// Eight-octet Key ID of signer.
+			this.keyId = input.substring(mypos, mypos +8);
+			mypos += 8;
+
+			// One-octet public-key algorithm.
+			this.publicKeyAlgorithm = input.charCodeAt(mypos++);
+
+			// One-octet hash algorithm.
+			this.hashAlgorithm = input.charCodeAt(mypos++);
+
+			// Two-octet field holding left 16 bits of signed hash value.
+			this.signedHashValue = (input.charCodeAt(mypos++) << 8) | input.charCodeAt(mypos++);
+			var mpicount = 0;
+			// Algorithm-Specific Fields for RSA signatures:
+			// 	    - multiprecision integer (MPI) of RSA signature value m**d mod n.
+			if (this.publicKeyAlgorithm > 0 && this.publicKeyAlgorithm < 4)
+				mpicount = 1;
+			//    Algorithm-Specific Fields for DSA signatures:
+			//      - MPI of DSA value r.
+			//      - MPI of DSA value s.
+			else if (this.publicKeyAlgorithm == 17)
+				mpicount = 2;
+			
+			this.MPIs = new Array();
+			for (var i = 0; i < mpicount; i++) {
+				this.MPIs[i] = new openpgp_type_mpi();
+				if (this.MPIs[i].read(input, mypos, (mypos-position)) != null && 
+						!this.packetLength < (mypos-position)) {
+					mypos += this.MPIs[i].packetLength;
+				} else {
+			 		util.print_error('signature contains invalid MPI @:'+mypos);
+				}
+			}
+		break;
+		case 4:
+			this.signatureType = input.charCodeAt(mypos++);
+			this.publicKeyAlgorithm = input.charCodeAt(mypos++);
+			this.hashAlgorithm = input.charCodeAt(mypos++);
+
+			// Two-octet scalar octet count for following hashed subpacket
+			// data.
+			var hashed_subpacket_count = (input.charCodeAt(mypos++) << 8) + input.charCodeAt(mypos++);
+
+			// Hashed subpacket data set (zero or more subpackets)
+			var subpacket_length = 0;
+			while (hashed_subpacket_count != subpacket_length) {
+				if (hashed_subpacket_count < subpacket_length) {
+					util.print_debug("openpgp.packet.signature.js\n"+"hashed missed something: "+mypos+" c:"+hashed_subpacket_count+" l:"+subpacket_length);
+				}
+
+				subpacket_length += this._raw_read_signature_sub_packet(input,
+						mypos + subpacket_length, hashed_subpacket_count
+								- subpacket_length);
+			}
+			
+			mypos += hashed_subpacket_count;
+			this.signatureData = input.substring(position, mypos);
+
+			// alert("signatureData: "+util.hexstrdump(this.signatureData));
+			
+			// Two-octet scalar octet count for the following unhashed subpacket
+			var subpacket_count = (input.charCodeAt(mypos++) << 8) + input.charCodeAt(mypos++);
+				
+			// Unhashed subpacket data set (zero or more subpackets).
+			subpacket_length = 0;
+			while (subpacket_count != subpacket_length) {
+				if (subpacket_count < subpacket_length) {
+					util.print_debug("openpgp.packet.signature.js\n"+"missed something: "+subpacket_length+" c:"+subpacket_count+" "+" l:"+subpacket_length);
+				}
+				subpacket_length += this._raw_read_signature_sub_packet(input,
+						mypos + subpacket_length, subpacket_count
+								- subpacket_length);
+
+			}
+			mypos += subpacket_count;
+			// Two-octet field holding the left 16 bits of the signed hash
+			// value.
+			this.signedHashValue = (input.charCodeAt(mypos++) << 8) | input.charCodeAt(mypos++);
+			// One or more multiprecision integers comprising the signature.
+			// This portion is algorithm specific, as described above.
+			var mpicount = 0;
+			if (this.publicKeyAlgorithm > 0 && this.publicKeyAlgorithm < 4)
+				mpicount = 1;
+			else if (this.publicKeyAlgorithm == 17)
+				mpicount = 2;
+			
+			this.MPIs = new Array();
+			for (var i = 0; i < mpicount; i++) {
+				this.MPIs[i] = new openpgp_type_mpi();
+				if (this.MPIs[i].read(input, mypos, (mypos-position)) != null && 
+						!this.packetLength < (mypos-position)) {
+					mypos += this.MPIs[i].packetLength;
+				} else {
+			 		util.print_error('signature contains invalid MPI @:'+mypos);
+				}
+			}
+			break;
+		default:
+			util.print_error("openpgp.packet.signature.js\n"+'unknown signature packet version'+this.version);
+			break;
+		}
+		// util.print_message("openpgp.packet.signature.js\n"+"end signature: l: "+this.packetLength+"m: "+mypos+" m-p: "+(mypos-position));
+		return this;
+	}
+	/**
+	 * creates a string representation of a message signature packet (tag 2).
+	 * This can be only used on text data
+	 * @param {Integer} signature_type should be 1 (one) 
+	 * @param {String} data data to be signed
+	 * @param {openpgp_msg_privatekey} privatekey private key used to sign the message. (secMPIs MUST be unlocked)
+	 * @return {String} string representation of a signature packet
+	 */
+	function write_message_signature(signature_type, data, privatekey) {
+		var publickey = privatekey.privateKeyPacket.publicKey;
+		var hash_algo = privatekey.getPreferredSignatureHashAlgorithm();
+		var result = String.fromCharCode(4); 
+		result += String.fromCharCode(signature_type);
+		result += String.fromCharCode(publickey.publicKeyAlgorithm);
+		result += String.fromCharCode(hash_algo);
+		var d = Math.round(new Date().getTime() / 1000);
+		var datesubpacket = write_sub_signature_packet(2,""+
+				String.fromCharCode((d >> 24) & 0xFF) + 
+				String.fromCharCode((d >> 16) & 0xFF) +
+				String.fromCharCode((d >> 8) & 0xFF) + 
+				String.fromCharCode(d & 0xFF));
+		var issuersubpacket = write_sub_signature_packet(16, privatekey.getKeyId());
+		result += String.fromCharCode(((datesubpacket.length + issuersubpacket.length) >> 8) & 0xFF);
+		result += String.fromCharCode ((datesubpacket.length + issuersubpacket.length) & 0xFF);
+		result += datesubpacket;
+		result += issuersubpacket;
+		var trailer = '';
+		
+		trailer += String.fromCharCode(4);
+		trailer += String.fromCharCode(0xFF);
+		trailer += String.fromCharCode((result.length) >> 24);
+		trailer += String.fromCharCode(((result.length) >> 16) & 0xFF);
+		trailer += String.fromCharCode(((result.length) >> 8) & 0xFF);
+		trailer += String.fromCharCode((result.length) & 0xFF);
+		var result2 = String.fromCharCode(0);
+		result2 += String.fromCharCode(0);
+		var hash = openpgp_crypto_hashData(hash_algo, data+result+trailer);
+		util.print_debug("DSA Signature is calculated with:|"+data+result+trailer+"|\n"+util.hexstrdump(data+result+trailer)+"\n hash:"+util.hexstrdump(hash));
+		result2 += hash.charAt(0);
+		result2 += hash.charAt(1);
+		result2 += openpgp_crypto_signData(hash_algo,privatekey.privateKeyPacket.publicKey.publicKeyAlgorithm,
+				publickey.MPIs,
+				privatekey.privateKeyPacket.secMPIs,
+				data+result+trailer);
+		return {openpgp: (openpgp_packet.write_packet_header(2, (result+result2).length)+result + result2), 
+				hash: util.get_hashAlgorithmString(hash_algo)};
+	}
+	/**
+	 * creates a string representation of a sub signature packet (See RFC 4880 5.2.3.1)
+	 * @param {Integer} type subpacket signature type. Signature types as described in RFC4880 Section 5.2.3.2
+	 * @param {String} data data to be included
+	 * @return {String} a string-representation of a sub signature packet (See RFC 4880 5.2.3.1)
+	 */
+	function write_sub_signature_packet(type, data) {
+		var result = "";
+		result += openpgp_packet.encode_length(data.length+1);
+		result += String.fromCharCode(type);
+		result += data;
+		return result;
+	}
+	
+	// V4 signature sub packets
+	
+	this._raw_read_signature_sub_packet = function(input, position, len) {
+		if (len < 0)
+			util.print_debug("openpgp.packet.signature.js\n"+"_raw_read_signature_sub_packet length < 0 @:"+position);
+		var mypos = position;
+		var subplen = 0;
+		// alert('starting signature subpackage read at position:'+position+' length:'+len);
+		if (input.charCodeAt(mypos) < 192) {
+			subplen = input.charCodeAt(mypos++);
+		} else if (input.charCodeAt(mypos) >= 192 && input.charCodeAt(mypos) < 224) {
+			subplen = ((input.charCodeAt(mypos++) - 192) << 8) + (input.charCodeAt(mypos++)) + 192;
+		} else if (input.charCodeAt(mypos) > 223 && input.charCodeAt(mypos) < 255) {
+			subplen = 1 << (input.charCodeAt(mypos++) & 0x1F);
+		} else if (input.charCodeAt(mypos) < 255) {
+			mypos++;
+			subplen = (input.charCodeAt(mypos++) << 24) | (input.charCodeAt(mypos++) << 16)
+					|  (input.charCodeAt(mypos++) << 8) |  input.charCodeAt(mypos++);
+		}
+		
+		var type = input.charCodeAt(mypos++) & 0x7F;
+		// alert('signature subpacket type '+type+" with length: "+subplen);
+		// subpacket type
+		switch (type) {
+		case 2: // Signature Creation Time
+			this.creationTime = new Date(((input.charCodeAt(mypos++) << 24) | (input.charCodeAt(mypos++) << 16)
+					| (input.charCodeAt(mypos++) << 8) | input.charCodeAt(mypos++))*1000);
+			break;
+		case 3: // Signature Expiration Time
+			this.signatureExpirationTime =  (input.charCodeAt(mypos++) << 24)
+					| (input.charCodeAt(mypos++) << 16) | (input.charCodeAt(mypos++) << 8)
+					| input.charCodeAt(mypos++);
+			this.signatureNeverExpires = (this.signature_expiration_time == 0);
+			
+			break;
+		case 4: // Exportable Certification
+			this.exportable = input.charCodeAt(mypos++) == 1;
+			break;
+		case 5: // Trust Signature
+			this.trustLevel = input.charCodeAt(mypos++);
+			this.trustAmount = input.charCodeAt(mypos++);
+			break;
+		case 6: // Regular Expression
+			this.regular_expression = new String();
+			for (var i = 0; i < subplen - 1; i++)
+				this.regular_expression += (input[mypos++]);
+			break;
+		case 7: // Revocable
+			this.revocable = input.charCodeAt(mypos++) == 1;
+			break;
+		case 9: // Key Expiration Time
+			this.keyExpirationTime = (input.charCodeAt(mypos++) << 24)
+					| (input.charCodeAt(mypos++) << 16) | (input.charCodeAt(mypos++) << 8)
+					| input.charCodeAt(mypos++);
+			this.keyNeverExpires = (this.keyExpirationTime == 0);
+			break;
+		case 11: // Preferred Symmetric Algorithms
+			this.preferredSymmetricAlgorithms = new Array();
+			for (var i = 0; i < subplen-1; i++) {
+				this.preferredSymmetricAlgorithms = input.charCodeAt(mypos++);
+			}
+			break;
+		case 12: // Revocation Key
+			// (1 octet of class, 1 octet of public-key algorithm ID, 20
+			// octets of
+			// fingerprint)
+			this.revocationKeyClass = input.charCodeAt(mypos++);
+			this.revocationKeyAlgorithm = input.charCodeAt(mypos++);
+			this.revocationKeyFingerprint = new Array();
+			for ( var i = 0; i < 20; i++) {
+				this.revocationKeyFingerprint = input.charCodeAt(mypos++);
+			}
+			break;
+		case 16: // Issuer
+			this.issuerKeyId = input.substring(mypos,mypos+8);
+			mypos += 8;
+			break;
+		case 20: // Notation Data
+			this.notationFlags = (input.charCodeAt(mypos++) << 24) | 
+								 (input.charCodeAt(mypos++) << 16) |
+								 (input.charCodeAt(mypos++) <<  8) | 
+								 (input.charCodeAt(mypos++));
+			var nameLength = (input.charCodeAt(mypos++) <<  8) | (input.charCodeAt(mypos++));
+			var valueLength = (input.charCodeAt(mypos++) <<  8) | (input.charCodeAt(mypos++));
+			this.notationName = "";
+			for (var i = 0; i < nameLength; i++) {
+				this.notationName += input[mypos++];
+			}
+			this.notationValue = "";
+			for (var i = 0; i < valueLength; i++) {
+				this.notationValue += input[mypos++];
+			}
+			break;
+		case 21: // Preferred Hash Algorithms
+			this.preferredHashAlgorithms = new Array();
+			for (var i = 0; i < subplen-1; i++) {
+				this.preferredHashAlgorithms = input.charCodeAt(mypos++);
+			}
+			break;
+		case 22: // Preferred Compression Algorithms
+			this.preferredCompressionAlgorithms = new Array();
+			for ( var i = 0; i < subplen-1; i++) {
+				this.preferredCompressionAlgorithms = input.charCodeAt(mypos++);
+			}
+			break;
+		case 23: // Key Server Preferences
+			this.keyServerPreferences = new Array();
+			for ( var i = 0; i < subplen-1; i++) {
+				this.keyServerPreferences = input.charCodeAt(mypos++);
+			}
+			break;
+		case 24: // Preferred Key Server
+			this.preferredKeyServer = new String();
+			for ( var i = 0; i < subplen-1; i++) {
+				this.preferredKeyServer += input[mypos++];
+			}
+			break;
+		case 25: // Primary User ID
+			this.isPrimaryUserID = input[mypos++] != 0;
+			break;
+		case 26: // Policy URI
+			this.policyURI = new String();
+			for ( var i = 0; i < subplen-1; i++) {
+				this.policyURI += input[mypos++];
+			}
+			break;
+		case 27: // Key Flags
+			this.keyFlags = new Array();
+			for ( var i = 0; i < subplen-1; i++) {
+				this.keyFlags = input.charCodeAt(mypos++);
+			}
+			break;
+		case 28: // Signer's User ID
+			this.signersUserId = new String();
+			for ( var i = 0; i < subplen-1; i++) {
+				this.signersUserId += input[mypos++];
+			}
+			break;
+		case 29: // Reason for Revocation
+			this.reasonForRevocationFlag = input.charCodeAt(mypos++);
+			this.reasonForRevocationString = new String();
+			for ( var i = 0; i < subplen -2; i++) {
+				this.reasonForRevocationString += input[mypos++];
+			}
+			break;
+		case 30: // Features
+			// TODO: to be implemented
+			return subplen+1;
+		case 31: // Signature Target
+			// (1 octet public-key algorithm, 1 octet hash algorithm, N octets hash)
+			this.signatureTargetPublicKeyAlgorithm = input.charCodeAt(mypos++);
+			this.signatureTargetHashAlgorithm = input.charCodeAt(mypos++);
+			var signatureTargetHashAlgorithmLength = 0;
+			switch(this.signatureTargetHashAlgorithm) {
+			case  1: // - MD5 [HAC]                             "MD5"
+			case  2: // - SHA-1 [FIPS180]                       "SHA1"
+				signatureTargetHashAlgorithmLength = 20;
+				break;
+			case  3: // - RIPE-MD/160 [HAC]                     "RIPEMD160"
+			case  8: // - SHA256 [FIPS180]                      "SHA256"
+			case  9: // - SHA384 [FIPS180]                      "SHA384"
+			case 10: // - SHA512 [FIPS180]                      "SHA512"
+			case 11: // - SHA224 [FIPS180]                      "SHA224"
+				break;
+			// 100 to 110 - Private/Experimental algorithm
+	    	default:
+	    		util.print_error("openpgp.packet.signature.js\n"+"unknown signature target hash algorithm:"+this.signatureTargetHashAlgorithm);
+	    		return null;
+			}
+			this.signatureTargetHash = new Array();
+			for (var i = 0; i < signatureTargetHashAlgorithmLength; i++) {
+				this.signatureTargetHash[i] = input[mypos++]; 
+			}
+		case 32: // Embedded Signature
+			this.embeddedSignature = new openpgp_packet_signature();
+			this.embeddedSignature.read_packet(input, mypos, len -(mypos-position));
+			return ((mypos+ this.embeddedSignature.packetLength) - position);
+			break;
+		case 100: // Private or experimental
+		case 101: // Private or experimental
+		case 102: // Private or experimental
+		case 103: // Private or experimental
+		case 104: // Private or experimental
+		case 105: // Private or experimental
+		case 106: // Private or experimental
+		case 107: // Private or experimental
+		case 108: // Private or experimental
+		case 109: // Private or experimental
+		case 110: // Private or experimental
+			util.print_error("openpgp.packet.signature.js\n"+'private or experimental signature subpacket type '+type+" @:"+mypos+" subplen:"+subplen+" len:"+len);
+			return subplen+1;
+			break;	
+		case 0: // Reserved
+		case 1: // Reserved
+		case 8: // Reserved
+		case 10: // Placeholder for backward compatibility
+		case 13: // Reserved
+		case 14: // Reserved
+		case 15: // Reserved
+		case 17: // Reserved
+		case 18: // Reserved
+		case 19: // Reserved
+		default:
+			util.print_error("openpgp.packet.signature.js\n"+'unknown signature subpacket type '+type+" @:"+mypos+" subplen:"+subplen+" len:"+len);
+			return subplen+1;
+			break;
+		}
+		return mypos -position;
+	};
+	/**
+	 * verifys the signature packet. Note: not signature types are implemented
+	 * @param {String} data data which on the signature applies
+	 * @param {openpgp_msg_privatekey} key the public key to verify the signature
+	 * @return {boolean} True if message is verified, else false.
+	 */
+	function verify(data, key) {
+		// calculating the trailer
+		var trailer = '';
+		trailer += String.fromCharCode(this.version);
+		trailer += String.fromCharCode(0xFF);
+		trailer += String.fromCharCode(this.signatureData.length >> 24);
+		trailer += String.fromCharCode((this.signatureData.length >> 16) &0xFF);
+		trailer += String.fromCharCode((this.signatureData.length >> 8) &0xFF);
+		trailer += String.fromCharCode(this.signatureData.length & 0xFF);
+		switch(this.signatureType) {
+		case 0: // 0x00: Signature of a binary document.
+			if (this.version == 4) {
+				this.verified = openpgp_crypto_verifySignature(this.publicKeyAlgorithm, this.hashAlgorithm, 
+					this.MPIs, key.obj.publicKeyPacket.MPIs, data+this.signatureData+trailer);
+			} else if (this.version == 3) {
+				this.verified = openpgp_crypto_verifySignature(this.publicKeyAlgorithm, this.hashAlgorithm, 
+					this.MPIs, key.obj.publicKeyPacket.MPIs, data+this.signatureData);
+			} else {
+				this.verified = false;
+			}
+			break;
+
+		case 1: // 0x01: Signature of a canonical text document.
+			var canonicalMsgText = data.replace(/\r/g,'').replace(/\n/g,"\r\n");
+			if (openpgp.config.debug) {
+				util.print_debug('canonicalMsgText: '+util.hexdump(canonicalMsgText));
+				util.print_debug('signatureData: '+util.hexdump(this.signatureData));
+				util.print_debug('trailer: '+util.hexdump(trailer));
+			}
+			if (this.version == 4) {
+				this.verified = openpgp_crypto_verifySignature(this.publicKeyAlgorithm, this.hashAlgorithm, 
+					this.MPIs, key.obj.publicKeyPacket.MPIs, canonicalMsgText+this.signatureData+trailer);
+			} else if (this.version == 3) {
+				this.verified = openpgp_crypto_verifySignature(this.publicKeyAlgorithm, this.hashAlgorithm, 
+					this.MPIs, key.obj.publicKeyPacket.MPIs, canonicalMsgText+this.signatureData);
+			} else {
+				this.verified = false;
+			}
+			break;
+				
+		case 2: // 0x02: Standalone signature.
+			// This signature is a signature of only its own subpacket contents.
+			// It is calculated identically to a signature over a zero-length
+			// binary document.  Note that it doesn't make sense to have a V3
+			// standalone signature.
+			if (this.version == 4) {
+				this.verified = openpgp_crypto_verifySignature(this.publicKeyAlgorithm, this.hashAlgorithm, 
+					this.MPIs, key.obj.publicKeyPacket.MPIs, this.signatureData+trailer);
+			} else {
+				this.verified = false;
+			}
+			break;
+		case 16:			
+			// 0x10: Generic certification of a User ID and Public-Key packet.
+			// The issuer of this certification does not make any particular
+			// assertion as to how well the certifier has checked that the owner
+			// of the key is in fact the person described by the User ID.
+		case 17:
+			// 0x11: Persona certification of a User ID and Public-Key packet.
+			// The issuer of this certification has not done any verification of
+			// the claim that the owner of this key is the User ID specified.
+		case 18:
+			// 0x12: Casual certification of a User ID and Public-Key packet.
+			// The issuer of this certification has done some casual
+			// verification of the claim of identity.
+		case 19:
+			// 0x13: Positive certification of a User ID and Public-Key packet.
+			// The issuer of this certification has done substantial
+			// verification of the claim of identity.
+			// 
+			// Most OpenPGP implementations make their "key signatures" as 0x10
+			// certifications.  Some implementations can issue 0x11-0x13
+			// certifications, but few differentiate between the types.
+		case 48:
+			// 0x30: Certification revocation signature
+			// This signature revokes an earlier User ID certification signature
+			// (signature class 0x10 through 0x13) or direct-key signature
+			// (0x1F).  It should be issued by the same key that issued the
+			// revoked signature or an authorized revocation key.  The signature
+			// is computed over the same data as the certificate that it
+			// revokes, and should have a later creation date than that
+			// certificate.
+
+			this.verified = openpgp_crypto_verifySignature(this.publicKeyAlgorithm, this.hashAlgorithm, 
+					this.MPIs, key.MPIs, data+this.signatureData+trailer);
+			break;
+						
+		case 24:
+			// 0x18: Subkey Binding Signature
+			// This signature is a statement by the top-level signing key that
+			// indicates that it owns the subkey.  This signature is calculated
+			// directly on the primary key and subkey, and not on any User ID or
+			// other packets.  A signature that binds a signing subkey MUST have
+			// an Embedded Signature subpacket in this binding signature that
+			// contains a 0x19 signature made by the signing subkey on the
+			// primary key and subkey.
+			if (this.version == 3) {
+				this.verified = false;
+				break;
+			}
+			
+			this.verified = openpgp_crypto_verifySignature(this.publicKeyAlgorithm, this.hashAlgorithm, 
+					this.MPIs, key.MPIs, data+this.signatureData+trailer);
+			break;
+		case 25:
+			// 0x19: Primary Key Binding Signature
+			// This signature is a statement by a signing subkey, indicating
+			// that it is owned by the primary key and subkey.  This signature
+			// is calculated the same way as a 0x18 signature: directly on the
+			// primary key and subkey, and not on any User ID or other packets.
+			
+			// When a signature is made over a key, the hash data starts with the
+			// octet 0x99, followed by a two-octet length of the key, and then body
+			// of the key packet.  (Note that this is an old-style packet header for
+			// a key packet with two-octet length.)  A subkey binding signature
+			// (type 0x18) or primary key binding signature (type 0x19) then hashes
+			// the subkey using the same format as the main key (also using 0x99 as
+			// the first octet).
+		case 31:
+			// 0x1F: Signature directly on a key
+			// This signature is calculated directly on a key.  It binds the
+			// information in the Signature subpackets to the key, and is
+			// appropriate to be used for subpackets that provide information
+			// about the key, such as the Revocation Key subpacket.  It is also
+			// appropriate for statements that non-self certifiers want to make
+			// about the key itself, rather than the binding between a key and a
+			// name.
+		case 32:
+			// 0x20: Key revocation signature
+			// The signature is calculated directly on the key being revoked.  A
+			// revoked key is not to be used.  Only revocation signatures by the
+			// key being revoked, or by an authorized revocation key, should be
+			// considered valid revocation signatures.
+		case 40:
+			// 0x28: Subkey revocation signature
+			// The signature is calculated directly on the subkey being revoked.
+			// A revoked subkey is not to be used.  Only revocation signatures
+			// by the top-level signature key that is bound to this subkey, or
+			// by an authorized revocation key, should be considered valid
+			// revocation signatures.
+			this.verified = openpgp_crypto_verifySignature(this.publicKeyAlgorithm, this.hashAlgorithm, 
+					this.MPIs, key.MPIs, data+this.signatureData+trailer);
+			break;
+			
+			// Key revocation signatures (types 0x20 and 0x28)
+			// hash only the key being revoked.
+		case 64:
+			// 0x40: Timestamp signature.
+			// This signature is only meaningful for the timestamp contained in
+			// it.
+		case 80:
+			//    0x50: Third-Party Confirmation signature.
+			// This signature is a signature over some other OpenPGP Signature
+			// packet(s).  It is analogous to a notary seal on the signed data.
+			// A third-party signature SHOULD include Signature Target
+			// subpacket(s) to give easy identification.  Note that we really do
+			// mean SHOULD.  There are plausible uses for this (such as a blind
+			// party that only sees the signature, not the key or source
+			// document) that cannot include a target subpacket.
+		default:
+			util.print_error("openpgp.packet.signature.js\n"+"signature verification for type"+ this.signatureType+" not implemented");
+			this.verified = false;
+			break;
+		}
+		return this.verified;
+	}
+	/**
+	 * generates debug output (pretty print)
+	 * @return {String} String which gives some information about the signature packet
+	 */
+
+	function toString () {
+		if (this.version == 3) {
+			var result = '5.2. Signature Packet (Tag 2)\n'+
+	          "Packet Length:                     :"+this.packetLength+'\n'+
+	          "Packet version:                    :"+this.version+'\n'+
+	          "One-octet signature type           :"+this.signatureType+'\n'+
+	          "Four-octet creation time.          :"+this.creationTime+'\n'+
+	         "Eight-octet Key ID of signer.       :"+util.hexidump(this.keyId)+'\n'+
+	          "One-octet public-key algorithm.    :"+this.publicKeyAlgorithm+'\n'+
+	          "One-octet hash algorithm.          :"+this.hashAlgorithm+'\n'+
+	          "Two-octet field holding left\n" +
+	          " 16 bits of signed hash value.     :"+this.signedHashValue+'\n';
+		} else {
+          var result = '5.2. Signature Packet (Tag 2)\n'+
+          "Packet Length:                     :"+this.packetLength+'\n'+
+          "Packet version:                    :"+this.version+'\n'+
+          "One-octet signature type           :"+this.signatureType+'\n'+
+          "One-octet public-key algorithm.    :"+this.publicKeyAlgorithm+'\n'+
+          "One-octet hash algorithm.          :"+this.hashAlgorithm+'\n'+
+          "Two-octet field holding left\n" +
+          " 16 bits of signed hash value.     :"+this.signedHashValue+'\n'+
+          "Signature Creation Time            :"+this.creationTime+'\n'+
+          "Signature Expiration Time          :"+this.signatureExpirationTime+'\n'+
+          "Signature Never Expires            :"+this.signatureNeverExpires+'\n'+
+          "Exportable Certification           :"+this.exportable+'\n'+
+          "Trust Signature level:             :"+this.trustLevel+' amount'+this.trustAmount+'\n'+
+          "Regular Expression                 :"+this.regular_expression+'\n'+
+          "Revocable                          :"+this.revocable+'\n'+
+          "Key Expiration Time                :"+this.keyExpirationTime+" "+this.keyNeverExpires+'\n'+
+          "Preferred Symmetric Algorithms     :"+this.preferredSymmetricAlgorithms+'\n'+
+          "Revocation Key"+'\n'+
+          "   ( 1 octet of class,             :"+this.revocationKeyClass +'\n'+
+          "     1 octet of public-key ID,     :" +this.revocationKeyAlgorithm+'\n'+
+          "    20 octets of fingerprint)      :"+this.revocationKeyFingerprint+'\n'+
+          "Issuer                             :"+util.hexstrdump(this.issuerKeyId)+'\n'+
+          "Preferred Hash Algorithms          :"+this.preferredHashAlgorithms+'\n'+
+          "Preferred Compression Alg.         :"+this.preferredCompressionAlgorithms+'\n'+
+          "Key Server Preferences             :"+this.keyServerPreferences+'\n'+
+          "Preferred Key Server               :"+this.preferredKeyServer+'\n'+
+          "Primary User ID                    :"+this.isPrimaryUserID+'\n'+
+          "Policy URI                         :"+this.policyURI+'\n'+
+          "Key Flags                          :"+this.keyFlags+'\n'+
+          "Signer's User ID                   :"+this.signersUserId+'\n'+
+          "Notation                           :"+this.notationName+" = "+this.notationValue+"\n"+
+          "Reason for Revocation\n"+
+          "      Flag                         :"+this.reasonForRevocationFlag+'\n'+
+          "      Reason                       :"+this.reasonForRevocationString+'\nMPI:\n';
+		}
+          for (var i = 0; i < this.MPIs.length; i++) {
+        	  result += this.MPIs[i].toString();
+          }
+          return result;
+     }
+
+	/**
+	 * gets the issuer key id of this signature
+	 * @return {String} issuer key id as string (8bytes)
+	 */
+	function getIssuer() {
+		 if (this.version == 4)
+			 return this.issuerKeyId;
+		 if (this.version == 3)
+			 return this.keyId;
+		 return null;
+	}
+
+	/**
+	 * Tries to get the corresponding public key out of the public keyring for the issuer created this signature
+	 * @return {Object} {obj: [openpgp_msg_publickey], text: [String]} if found the public key will be returned. null otherwise
+	 */
+	function getIssuerKey() {
+		 var result = null;
+		 if (this.version == 4) {
+			 result = openpgp.keyring.getPublicKeysForKeyId(this.issuerKeyId);
+		 } else if (this.version == 3) {
+			 result = openpgp.keyring.getPublicKeysForKeyId(this.keyId);
+		 } else return null;
+		 if (result.length == 0)
+			 return null;
+		 return result[0];
+	}
+	this.getIssuerKey = getIssuerKey;
+	this.getIssuer = getIssuer;	 
+	this.write_message_signature = write_message_signature;
+	this.verify = verify;
+    this.read_packet = read_packet;
+    this.toString = toString;
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/** 
+ * @class
+ * @classdesc Implementation of the User Attribute Packet (Tag 17)
+ *  The User Attribute packet is a variation of the User ID packet.  It
+ *  is capable of storing more types of data than the User ID packet,
+ *  which is limited to text.  Like the User ID packet, a User Attribute
+ *  packet may be certified by the key owner ("self-signed") or any other
+ *  key owner who cares to certify it.  Except as noted, a User Attribute
+ *  packet may be used anywhere that a User ID packet may be used.
+ *
+ *  While User Attribute packets are not a required part of the OpenPGP
+ *  standard, implementations SHOULD provide at least enough
+ *  compatibility to properly handle a certification signature on the
+ *  User Attribute packet.  A simple way to do this is by treating the
+ *  User Attribute packet as a User ID packet with opaque contents, but
+ *  an implementation may use any method desired.
+ */
+function openpgp_packet_userattribute() {
+	this.tagType = 17;
+	this.certificationSignatures = new Array();
+	this.certificationRevocationSignatures = new Array();
+	this.revocationSignatures = new Array();
+	this.parentNode = null;
+
+	/**
+	 * parsing function for a user attribute packet (tag 17).
+	 * @param {String} input payload of a tag 17 packet
+	 * @param {Integer} position position to start reading from the input string
+	 * @param {Integer} len length of the packet or the remaining length of input at position
+	 * @return {openpgp_packet_encrypteddata} object representation
+	 */
+	function read_packet (input, position, len) {
+		var total_len = 0;
+		this.packetLength = len;
+		this.userattributes = new Array();
+		var count = 0;
+		var mypos = position;
+		while (len != total_len) {
+			var current_len = 0;
+			// 4.2.2.1. One-Octet Lengths
+			if (input.charCodeAt(mypos) < 192) {
+				packet_length = input.charCodeAt(mypos++);
+				current_len = 1;
+			// 4.2.2.2. Two-Octet Lengths
+			} else if (input.charCodeAt(mypos) >= 192 && input.charCodeAt(mypos) < 224) {
+				packet_length = ((input.charCodeAt(mypos++) - 192) << 8)
+					+ (input.charCodeAt(mypos++)) + 192;
+				current_len = 2;
+			// 4.2.2.4. Partial Body Lengths
+			} else if (input.charCodeAt(mypos) > 223 && input.charCodeAt(mypos) < 255) {
+				packet_length = 1 << (input.charCodeAt(mypos++) & 0x1F);
+				current_len = 1;
+			// 4.2.2.3. Five-Octet Lengths
+			} else {
+				current_len = 5;
+				mypos++;
+				packet_length = (input.charCodeAt(mypos++) << 24) | (input.charCodeAt(mypos++) << 16)
+					| (input.charCodeAt(mypos++) << 8) | input.charCodeAt(mypos++);
+			}
+			
+			var subpackettype = input.charCodeAt(mypos++);
+			packet_length--;
+			current_len++;
+			this.userattributes[count] = new Array();
+			this.userattributes[count] = input.substring(mypos, mypos + packet_length);
+			mypos += packet_length;
+			total_len += current_len+packet_length;
+		}
+		this.packetLength = mypos - position;
+		return this;
+	}
+	
+	/**
+	 * generates debug output (pretty print)
+	 * @return {String} String which gives some information about the user attribute packet
+	 */
+	function toString() {
+		var result = '5.12.  User Attribute Packet (Tag 17)\n'+
+		             '    AttributePackets: (count = '+this.userattributes.length+')\n';
+		for (var i = 0; i < this.userattributes.length; i++) {
+			result += '    ('+this.userattributes[i].length+') bytes: ['+util.hexidump(this.userattributes[i])+']\n'; 
+		}
+		return result;
+	}
+	
+	/**
+	 * Continue parsing packets belonging to the user attribute packet such as signatures
+	 * @param {Object} parent_node the parent object
+	 * @param {String} input input string to read the packet(s) from
+	 * @param {Integer} position start position for the parser
+	 * @param {Integer} len length of the packet(s) or remaining length of input
+	 * @return {Integer} length of nodes read
+	 */
+	function read_nodes(parent_node, input, position, len) {
+		
+		this.parentNode = parent_node;
+		var exit = false;
+		var pos = position;
+		var l = len;
+		while (input.length != pos) {
+			var result = openpgp_packet.read_packet(input, pos, l);
+			if (result == null) {
+				util.print_error("openpgp.packet.userattribute.js\n"+'[user_attr] parsing ends here @:' + pos + " l:" + l);
+				break;
+			} else {
+				switch (result.tagType) {
+				case 2: // Signature Packet
+					if (result.signatureType > 15
+							&& result.signatureType < 20) // certification
+						// //
+						// signature
+						this.certificationSignatures[this.certificationSignatures.length] = result;
+					else if (result.signatureType == 32) // certification revocation signature
+						this.certificationRevocationSignatures[this.certificationRevocationSignatures.length] = result;
+					pos += result.packetLength + result.headerLength;
+					l = len - (pos - position);
+					break;
+				default:
+					this.data = input;
+					this.position = position - parent_node.packetLength;
+					this.len = pos - position;
+					return this.len;
+					break;
+				}
+			}
+		}
+		this.data = input;
+		this.position = position - parent_node.packetLength;
+		this.len = pos - position;
+		return this.len;
+
+	}
+	
+	this.read_packet = read_packet;
+	this.read_nodes = read_nodes;
+	this.toString = toString;
+	
+};
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the User ID Packet (Tag 13)
+ * A User ID packet consists of UTF-8 text that is intended to represent
+ * the name and email address of the key holder.  By convention, it
+ * includes an RFC 2822 [RFC2822] mail name-addr, but there are no
+ * restrictions on its content.  The packet length in the header
+ * specifies the length of the User ID. 
+ */
+
+function openpgp_packet_userid() {
+	this.text = ''
+	this.tagType = 13;
+	this.certificationSignatures = new Array();
+	this.certificationRevocationSignatures = new Array();
+	this.revocationSignatures = new Array();
+	this.parentNode = null;
+	
+	/**
+	 * Set the packet text field to a native javascript string
+	 * Conversion to a proper utf8 encoding takes place when the 
+	 * packet is written.
+	 * @param {String} str Any native javascript string
+	 */
+	this.set_text = function(str) {
+		this.text = str;
+	}
+
+	/**
+	 * Set the packet text to value represented by the provided string
+	 * of bytes.
+	 * @param {String} bytes A string of bytes
+	 */
+	this.set_text_bytes = function(bytes) {
+		this.text = util.decode_utf8(bytes);
+	}
+
+	/**
+	 * Get the byte sequence representing the text of this packet.
+	 * @returns {String} A sequence of bytes
+	 */
+	this.get_text_bytes = function() {
+		return util.encode_utf8(this.text);
+	}
+	
+
+	/**
+	 * Parsing function for a user id packet (tag 13).
+	 * @param {String} input payload of a tag 13 packet
+	 * @param {Integer} position position to start reading from the input string
+	 * @param {Integer} len length of the packet or the remaining length of input at position
+	 * @return {openpgp_packet_encrypteddata} object representation
+	 */
+	this.read_packet = function(input, position, len) {
+		this.packetLength = len;
+		this.set_text_bytes(input.substr(position, len));
+		return this;
+	}
+
+	/**
+	 * Creates a string representation of the user id packet
+	 * @param {String} user_id the user id as string ("John Doe <john.doe@mail.us")
+	 * @return {String} string representation
+	 */
+	this.write_packet = function(user_id) {
+		this.set_text(user_id);
+		var bytes = this.get_text_bytes();
+
+		var result = openpgp_packet.write_packet_header(13, bytes.length);
+		result += bytes;
+		return result;
+	}
+
+	/**
+	 * Continue parsing packets belonging to the userid packet such as signatures
+	 * @param {Object} parent_node the parent object
+	 * @param {String} input input string to read the packet(s) from
+	 * @param {Integer} position start position for the parser
+	 * @param {Integer} len length of the packet(s) or remaining length of input
+	 * @return {Integer} length of nodes read
+	 */
+	this.read_nodes = function(parent_node, input, position, len) {
+		if (parent_node.tagType == 6) { // public key
+			this.parentNode = parent_node;
+			var pos = position;
+			var l = len;
+			while (input.length != pos) {
+				var result = openpgp_packet.read_packet(input, pos, l - (pos - position));
+				if (result == null) {
+					util.print_error('[user_id] parsing ends here @:' + pos + " l:" + l);
+					break;
+				} else {
+					
+					pos += result.packetLength + result.headerLength;
+					l = input.length - pos;
+					switch (result.tagType) {
+					case 2: // Signature Packet
+						if (result.signatureType > 15
+								&& result.signatureType < 20) { // certification
+							// //
+							// signature
+							this.certificationSignatures[this.certificationSignatures.length] = result;
+							break;
+						} else if (result.signatureType == 48) {// certification revocation signature
+							this.certificationRevocationSignatures[this.certificationRevocationSignatures.length] = result;
+							break;
+						} else if (result.signatureType == 24) { // omg. standalone signature 
+							this.certificationSignatures[this.certificationSignatures.length] = result;
+							break;
+						} else {
+							util.print_debug("unknown sig t: "+result.signatureType+"@"+(pos - (result.packetLength + result.headerLength)));
+						}
+					default:
+						this.data = input;
+						this.position = position - parent_node.packetLength;
+						this.len = pos - position -(result.headerLength + result.packetLength);
+						return this.len;
+					}
+				}
+			}
+			this.data = input;
+			this.position = position - parent_node.packetLength;
+			this.len = pos - position -(result.headerLength + result.packetLength);
+			return this.len;
+		} else if (parent_node.tagType == 5) { // secret Key
+			this.parentNode = parent_node;
+			var exit = false;
+			var pos = position;
+			while (input.length != pos) {
+				var result = openpgp_packet.read_packet(input, pos, l - (pos - position));
+				if (result == null) {
+					util.print_error('parsing ends here @:' + pos + " l:" + l);
+					break;
+				} else {
+					pos += result.packetLength + result.headerLength;
+					l = input.length - pos;
+					switch (result.tagType) {
+					case 2: // Signature Packet certification signature
+						if (result.signatureType > 15
+								&& result.signatureType < 20)
+							this.certificationSignatures[this.certificationSignatures.length] = result;
+						// certification revocation signature
+						else if (result.signatureType == 48)
+							this.certificationRevocationSignatures[this.certificationRevocationSignatures.length] = result;
+					default:
+						this.data = input;
+						this.position = position - parent_node.packetLength;
+						this.len = pos - position -(result.headerLength + result.packetLength);
+						return this.len;
+					}
+				}
+			}
+		} else {
+			util.print_error("unknown parent node for a userId packet "+parent_node.tagType);
+		}
+	}
+	
+	/**
+	 * generates debug output (pretty print)
+	 * @return {String} String which gives some information about the user id packet
+	 */
+	this.toString = function() {
+		var result = '     5.11.  User ID Packet (Tag 13)\n' + '    text ('
+				+ this.text.length + '): "' + this.text.replace("<", "&lt;")
+				+ '"\n';
+		result +="certification signatures:\n";
+		for (var i = 0; i < this.certificationSignatures.length; i++) {
+			result += "        "+this.certificationSignatures[i].toString();
+		}
+		result +="certification revocation signatures:\n";
+		for (var i = 0; i < this.certificationRevocationSignatures.length; i++) {
+			result += "        "+this.certificationRevocationSignatures[i].toString();
+		}
+		return result;
+	}
+
+	/**
+	 * lookup function to find certification revocation signatures
+	 * @param {String} keyId string containing the key id of the issuer of this signature
+	 * @return a CertificationRevocationSignature if found; otherwise null
+	 */
+	this.hasCertificationRevocationSignature = function(keyId) {
+		for (var i = 0; i < this.certificationRevocationSignatures.length; i++) {
+			if ((this.certificationRevocationSignatures[i].version == 3 &&
+				 this.certificationRevocationSignatures[i].keyId == keyId) ||
+				(this.certificationRevocationSignatures[i].version == 4 &&
+				 this.certificationRevocationSignatures[i].issuerKeyId == keyId))
+				return this.certificationRevocationSignatures[i];
+		}
+		return null;
+	}
+
+	/**
+	 * Verifies all certification signatures. This method does not consider possible revocation signatures.
+	 * @param {Object} publicKeyPacket the top level key material
+	 * @return {Integer[]} An array of integers corresponding to the array of certification signatures. The meaning of each integer is the following:
+	 * 0 = bad signature
+	 * 1 = signature expired
+	 * 2 = issuer key not available
+	 * 3 = revoked
+	 * 4 = signature valid
+	 * 5 = signature by key owner expired
+	 * 6 = signature by key owner revoked
+	 */
+	this.verifyCertificationSignatures = function(publicKeyPacket) {
+		var bytes = this.get_text_bytes();
+		result = new Array();
+		for (var i = 0 ; i < this.certificationSignatures.length; i++) {
+			// A certification signature (type 0x10 through 0x13) hashes the User
+			// ID being bound to the key into the hash context after the above
+			// data.  A V3 certification hashes the contents of the User ID or
+			// attribute packet packet, without any header.  A V4 certification
+			// hashes the constant 0xB4 for User ID certifications or the constant
+			// 0xD1 for User Attribute certifications, followed by a four-octet
+			// number giving the length of the User ID or User Attribute data, and
+			// then the User ID or User Attribute data.
+
+			if (this.certificationSignatures[i].version == 4) {
+				if (this.certificationSignatures[i].signatureExpirationTime != null &&
+						this.certificationSignatures[i].signatureExpirationTime != null &&
+						this.certificationSignatures[i].signatureExpirationTime != 0 &&
+						!this.certificationSignatures[i].signatureNeverExpires &&
+						new Date(this.certificationSignatures[i].creationTime.getTime() +(this.certificationSignatures[i].signatureExpirationTime*1000)) < new Date()) {
+					if (this.certificationSignatures[i].issuerKeyId == publicKeyPacket.getKeyId())
+						result[i] = 5;
+					else
+						result[i] = 1;
+					continue;
+				}
+				if (this.certificationSignatures[i].issuerKeyId == null) {
+					result[i] = 0;
+					continue;
+				}
+				var issuerPublicKey = openpgp.keyring.getPublicKeysForKeyId(this.certificationSignatures[i].issuerKeyId);
+				if (issuerPublicKey == null || issuerPublicKey.length == 0) {
+					result[i] = 2;
+					continue;
+				}
+				// TODO: try to verify all returned issuer public keys (key ids are not unique!)
+				var issuerPublicKey = issuerPublicKey[0];
+				var signingKey = issuerPublicKey.obj.getSigningKey();
+				if (signingKey == null) {
+					result[i] = 0;
+					continue;
+				}
+				var revocation = this.hasCertificationRevocationSignature(this.certificationSignatures[i].issuerKeyId);
+				if (revocation != null && revocation.creationTime > 
+					this.certificationSignatures[i].creationTime) {
+
+					var signaturedata = String.fromCharCode(0x99)+ publicKeyPacket.header.substring(1)+
+					publicKeyPacket.data+String.fromCharCode(0xB4)+
+					String.fromCharCode((bytes.length >> 24) & 0xFF)+
+					String.fromCharCode((bytes.length >> 16) & 0xFF)+
+					String.fromCharCode((bytes.length >>  8) & 0xFF)+
+					String.fromCharCode((bytes.length) & 0xFF)+
+					bytes;
+					if (revocation.verify(signaturedata, signingKey)) {
+						if (this.certificationSignatures[i].issuerKeyId == publicKeyPacket.getKeyId())
+							result[i] = 6;
+						else
+							result[i] = 3;
+						continue;
+					}
+				}
+
+				var signaturedata = String.fromCharCode(0x99)+ publicKeyPacket.header.substring(1)+
+						publicKeyPacket.data+String.fromCharCode(0xB4)+
+						String.fromCharCode((bytes.length >> 24) & 0xFF)+
+						String.fromCharCode((bytes.length >> 16) & 0xFF)+
+						String.fromCharCode((bytes.length >>  8) & 0xFF)+
+						String.fromCharCode((bytes.length) & 0xFF)+
+						bytes;
+				if (this.certificationSignatures[i].verify(signaturedata, signingKey)) {
+					result[i] = 4;
+				} else
+				result[i] = 0;
+			} else if (this.certificationSignatures[i].version == 3) {
+				if (this.certificationSignatures[i].keyId == null) {
+					result[i] = 0;
+					continue;
+				}
+				var issuerPublicKey = openpgp.keyring.getPublicKeysForKeyId(this.certificationSignatures[i].keyId);
+				if (issuerPublicKey == null || issuerPublicKey.length == 0) {
+					result[i] = 2;
+					continue;
+				}
+				issuerPublicKey = issuerPublicKey[0];
+				var signingKey = publicKey.obj.getSigningKey();
+				if (signingKey == null) {
+					result[i] = 0;
+					continue;
+				}
+				var revocation = this.hasCertificationRevocationSignature(this.certificationSignatures[i].keyId);
+				if (revocation != null && revocation.creationTime > 
+					this.certificationSignatures[i].creationTime) {
+					var signaturedata = String.fromCharCode(0x99)+ this.publicKeyPacket.header.substring(1)+
+					this.publicKeyPacket.data+bytes;
+					if (revocation.verify(signaturedata, signingKey)) {
+						if (revocation.keyId == publicKeyPacket.getKeyId())
+							result[i] = 6;
+						else
+							result[i] = 3;
+						continue;
+					}
+				}
+				var signaturedata = String.fromCharCode(0x99)+ publicKeyPacket.header.substring(1)+
+					publicKeyPacket.data + bytes;
+				if (this.certificationSignatures[i].verify(signaturedata, signingKey)) {
+					result[i] = 4;
+				} else 
+				result[i] = 0;
+			} else {
+				result[i] = 0;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * verifies the signatures of the user id
+	 * @return 0 if the userid is valid; 1 = userid expired; 2 = userid revoked
+	 */
+	this.verify = function(publicKeyPacket) {
+		var result = this.verifyCertificationSignatures(publicKeyPacket);
+		if (result.indexOf(6) != -1)
+			return 2;
+		if (result.indexOf(5) != -1)
+			return 1;
+		return 0;
+	}
+
+	// TODO: implementation missing
+	this.addCertification = function(publicKeyPacket, privateKeyPacket) {
+		
+	}
+
+	// TODO: implementation missing
+	this.revokeCertification = function(publicKeyPacket, privateKeyPacket) {
+		
+	}
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of type key id (RFC4880 3.3)
+ *  A Key ID is an eight-octet scalar that identifies a key.
+   Implementations SHOULD NOT assume that Key IDs are unique.  The
+   section "Enhanced Key Formats" below describes how Key IDs are
+   formed.
+ */
+function openpgp_type_keyid() {
+	/**
+	 * Parsing method for a key id
+	 * @param {String} input Input to read the key id from 
+	 * @param {integer} position Position where to start reading the key 
+	 * id from input
+	 * @return {openpgp_type_keyid} This object
+	 */
+	function read_packet(input, position) {
+		this.bytes = input.substring(position, position+8);
+		return this;
+	}
+	
+	/**
+	 * Generates debug output (pretty print)
+	 * @return {String} Key Id as hexadecimal string
+	 */
+	function toString() {
+		return util.hexstrdump(this.bytes);
+	}
+	
+	this.read_packet = read_packet;
+	this.toString = toString;
+};
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+// Hint: We hold our MPIs as an array of octets in big endian format preceeding a two
+// octet scalar: MPI: [a,b,c,d,e,f]
+// - MPI size: (a << 8) | b 
+// - MPI = c | d << 8 | e << ((MPI.length -2)*8) | f ((MPI.length -2)*8)
+
+/**
+ * @class
+ * @classdescImplementation of type MPI (RFC4880 3.2)
+ * Multiprecision integers (also called MPIs) are unsigned integers used
+ * to hold large integers such as the ones used in cryptographic
+ * calculations.
+ * An MPI consists of two pieces: a two-octet scalar that is the length
+ * of the MPI in bits followed by a string of octets that contain the
+ * actual integer.
+ */
+function openpgp_type_mpi() {
+	this.MPI = null;
+	this.mpiBitLength = null;
+	this.mpiByteLength = null;
+	this.data = null;
+	/**
+	 * Parsing function for a mpi (RFC 4880 3.2).
+	 * @param {String} input Payload of mpi data
+	 * @param {Integer} position Position to start reading from the input 
+	 * string
+	 * @param {Integer} len Length of the packet or the remaining length of 
+	 * input at position
+	 * @return {openpgp_type_mpi} Object representation
+	 */
+	function read(input, position, len) {
+		var mypos = position;
+		
+		this.mpiBitLength = (input.charCodeAt(mypos++) << 8) | input.charCodeAt(mypos++);
+		
+		// Additional rules:
+		//
+		//    The size of an MPI is ((MPI.length + 7) / 8) + 2 octets.
+		//
+		//    The length field of an MPI describes the length starting from its
+		//	  most significant non-zero bit.  Thus, the MPI [00 02 01] is not
+		//    formed correctly.  It should be [00 01 01].
+
+		// TODO: Verification of this size method! This size calculation as
+		// 		 specified above is not applicable in JavaScript
+		this.mpiByteLength = (this.mpiBitLength - (this.mpiBitLength % 8)) / 8;
+		if (this.mpiBitLength % 8 != 0)
+			this.mpiByteLength++;
+		
+		this.MPI = input.substring(mypos,mypos+this.mpiByteLength);
+		this.data = input.substring(position, position+2+this.mpiByteLength);
+		this.packetLength = this.mpiByteLength +2;
+		return this;
+	}
+	
+	/**
+	 * Generates debug output (pretty print)
+	 * @return {String} String which gives some information about the mpi
+	 */
+	function toString() {
+		var r = "    MPI("+this.mpiBitLength+"b/"+this.mpiByteLength+"B) : 0x";
+		r+=util.hexstrdump(this.MPI);
+		return r+'\n';
+	}
+	
+	/**
+	 * Converts the mpi to an BigInteger object
+	 * @return {BigInteger}
+	 */
+	function getBigInteger() {
+		return new BigInteger(util.hexstrdump(this.MPI),16); 
+	}
+
+	
+	function getBits(num) {
+		for (var i = 0; i < 9; i++)
+		if (num >> i == 0)
+		return i;
+	}
+	
+	/**
+	 * Gets the length of the mpi in bytes
+	 * @return {Integer} Mpi byte length
+	 */
+	function getByteLength() {
+		return this.mpiByteLength;
+	}
+	
+	/**
+	 * Creates an mpi from the specified string
+	 * @param {String} data Data to read the mpi from
+	 * @return {openpgp_type_mpi} 
+	 */
+	function create(data) {
+		this.MPI = data;
+		this.mpiBitLength = (data.length -1) *8 + getBits(data.charCodeAt(0));
+		this.mpiByteLength = data.length;
+		return this;
+	}
+	
+	/**
+	 * Converts the mpi object to a string as specified in RFC4880 3.2
+	 * @return {String} mpi Byte representation
+	 */
+	function toBin() {
+		var result = String.fromCharCode((this.mpiBitLength >> 8) & 0xFF);
+		result += String.fromCharCode(this.mpiBitLength & 0xFF);
+		result += this.MPI;
+		return result;
+	}
+	
+	this.read = read;
+	this.toBigInteger = getBigInteger;
+	this.toString = toString;
+	this.create = create;
+	this.toBin = toBin;
+	this.getByteLength = getByteLength;
+}
+
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+/**
+ * @class
+ * @classdesc Implementation of the String-to-key specifier (RFC4880 3.7)
+ * String-to-key (S2K) specifiers are used to convert passphrase strings
+   into symmetric-key encryption/decryption keys.  They are used in two
+   places, currently: to encrypt the secret part of private keys in the
+   private keyring, and to convert passphrases to encryption keys for
+   symmetrically encrypted messages.
+ */
+function openpgp_type_s2k() {
+	/**
+	 * Parsing function for a string-to-key specifier (RFC 4880 3.7).
+	 * @param {String} input Payload of string-to-key specifier
+	 * @param {Integer} position Position to start reading from the input string
+	 * @return {openpgp_type_s2k} Object representation
+	 */
+	function read(input, position) {
+		var mypos = position;
+		this.type = input.charCodeAt(mypos++);
+		switch (this.type) {
+		case 0: // Simple S2K
+			// Octet 1: hash algorithm
+			this.hashAlgorithm = input.charCodeAt(mypos++);
+			this.s2kLength = 1;
+			break;
+
+		case 1: // Salted S2K
+			// Octet 1: hash algorithm
+			this.hashAlgorithm = input.charCodeAt(mypos++);
+
+			// Octets 2-9: 8-octet salt value
+			this.saltValue = input.substring(mypos, mypos+8);
+			mypos += 8;
+			this.s2kLength = 9;
+			break;
+
+		case 3: // Iterated and Salted S2K
+			// Octet 1: hash algorithm
+			this.hashAlgorithm = input.charCodeAt(mypos++);
+
+			// Octets 2-9: 8-octet salt value
+			this.saltValue = input.substring(mypos, mypos+8);
+			mypos += 8;
+
+			// Octet 10: count, a one-octet, coded value
+			this.EXPBIAS = 6;
+			var c = input.charCodeAt(mypos++);
+			this.count = (16 + (c & 15)) << ((c >> 4) + this.EXPBIAS);
+			this.s2kLength = 10;
+			break;
+
+		case 101:
+			if(input.substring(mypos+1, mypos+4) == "GNU") {
+				this.hashAlgorithm = input.charCodeAt(mypos++);
+				mypos += 3; // GNU
+				var gnuExtType = 1000 + input.charCodeAt(mypos++);
+				if(gnuExtType == 1001) {
+					this.type = gnuExtType;
+					this.s2kLength = 5;
+					// GnuPG extension mode 1001 -- don't write secret key at all
+				} else {
+					util.print_error("unknown s2k gnu protection mode! "+this.type);
+				}
+			} else {
+				util.print_error("unknown s2k type! "+this.type);
+			}
+			break;
+
+		case 2: // Reserved value
+		default:
+			util.print_error("unknown s2k type! "+this.type);
+			break;
+		}
+		return this;
+	}
+	
+	
+	/**
+	 * writes an s2k hash based on the inputs.
+	 * @return {String} Produced key of hashAlgorithm hash length
+	 */
+	function write(type, hash, passphrase, salt, c){
+	    this.type = type;
+	    if(this.type == 3){this.saltValue = salt;
+	        this.hashAlgorithm = hash;
+	        this.count = (16 + (c & 15)) << ((c >> 4) + 6);
+	        this.s2kLength = 10;
+	    }
+	    return this.produce_key(passphrase);
+	}
+
+	/**
+	 * Produces a key using the specified passphrase and the defined 
+	 * hashAlgorithm 
+	 * @param {String} passphrase Passphrase containing user input
+	 * @return {String} Produced key with a length corresponding to 
+	 * hashAlgorithm hash length
+	 */
+	function produce_key(passphrase, numBytes) {
+		passphrase = util.encode_utf8(passphrase);
+		if (this.type == 0) {
+			return openpgp_crypto_hashData(this.hashAlgorithm,passphrase);
+		} else if (this.type == 1) {
+			return openpgp_crypto_hashData(this.hashAlgorithm,this.saltValue+passphrase);
+		} else if (this.type == 3) {
+			var isp = [];
+			isp[0] = this.saltValue+passphrase;
+			while (isp.length*(this.saltValue+passphrase).length < this.count)
+				isp.push(this.saltValue+passphrase);
+			isp = isp.join('');			
+			if (isp.length > this.count)
+				isp = isp.substr(0, this.count);
+			if(numBytes && (numBytes == 24 || numBytes == 32)){ //This if accounts for RFC 4880 3.7.1.1 -- If hash size is greater than block size, use leftmost bits.  If blocksize larger than hash size, we need to rehash isp and prepend with 0.
+			    var key = openpgp_crypto_hashData(this.hashAlgorithm,isp);
+			    return key + openpgp_crypto_hashData(this.hashAlgorithm,String.fromCharCode(0)+isp);
+			}
+			return openpgp_crypto_hashData(this.hashAlgorithm,isp);
+		} else return null;
+	}
+	
+	this.read = read;
+	this.write = write;
+	this.produce_key = produce_key;
+}
+// GPG4Browsers - An OpenPGP implementation in javascript
+// Copyright (C) 2011 Recurity Labs GmbH
+// 
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// 
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+var Util = function() {
+
+    this.emailRegEx = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+	
+	this.hexdump = function(str) {
+	    var r=[];
+	    var e=str.length;
+	    var c=0;
+	    var h;
+	    var i = 0;
+	    while(c<e){
+	        h=str.charCodeAt(c++).toString(16);
+	        while(h.length<2) h="0"+h;
+	        r.push(" "+h);
+	        i++;
+	        if (i % 32 == 0)
+	        	r.push("\n           ");
+	    }
+	    return r.join('');
+	};
+	
+	/**
+	 * Create hexstring from a binary
+	 * @param {String} str String to convert
+	 * @return {String} String containing the hexadecimal values
+	 */
+	this.hexstrdump = function(str) {
+		if (str == null)
+			return "";
+	    var r=[];
+	    var e=str.length;
+	    var c=0;
+	    var h;
+	    while(c<e){
+	        h=str.charCodeAt(c++).toString(16);
+	        while(h.length<2) h="0"+h;
+	        r.push(""+h);
+	    }
+	    return r.join('');
+	};
+	
+	/**
+	 * Create binary string from a hex encoded string
+	 * @param {String} str Hex string to convert
+	 * @return {String} String containing the binary values
+	 */
+	this.hex2bin = function(hex) {
+	    var str = '';
+	    for (var i = 0; i < hex.length; i += 2)
+	        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+	    return str;
+	};
+	
+	/**
+	 * Creating a hex string from an binary array of integers (0..255)
+	 * @param {String} str Array of bytes to convert
+	 * @return {String} Hexadecimal representation of the array
+	 */
+	this.hexidump = function(str) {
+	    var r=[];
+	    var e=str.length;
+	    var c=0;
+	    var h;
+	    while(c<e){
+	        h=str[c++].toString(16);
+	        while(h.length<2) h="0"+h;
+	        r.push(""+h);
+	    }
+	    return r.join('');
+	};
+
+
+	/**
+	 * Convert a native javascript string to a string of utf8 bytes
+	 * @param {String} str The string to convert
+	 * @return {String} A valid squence of utf8 bytes
+	 */
+	this.encode_utf8 = function(str) {
+		return unescape(encodeURIComponent(str));
+	};
+
+	/**
+	 * Convert a string of utf8 bytes to a native javascript string
+	 * @param {String} utf8 A valid squence of utf8 bytes
+	 * @return {String} A native javascript string
+	 */
+	this.decode_utf8 = function(utf8) {
+		try {
+      return decodeURIComponent(escape(utf8));
+    } catch (e) {
+      return utf8;
+    }
+	};
+
+	var str2bin = function(str, result) {
+		for (var i = 0; i < str.length; i++) {
+			result[i] = str.charCodeAt(i);
+		}
+
+		return result;
+	};
+	
+	var bin2str = function(bin) {
+		var result = [];
+
+		for (var i = 0; i < bin.length; i++) {
+			result.push(String.fromCharCode(bin[i]));
+		}
+
+		return result.join('');
+	};
+
+	/**
+	 * Convert a string to an array of integers(0.255)
+	 * @param {String} str String to convert
+	 * @return {Integer[]} An array of (binary) integers
+	 */
+	this.str2bin = function(str) { 
+		return str2bin(str, new Array(str.length));
+	};
+	
+	
+	/**
+	 * Convert an array of integers(0.255) to a string 
+	 * @param {Integer[]} bin An array of (binary) integers to convert
+	 * @return {String} The string representation of the array
+	 */
+	this.bin2str = bin2str;
+	
+	/**
+	 * Convert a string to a Uint8Array
+	 * @param {String} str String to convert
+	 * @return {Uint8Array} The array of (binary) integers
+	 */
+	this.str2Uint8Array = function(str) { 
+		return str2bin(str, new Uint8Array(new ArrayBuffer(str.length))); 
+	};
+	
+	/**
+	 * Convert a Uint8Array to a string. This currently functions 
+	 * the same as bin2str. 
+	 * @param {Uint8Array} bin An array of (binary) integers to convert
+	 * @return {String} String representation of the array
+	 */
+	this.Uint8Array2str = bin2str;
+	
+	/**
+	 * Calculates a 16bit sum of a string by adding each character 
+	 * codes modulus 65535
+	 * @param {String} text String to create a sum of
+	 * @return {Integer} An integer containing the sum of all character 
+	 * codes % 65535
+	 */
+	this.calc_checksum = function(text) {
+		var checksum = {  s: 0, add: function (sadd) { this.s = (this.s + sadd) % 65536; }};
+		for (var i = 0; i < text.length; i++) {
+			checksum.add(text.charCodeAt(i));
+		}
+		return checksum.s;
+	};
+	
+	this.printLevel = { error: 1, warning: 2, info: 3, debug: 4 };
+
+	/**
+	 * Helper function to print a debug message. Debug 
+	 * messages are only printed if
+	 * openpgp.config.debug is set to true. The calling
+	 * Javascript context MUST define
+	 * a "showMessages(text)" function. Line feeds ('\n')
+	 * are automatically converted to HTML line feeds '<br/>'
+	 * @param {String} str String of the debug message
+	 * @return {String} An HTML tt entity containing a paragraph with a 
+	 * style attribute where the debug message is HTMLencoded in. 
+	 */
+	this.print_debug = function(str) {
+		if (openpgp.config.debug) {
+			this.print_output(this.printLevel.debug, str);
+		}
+	};
+	
+	/**
+	 * Helper function to print a debug message. Debug 
+	 * messages are only printed if
+	 * openpgp.config.debug is set to true. The calling
+	 * Javascript context MUST define
+	 * a "showMessages(text)" function. Line feeds ('\n')
+	 * are automatically converted to HTML line feeds '<br/>'
+	 * Different than print_debug because will call hexstrdump iff necessary.
+	 * @param {String} str String of the debug message
+	 * @return {String} An HTML tt entity containing a paragraph with a 
+	 * style attribute where the debug message is HTMLencoded in. 
+	 */
+	this.print_debug_hexstr_dump = function(str,strToHex) {
+		if (openpgp.config.debug) {
+			str = str + this.hexstrdump(strToHex);
+			this.print_output(this.printLevel.debug, str);
+		}
+	};
+	
+	/**
+	 * Helper function to print an error message. 
+	 * The calling Javascript context MUST define
+	 * a "showMessages(text)" function. Line feeds ('\n')
+	 * are automatically converted to HTML line feeds '<br/>'
+	 * @param {String} str String of the error message
+	 * @return {String} A HTML paragraph entity with a style attribute 
+	 * containing the HTML encoded error message
+	 */
+	this.print_error = function(str) {
+		this.print_output(this.printLevel.error, str);
+	};
+	
+	/**
+	 * Helper function to print an info message. 
+	 * The calling Javascript context MUST define
+	 * a "showMessages(text)" function. Line feeds ('\n')
+	 * are automatically converted to HTML line feeds '<br/>'.
+	 * @param {String} str String of the info message
+	 * @return {String} A HTML paragraph entity with a style attribute 
+	 * containing the HTML encoded info message
+	 */
+	this.print_info = function(str) {
+		this.print_output(this.printLevel.info, str);
+	};
+	
+	this.print_warning = function(str) {
+		this.print_output(this.printLevel.warning, str);
+	};
+	
+	this.print_output = function(level, str) {
+		var html;
+		str = openpgp_encoding_html_encode(str).replace(/\n/g,"<br>");
+		if (level == this.printLevel.debug) {
+			html = "<tt><p style=\"background-color: #ffffff; width: 652px; word-break: break-word; padding: 5px; border-bottom: 1px solid black;\">"+str+"</p></tt>";
+		} else {
+			var color, heading;
+			switch (level) {
+				case this.printLevel.error:
+					color = "FF8888";
+					heading = "ERROR";
+					break;
+				case this.printLevel.warning:
+					color = 'FFAA88';
+					heading = "WARNING";
+					break;
+				case this.printLevel.info:
+					color = '88FF88';
+					heading = 'INFO';
+					break;
+			}
+			html = "<p style=\"font-size: 80%; background-color: #"+color+"; margin:0; width: 652px; word-break: break-word; padding: 5px; border-bottom: 1px solid black;\"><span style=\"color: #888;\"><b>"+heading+":</b></span>"+str+"</p>";
+		}
+		if (typeof showMessages === "function") {
+			// only call function if defined
+			showMessages(html);
+		}
+	}
+
+	this.getLeftNBits = function (string, bitcount) {
+		var rest = bitcount % 8;
+		if (rest == 0)
+			return string.substring(0, bitcount / 8);
+		var bytes = (bitcount - rest) / 8 +1;
+		var result = string.substring(0, bytes);
+		return this.shiftRight(result, 8-rest); // +String.fromCharCode(string.charCodeAt(bytes -1) << (8-rest) & 0xFF);
+	};
+
+	/**
+	 * Shifting a string to n bits right
+	 * @param {String} value The string to shift
+	 * @param {Integer} bitcount Amount of bits to shift (MUST be smaller 
+	 * than 9)
+	 * @return {String} Resulting string. 
+	 */
+	this.shiftRight = function(value, bitcount) {
+		var temp = util.str2bin(value);
+        if (bitcount % 8 != 0) {
+        	for (var i = temp.length-1; i >= 0; i--) {
+        		temp[i] >>= bitcount % 8;
+        		if (i > 0)
+        			temp[i] |= (temp[i - 1] << (8 - (bitcount % 8))) & 0xFF;
+        	}
+        } else {
+        	return value;
+        }
+        return util.bin2str(temp);
+	};
+	
+	/**
+	 * Return the algorithm type as string
+	 * @return {String} String representing the message type
+	 */
+	this.get_hashAlgorithmString = function(algo) {
+		switch(algo) {
+		case 1:
+			return "MD5";
+		case 2:
+			return "SHA1";
+		case 3:
+			return "RIPEMD160";
+		case 8:
+			return "SHA256";
+		case 9:
+			return "SHA384";
+		case 10:
+			return "SHA512";
+		case 11:
+			return "SHA224";
+		}
+		return "unknown";
+	};
+};
+
+/**
+ * an instance that should be used. 
+ */
+var util = new Util();
