@@ -8491,38 +8491,57 @@ var openpgp = new _openpgp();
  * @classdesc The class that deals with storage of the keyring. Currently the only option is to use HTML5 local storage.
  */
 function openpgp_keyring() {
+
+  var knownPrivateKeys = {};
+  var knownPublicKeys = {};
 		
 	/**
 	 * Initialization routine for the keyring. This method reads the 
 	 * keyring from HTML5 local storage and initializes this instance.
 	 * This method is called by openpgp.init().
 	 */
+
+  function keyIdent(id) {
+    return "key_"+encodeURIComponent(id);
+  }
+
+  function recordKey(set, id) {
+    var ident = keyIdent(id);
+    if (set[ident]) {
+      return false;
+    } else {
+      set[ident] = true;
+      return true;
+    }
+  }
+
+  function unrecordKey(set, id) {
+    set[keyIdent(id)] = null;
+  }
+
 	function init() {
-		var sprivatekeys = JSON.parse(window.localStorage.getItem("privatekeys"));
-		var spublickeys = JSON.parse(window.localStorage.getItem("publickeys"));
-		if (sprivatekeys == null || sprivatekeys.length == 0) {
-			sprivatekeys = new Array();
+    var that = this;
+		var armoredPackets = JSON.parse(window.localStorage.getItem("armoredPackets"));
+		if (armoredPackets == null) {
+			armoredPackets = new Array();
 		}
 
-		if (spublickeys == null || spublickeys.length == 0) {
-			spublickeys = new Array();
-		}
 		this.publicKeys = new Array();
 		this.privateKeys = new Array();
-		var k = 0;
-		for (var i =0; i < sprivatekeys.length; i++) {
-			var r = openpgp.read_privateKey(sprivatekeys[i]);
-			this.privateKeys[k] = { armored: sprivatekeys[i], obj: r[0], keyId: r[0].getKeyId()};
-			k++;
-		}
-		k = 0;
-		for (var i =0; i < spublickeys.length; i++) {
-			var r = openpgp.read_publicKey(spublickeys[i]);
-			if (r[0] != null) {
-				this.publicKeys[k] = { armored: spublickeys[i], obj: r[0], keyId: r[0].getKeyId()};
-				k++;
-			}
-		}
+    armoredPackets.forEach(function(packet) {
+			(openpgp.read_publicKey(packet)||[]).forEach(function(key) {
+        var keyId = key.getKeyId();
+        if (recordKey(knownPublicKeys, keyId)) {
+          that.publicKeys.push({armored: packet, obj: key, keyId: keyId});
+        }
+      });
+			(openpgp.read_privateKey(packet)||[]).forEach(function(key) {
+        var keyId = obj.getKeyId();
+        if (recordKey(knownPrivateKeys, keyId)) {
+          that.privateKeys.push({armored: packet, obj: key, keyId: keyId});
+        }
+      });
+    });
 	}
 	this.init = init;
 
@@ -8540,16 +8559,14 @@ function openpgp_keyring() {
 	 * The privateKeys array and publicKeys array gets Stringified using JSON
 	 */
 	function store() { 
-		var priv = new Array();
-		for (var i = 0; i < this.privateKeys.length; i++) {
-			priv[i] = this.privateKeys[i].armored;
-		}
-		var pub = new Array();
-		for (var i = 0; i < this.publicKeys.length; i++) {
-			pub[i] = this.publicKeys[i].armored;
-		}
-		window.localStorage.setItem("privatekeys",JSON.stringify(priv));
-		window.localStorage.setItem("publickeys",JSON.stringify(pub));
+    var packets = {};
+    this.publicKeys.forEach(function(key) {
+      packets[key.armored] = true;
+    });
+    this.privateKeys.forEach(function(key) {
+      packets[key.armored] = true;
+    });
+    window.localStorage.setItem("armoredPackets", JSON.stringify(Object.keys(packets)));
 	}
 	this.store = store;
 	/**
@@ -8665,7 +8682,9 @@ function openpgp_keyring() {
 	function importPublicKey (armored_text) {
 		var result = openpgp.read_publicKey(armored_text);
 		for (var i = 0; i < result.length; i++) {
-			this.publicKeys[this.publicKeys.length] = {armored: armored_text, obj: result[i], keyId: result[i].getKeyId()};
+      if (recordKey(knownPublicKeys, result[i].getKeyId())) {
+        this.publicKeys[this.publicKeys.length] = {armored: armored_text, obj: result[i], keyId: result[i].getKeyId()};
+      }
 		}
 		return true;
 	}
@@ -8679,7 +8698,9 @@ function openpgp_keyring() {
 		if(!result[0].decryptSecretMPIs(password))
 		    return false;
 		for (var i = 0; i < result.length; i++) {
-			this.privateKeys[this.privateKeys.length] = {armored: armored_text, obj: result[i], keyId: result[i].getKeyId()};
+      if (recordKey(knownPrivateKeys, result[i].getKeyId())) {
+        this.privateKeys[this.privateKeys.length] = {armored: armored_text, obj: result[i], keyId: result[i].getKeyId()};
+      }
 		}
 		return true;
 	}
@@ -8705,6 +8726,7 @@ function openpgp_keyring() {
 	 */
 	function removePublicKey(index) {
 		var removed = this.publicKeys.splice(index,1);
+    unrecordKey(knownPublicKeys, removed.getKeyId());
 		this.store();
 		return removed;
 	}
@@ -8727,6 +8749,7 @@ function openpgp_keyring() {
 	 */
 	function removePrivateKey(index) {
 		var removed = this.privateKeys.splice(index,1);
+    unrecordKey(knownPrivateKeys, removed.getKeyId());
 		this.store();
 		return removed;
 	}
