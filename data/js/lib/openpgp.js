@@ -8528,19 +8528,8 @@ function openpgp_keyring() {
 
 		this.publicKeys = new Array();
 		this.privateKeys = new Array();
-    armoredPackets.forEach(function(packet) {
-			(openpgp.read_publicKey(packet)||[]).forEach(function(key) {
-        var keyId = key.getKeyId();
-        if (recordKey(knownPublicKeys, keyId)) {
-          that.publicKeys.push({armored: packet, obj: key, keyId: keyId});
-        }
-      });
-			(openpgp.read_privateKey(packet)||[]).forEach(function(key) {
-        var keyId = obj.getKeyId();
-        if (recordKey(knownPrivateKeys, keyId)) {
-          that.privateKeys.push({armored: packet, obj: key, keyId: keyId});
-        }
-      });
+    armoredPackets.forEach(function(key) {
+      that.importKeys(key);
     });
 	}
 	this.init = init;
@@ -8675,38 +8664,23 @@ function openpgp_keyring() {
 	}
 	this.getPrivateKeyForKeyId = getPrivateKeyForKeyId;
 	
-	/**
-	 * Imports a public key from an exported ascii armored message 
-	 * @param {String} armored_text PUBLIC KEY BLOCK message to read the public key from
-	 */
-	function importPublicKey (armored_text) {
-		var result = openpgp.read_publicKey(armored_text);
-		for (var i = 0; i < result.length; i++) {
-      if (recordKey(knownPublicKeys, result[i].getKeyId())) {
-        this.publicKeys[this.publicKeys.length] = {armored: armored_text, obj: result[i], keyId: result[i].getKeyId()};
+  function importKeys(armored) {
+    var that = this;
+    (openpgp.read_publicKey(armored)||[]).forEach(function(key) {
+      var keyId = key.getKeyId();
+      if (recordKey(knownPublicKeys, keyId)) {
+        that.publicKeys.push({armored: armored, obj: key, keyId: keyId});
       }
-		}
-		return true;
-	}
-
-	/**
-	 * Imports a private key from an exported ascii armored message 
-	 * @param {String} armored_text PRIVATE KEY BLOCK message to read the private key from
-	 */
-	function importPrivateKey (armored_text, password) {
-		var result = openpgp.read_privateKey(armored_text);
-		if(!result[0].decryptSecretMPIs(password))
-		    return false;
-		for (var i = 0; i < result.length; i++) {
-      if (recordKey(knownPrivateKeys, result[i].getKeyId())) {
-        this.privateKeys[this.privateKeys.length] = {armored: armored_text, obj: result[i], keyId: result[i].getKeyId()};
+    });
+    (openpgp.read_privateKey(armored)||[]).forEach(function(key) {
+      var keyId = key.getKeyId();
+      if (recordKey(knownPrivateKeys, keyId)) {
+        that.privateKeys.push({armored: armored, obj: key, keyId: keyId});
       }
-		}
-		return true;
-	}
+    });
+  }
+  this.importKeys = importKeys;
 
-	this.importPublicKey = importPublicKey;
-	this.importPrivateKey = importPrivateKey;
 	
 	/**
 	 * returns the openpgp_msg_privatekey representation of the public key at public key ring index  
@@ -8837,16 +8811,22 @@ function openpgp_msg_message() {
 	 * @param {openpgp_msg_publickey} pubkey Array of public keys to check signature against. If not provided, checks local keystore.
 	 * @return {boolean} true if the signature was correct; otherwise false
 	 */
+
+  function getSigningKeyId() {
+    if (this.signature.version == 4) {
+      return this.signature.issuerKeyId;
+    } else if (this.signature.version == 3) {
+      return this.signature.keyId;
+    }
+  }
+
+
 	function verifySignature(pubkey) {
 		var result = false;
 		if (this.signature.tagType == 2) {
 		    if (!pubkey || pubkey.length == 0) {
-			    var pubkey;
-			    if (this.signature.version == 4) {
-				    pubkey = openpgp.keyring.getPublicKeysForKeyId(this.signature.issuerKeyId);
-			    } else if (this.signature.version == 3) {
-				    pubkey = openpgp.keyring.getPublicKeysForKeyId(this.signature.keyId);
-			    } else {
+			    var pubkey = openpgp.keyring.getPublicKeysForKeyId(this.getSigningKeyId());
+          if (!pubkey) {
 				    util.print_error("unknown signature type on message!");
 				    return false;
 			    }
@@ -8867,6 +8847,24 @@ function openpgp_msg_message() {
 		}
 		return result;
 	}
+
+   /**
+    * Decrypts and returns children messages
+    * @param {openpgp_msg_privatekey} private_key the private the message is encrypted with (corresponding to the session key)
+    * @param {openpgp_packet_encryptedsessionkey} sessionkey the session key to be used to decrypt the message
+    * @return {Array} array of openpgp_msg_message's
+    */
+   function decryptMessages(private_key, sessionkey) {
+     if (private_key == null || sessionkey == null || sessionkey == "") {
+       return null;
+     }
+     var decrypted = sessionkey.decrypt(this, private_key.keymaterial);
+     if (decrypted == null) {
+       return null;
+     }
+     util.print_debug_hexstr_dump("openpgp.msg.messge decrypt:\n",decrypted);
+     return openpgp.read_messages_dearmored({text: decrypted, openpgp: decrypted});
+   }
 	
 	function toString() {
 		var result = "Session Keys:\n";
@@ -8888,8 +8886,10 @@ function openpgp_msg_message() {
 		return result;
 	}
 	this.decrypt = decrypt;
+	this.decryptMessages = decryptMessages;
 	this.decryptAndVerifySignature = decryptAndVerifySignature;
 	this.verifySignature = verifySignature;
+	this.getSigningKeyId = getSigningKeyId;
 	this.toString = toString;
 }
 // GPG4Browsers - An OpenPGP implementation in javascript
