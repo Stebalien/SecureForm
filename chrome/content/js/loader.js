@@ -8,15 +8,28 @@
 
 (function() {
 
-  // We need the name but don't want to polute the scope.
-  var name = (function() {
-    var match = /[\\?&]name=([^&#]*)/.exec(location.search);
-    if (!match) {
-      // XXX: Unknown page!  // Should probably do something else!
-      window.close();
-    }
-    return decodeURIComponent(match[1].replace(/\+/g, " "));
-  })();
+  // Source: http://stackoverflow.com/a/901144
+  function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+    results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+  }
+
+  var name = getParameterByName("name");
+  if (!name) {
+    window.close();
+  }
+
+  var args = getParameterByName("args");
+  if (args) {
+    try {
+      args = JSON.parse(args);
+    } catch (e) { }
+  }
+  if (!(args instanceof Array)) {
+    args = [];
+  }
 
   // Funciton that launches the page.
   var exec = function(ctx) {
@@ -30,8 +43,8 @@
 
     // Evaluate the page code.
     return (
-      new Function("require", "require_page", ctx.code + '()')
-    ).call(window, ctx.require, require_page);
+      new Function("require", "require_page", "__args__", ctx.code + '.apply(window, __args__)')
+    ).call(window, ctx.require, require_page, args);
   };
 
   // Pivot or schedule a pivot.
