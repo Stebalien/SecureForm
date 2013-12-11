@@ -1,0 +1,10 @@
+<h1> Enter Your Password </h1>
+<h2><%= id %></h2>
+<ul>
+  <%_.each(uids,function(uid){%>
+    <li><%- uid %></li>
+  <%});%>
+</ul>
+<input id="password" type="password"><br>
+<input id="submit" type="submit" value="Submit">
+<input id="cancel" type="submit" value="Cancel">
