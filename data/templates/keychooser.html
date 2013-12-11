@@ -1,0 +1,6 @@
+<h1> Select Encryption Keys </h1>
+<select data-placeholder="Recipients..." class="chosen-select" multiple="" style="width: 350px;" tabindex="-1">
+<%_.each(uids,function(uid,id){%> 
+	<option value="<%= id %>"> <%- uid %> </option> 
+	<%}); %> 
+</select>
