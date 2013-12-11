@@ -10,7 +10,7 @@
   self.port.on('submit', function(resp) {
     var priv = knownForms[resp.id];
     if (priv) {
-      priv.onSubmit(data);
+      priv.onSubmit(resp.data);
     }
   });
 
@@ -73,7 +73,9 @@
       priv.controlsWindow = controlsWindow;
       priv.loaded = true;
       priv.formWindow.location = priv.formsrc;
-      priv.controlsWindow.location = priv.controlssrc;
+      if (priv.controlssrc) {
+        priv.controlsWindow.location = priv.controlssrc;
+      }
       priv.pub.dispatchEvent(new CustomEvent('load'));
     };
     this.onSubmit = function(value) {
@@ -132,7 +134,11 @@
       that[method] = that[method].bind(priv);
     });
 
-    self.port.emit('new', priv.id);
+    self.port.emit('new', {
+      id: priv.id,
+      controlssrc: priv.controlssrc,
+      formsrc: priv.formsrc
+    });
     Object.freeze(this);
   }
 
@@ -142,7 +148,7 @@
     },
     addEventListener: function addEventListener(event, callback) {
       var key = eventToKey(event);
-      if (this.eventListeners.hasOwnProperty(key)) {
+      if (!this.eventListeners.hasOwnProperty(key)) {
         this.eventListeners[key] = Set();
       }
       this.eventListeners[key].add(callback);

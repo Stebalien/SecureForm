@@ -31,18 +31,18 @@
         window.close();
       }
 
-      var args = getParameterByName("args");
-      if (args) {
-        try {
-          args = JSON.parse(args);
-        } catch (e) { }
-      }
-      if (!(args instanceof Array)) {
-        args = [];
-      }
+      var argIdx = getParameterByName("args");
 
       // Funciton that launches the page.
       var exec = function(ctx) {
+        // Get arguments.
+        var args = ctx.args[argIdx];
+        if (args) {
+          delete ctx.args[argIdx];
+        } else {
+          args = [];
+        }
+
         // Setup require_page...
         var loader_scope = Components.utils.import('resource://gre/modules/commonjs/toolkit/loader.js', {});
         var options = jQuery.extend({}, ctx.options);
