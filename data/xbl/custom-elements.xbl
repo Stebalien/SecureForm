@@ -22,6 +22,8 @@
               val = eval(val);
             }
 
+            if (val == null) return;
+
             var that = this;
             var cb = function(data) {
               that.dispatchEvent(new CustomEvent('-encrypted-element-load', {
