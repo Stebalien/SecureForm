@@ -1,1 +1,2 @@
-content	secure-form	chrome/content/ contentaccessible=yes
+content	secure-form	chrome/content/
+content	secure-form-resources	chrome/resource/ contentaccessible=yes
