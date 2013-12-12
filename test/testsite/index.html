@@ -1,0 +1,18 @@
+<html>
+<script>
+var f = SecureForm({
+formsrc: "http://localhost:8080/form.html",
+controlssrc: "http://localhost:8080/head.html"
+});
+f.addEventListener("submit", function() {
+  document.getElementById("key").textContent = this.value;
+  document.getElementById("display").src="data:text/plain,"+encodeURIComponent(this.value);
+});
+f.show();
+</script>
+<body>
+<encrypted id="display"></encrypted>
+<pre id="key">
+</pre>
+</body>
+</html>
