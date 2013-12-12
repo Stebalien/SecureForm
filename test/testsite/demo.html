@@ -1,0 +1,40 @@
+<html>
+<h1> 6.xxx Course Website </h1>
+<body>
+<div id="secureForm" style="display:none;">
+<body>
+Upload file here:
+<br>
+<input id="file-submission" type="file">
+<br>
+Comments:
+<br>
+<textarea id="comments"></textarea>
+<br>
+<input name="submitbutton" type="submit" value="Submit">
+</body>
+</div>
+Use the form below to upload your submissions and leave comments.
+<br>
+<button id = "viewSecureForm" type="button" onclick="f.show()"> Click here to view secure form</button>
+
+<script>
+var formurl= "data:text/html," + encodeURIComponent(document.getElementById("secureForm").innerHTML);
+var controlurl = "data:text/html," + encodeURIComponent("<h1></h1>");
+var f = SecureForm({
+formsrc: formurl,
+controlssrc: controlurl
+});
+f.addEventListener("submit", function() {
+	document.getElementById("viewSecureForm").style = "display:none;"
+  //document.getElementById("key").textContent = this.value;
+  document.getElementById("display").src="data:text/plain,"+encodeURIComponent(this.value);
+});
+</script>
+<encrypted id="display"></encrypted>
+
+<!--<button name = "viewSecureForm" type="button" onclick="f.show()"> Click here to view secure form</button>-->
+
+
+</body>
+</html>
