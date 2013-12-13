@@ -5,66 +5,54 @@
     xmlns:html="http://www.w3.org/1999/xhtml">
   <binding id="encrypted">
     <content>
-        <html:iframe  style="border: 0;"></html:iframe>
+        <html:iframe style="width: 100%; height: 100%; border-style: none;"></html:iframe>
     </content>
     <implementation>
-      <constructor>
-        this.src = this.getAttribute('src');
-      </constructor>
+        <constructor><![CDATA[
+
+          // WTF! If I don't do this, the inner iframe doesn't get created!
+          // ??????????
+          // Hint: I'm replacing the element.
+
+          if (document.getAnonymousNodes(this) == null) {
+            var newEl = document.createElement('encrypted');
+            for (var i = 0; i < this.attributes.length; i++) {
+                var attr = this.attributes[i];
+                newEl.setAttribute(attr.name, attr.value);
+            }
+            this.parentNode.replaceChild(newEl, this);
+          } else {
+            var src = this.getAttribute('src');
+            if (src) {
+              this.src = src;
+            }
+          }
+          ]]></constructor>
         <property name="src">
           <getter><![CDATA[
-            return this.getAttribute('src');
+            return this.getAttribute('src') || "";
             ]]></getter>
           <setter><![CDATA[
             this.setAttribute('src', val);
 
-            while ((val instanceof String) && val.substring(11) === 'javascript:') {
-              val = eval(val);
-            }
-
-            if (val == null) return;
-
             var that = this;
-            var cb = function(data) {
+            var oReq = new window.XMLHttpRequest();
+            oReq.onload = function() {
               that.dispatchEvent(new CustomEvent('-encrypted-element-load', {
-              detail: data,
+              detail: this.responseText,
               bubbles: true
               }));
+              that.dispatchEvent(new CustomEvent('load', {
+                bubbles: true
+              }));
             };
-
-            function decodeDataURI(uri) {
-              uri = uri.substring(5);
-              var sep;
-
-              sep = uri.indexOf(',');
-              // Invalid
-              if (sep < 0) {
-                return null;
-              }
-              var prefix = uri.substring(sep);
-              var data = uri.substring(sep+1);
-
-              sep = prefix.lastIndexOf(';');
-              if (sep >= 0 && prefix.substring(sep+1) === 'base64') {
-                data = atob(data)
-              }
-              return data;
-            }
-
-            var data;
-            if (val.substring(5) === 'data:') {
-              var data = decodeDataURI(val);
-              if (data) {
-                cb(data);
-              }
-            } else {
-              var oReq = new window.XMLHttpRequest();
-              oReq.onload = function() {
-                cb(this.responseText);
-              };
-              oReq.open("get", val, true);
-              oReq.send();
-            }
+            oReq.onerror = function() {
+              that.dispatchEvent(new CustomEvent('error', {
+                bubbles: true
+              }));
+            };
+            oReq.open("get", val, true);
+            oReq.send();
             ]]></setter>
         </property>
     </implementation>
