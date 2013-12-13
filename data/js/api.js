@@ -135,9 +135,7 @@
     });
 
     self.port.emit('new', {
-      id: priv.id,
-      controlssrc: priv.controlssrc,
-      formsrc: priv.formsrc
+      id: priv.id
     });
     Object.freeze(this);
   }
