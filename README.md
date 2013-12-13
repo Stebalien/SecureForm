@@ -25,7 +25,7 @@ Using (as a website)
 To display a PGP encrypted MIME encoded message/form, place the following in your website:
 
 ```html
-<encrypted src="/path/to/armored-message.pgp"
+<encrypted src="/path/to/armored-message.pgp"></encrypted>
 ```
 
 To open use an encrypted form, do something like the following:
