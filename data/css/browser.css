@@ -8,8 +8,20 @@
   background: transparent;
 }
 
-.secureFormControls, .secureFormForm {
+.secureFormControls, .secureFormForm, .secureFormDialog {
   background: white;
   margin: 10px;
   border-radius: 10px;
+  -moz-outline-radius: 10px;
+  outline: 3px solid white;
+  outline-offset: -3px;
+}
+.secureFormForm {
+  outline-color: blue;
+}
+.secureFormControls {
+  outline-color: orange;
+}
+.secureFormDialog {
+  outline-color: green;
 }
