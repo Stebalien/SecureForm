@@ -1,0 +1,19 @@
+body {
+  background: #EEE;
+  color: #444;
+  line-height: 1.4em;
+  padding: 20px;
+}
+
+select, input, textarea, button {
+  font-family: sans-serif;
+}
+
+.search-field input {
+  height: 20px !important;
+}
+
+input[type=submit] {
+  margin-top: 10px;
+  margin-right: 10px;
+}
