@@ -1,3 +1,8 @@
+Preface
+=======
+
+This code was written very rapidly and is probably buggy and is definitely
+extremely messy. 
 
 Installation
 ============
